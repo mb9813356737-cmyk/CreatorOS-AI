@@ -102,7 +102,7 @@ export default function OnboardingPage() {
 
       {/* Main card wrapper */}
       <div className="relative z-10 w-full max-w-2xl my-12">
-        <div className="relative rounded-2xl border border-glass-border bg-surface-50/80 p-6 sm:p-10 shadow-cinematic backdrop-blur-md overflow-hidden">
+        <div className="relative rounded-2xl border border-glass-border bg-surface-50/80 p-6 sm:p-10 shadow-cinematic backdrop-blur-md overflow-hidden border-electric glow-electric flicker">
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-brand-500 via-accent-500 to-brand-500 opacity-70" />
           
           {/* Top Progress bar */}
@@ -165,7 +165,7 @@ export default function OnboardingPage() {
                     >
                       <Card
                         variant="glass"
-                        className={`p-4 border transition-all duration-200 cursor-pointer h-24 flex flex-col justify-between relative overflow-hidden ${
+                        className={`p-4 border transition-all duration-200 cursor-pointer h-24 flex flex-col justify-between relative overflow-hidden border-electric glow-electric ${
                           isSelected
                             ? "border-accent-500 bg-accent-500/10 shadow-glow-cyan"
                             : "border-glass-border hover:border-glass-border-hover"
@@ -201,7 +201,7 @@ export default function OnboardingPage() {
                     >
                       <Card
                         variant="glass"
-                        className={`p-4 border transition-all duration-200 cursor-pointer h-24 flex flex-col justify-between relative overflow-hidden ${
+                        className={`p-4 border transition-all duration-200 cursor-pointer h-24 flex flex-col justify-between relative overflow-hidden border-electric glow-electric ${
                           isSelected
                             ? "border-accent-500 bg-accent-500/10 shadow-glow-cyan"
                             : "border-glass-border hover:border-glass-border-hover"
@@ -230,7 +230,7 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={handleBackStep}
-                className="text-[10px] font-bold text-text-muted hover:text-text-primary uppercase tracking-widest cursor-pointer disabled:opacity-50"
+                className="text-[10px] font-bold text-text-muted hover:text-text-primary uppercase tracking-widest cursor-pointer disabled:opacity-50 border-dash"
                 disabled={loading}
               >
                 &larr; Back to Niche
@@ -242,7 +242,7 @@ export default function OnboardingPage() {
             <Button
               onClick={step === 1 ? handleNextStep : handleComplete}
               variant="primary"
-              className="h-10.5 px-6 font-bold text-xs shadow-glow-sm"
+              className="h-10.5 px-6 font-bold text-xs shadow-glow-sm border-dash"
               disabled={loading}
               isLoading={loading}
               rightIcon={step === 1 ? <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" /> : undefined}

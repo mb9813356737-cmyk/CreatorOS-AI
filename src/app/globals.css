@@ -433,3 +433,268 @@ h1, h2, h3, h4, h5, h6, .font-display {
     transform: none !important;
   }
 }
+
+/* ── ELECTRIC BLUE TOKENS ── */
+:root {
+  --electric-1: #00d4ff;
+  --electric-2: #0066ff;
+  --electric-3: #7b2fff;
+  --electric-glow: rgba(0, 212, 255, 0.6);
+  --electric-glow-soft: rgba(0, 212, 255, 0.2);
+  --spark-white: rgba(255, 255, 255, 0.9);
+}
+
+/* ════════════════════════════════════════
+   METHOD 1 — CONIC GRADIENT ROTATING BORDER
+   Use on: cards, panels, modals, sections
+════════════════════════════════════════ */
+.border-electric {
+  position: relative;
+  border-radius: inherit;
+  z-index: 0;
+}
+.border-electric::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    transparent 0%,
+    var(--electric-1) 10%,
+    var(--electric-2) 20%,
+    var(--electric-3) 30%,
+    transparent 40%,
+    transparent 60%,
+    var(--electric-1) 70%,
+    var(--electric-2) 80%,
+    transparent 90%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: electric-spin 2s linear infinite;
+  z-index: -1;
+}
+.border-electric::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    transparent 0%,
+    var(--electric-glow) 15%,
+    transparent 30%
+  );
+  filter: blur(8px);
+  animation: electric-spin 2s linear infinite;
+  z-index: -2;
+  opacity: 0.7;
+}
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes electric-spin {
+  to { --angle: 360deg; }
+}
+
+/* ════════════════════════════════════════
+   METHOD 2 — MOVING DASH / STROKE
+   Use on: buttons, badges, tags, chips
+════════════════════════════════════════ */
+.border-dash {
+  position: relative;
+  border: none !important;
+  outline: none;
+}
+.border-dash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--c-bg, #09090b), var(--c-bg, #09090b)) padding-box,
+    linear-gradient(90deg,
+      var(--electric-1),
+      var(--electric-2),
+      var(--electric-3),
+      var(--electric-1)
+    ) border-box;
+  background-size: 200% 100%;
+  animation: border-run 1.5s linear infinite;
+}
+@keyframes border-run {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+/* ════════════════════════════════════════
+   METHOD 3 — SPARK SCANNER LINE
+   Use on: input fields, textareas, selects
+════════════════════════════════════════ */
+.border-scan {
+  position: relative;
+  border: 1px solid rgba(0, 212, 255, 0.3) !important;
+  border-radius: inherit;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.border-scan::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--electric-glow-soft),
+    var(--electric-1),
+    var(--electric-glow-soft),
+    transparent
+  );
+  animation: scan-line 2.5s ease-in-out infinite;
+}
+.border-scan:focus {
+  border-color: var(--electric-1) !important;
+  box-shadow:
+    0 0 0 1px var(--electric-1),
+    0 0 12px var(--electric-glow),
+    0 0 30px var(--electric-glow-soft);
+  outline: none;
+}
+@keyframes scan-line {
+  0%   { left: -100%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: 200%; opacity: 0; }
+}
+
+/* ════════════════════════════════════════
+   METHOD 4 — CORNER SPARKS
+   Use on: images, avatars, feature boxes
+════════════════════════════════════════ */
+.border-corners {
+  position: relative;
+}
+.border-corners::before,
+.border-corners::after {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--electric-1);
+  border-style: solid;
+  animation: corner-pulse 1.5s ease-in-out infinite alternate;
+}
+.border-corners::before {
+  top: -2px; left: -2px;
+  border-width: 2px 0 0 2px;
+  border-radius: 4px 0 0 0;
+}
+.border-corners::after {
+  bottom: -2px; right: -2px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 4px 0;
+}
+/* Add inner pseudo corners via a wrapper div with class .border-corners-inner */
+.border-corners-inner::before,
+.border-corners-inner::after {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--electric-3);
+  border-style: solid;
+  animation: corner-pulse 1.5s ease-in-out infinite alternate-reverse;
+}
+.border-corners-inner::before {
+  top: -2px; right: -2px;
+  border-width: 2px 2px 0 0;
+  border-radius: 0 4px 0 0;
+}
+.border-corners-inner::after {
+  bottom: -2px; left: -2px;
+  border-width: 0 0 2px 2px;
+  border-radius: 0 0 0 4px;
+}
+@keyframes corner-pulse {
+  0%   { opacity: 0.4; filter: drop-shadow(0 0 3px var(--electric-1)); }
+  100% { opacity: 1;   filter: drop-shadow(0 0 10px var(--electric-1))
+                               drop-shadow(0 0 20px var(--electric-glow)); }
+}
+
+/* ════════════════════════════════════════
+   METHOD 5 — FULL PERIMETER LIGHTNING TRACE
+   Use on: hero section wrapper, page border
+════════════════════════════════════════ */
+.border-trace {
+  position: relative;
+  overflow: hidden;
+}
+.border-trace::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, var(--electric-1) 0%, transparent 100%) top    / 100% 2px no-repeat,
+    linear-gradient(0deg,  var(--electric-2) 0%, transparent 100%) right  / 2px 100% no-repeat,
+    linear-gradient(270deg,var(--electric-3) 0%, transparent 100%) bottom / 100% 2px no-repeat,
+    linear-gradient(180deg,var(--electric-1) 0%, transparent 100%) left   / 2px 100% no-repeat;
+  animation: trace-run 3s linear infinite;
+  pointer-events: none;
+}
+@keyframes trace-run {
+  0%   { opacity: 1; clip-path: inset(0 100% 100% 0); }
+  25%  { clip-path: inset(0 0 100% 0); }
+  50%  { clip-path: inset(0 0 0 0); }
+  75%  { clip-path: inset(0 0 0 100%); }
+  100% { clip-path: inset(100% 0 0 0); }
+}
+
+/* ════════════════════════════════════════
+   UNIVERSAL GLOW PULSE
+   Add to any element for ambient electric glow
+════════════════════════════════════════ */
+.glow-electric {
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,0.3),
+    0 0 8px rgba(0,212,255,0.4),
+    0 0 20px rgba(0,212,255,0.2),
+    0 0 60px rgba(0,102,255,0.1);
+  animation: glow-breathe 2s ease-in-out infinite;
+}
+@keyframes glow-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(0,212,255,0.3),
+      0 0 8px rgba(0,212,255,0.4),
+      0 0 20px rgba(0,212,255,0.2),
+      0 0 60px rgba(0,102,255,0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(0,212,255,0.6),
+      0 0 16px rgba(0,212,255,0.7),
+      0 0 40px rgba(0,212,255,0.4),
+      0 0 80px rgba(0,102,255,0.25);
+  }
+}
+
+/* ════════════════════════════════════════
+   FLICKER — OCCASIONAL ELECTRIC STUTTER
+   Adds realism to the electric effect
+════════════════════════════════════════ */
+@keyframes flicker {
+  0%, 95%, 100% { opacity: 1; }
+  96%            { opacity: 0.4; }
+  97%            { opacity: 1; }
+  98%            { opacity: 0.2; }
+  99%            { opacity: 0.9; }
+}
+.border-electric { animation-name: electric-spin, flicker; }

@@ -121,7 +121,7 @@ export function RecentGenerations() {
   const categories = ["ALL", ...Array.from(new Set(recentGenerations.map((g: any) => g.type)))];
 
   return (
-    <Card variant="glass" className="relative overflow-hidden border border-glass-border">
+    <Card variant="glass" className="relative overflow-hidden border border-glass-border border-electric glow-electric">
       <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-glass-border/20 py-5 gap-4 select-none">
         <CardTitle className="text-base font-bold flex items-center gap-2">
           <FileText className="h-5 w-5 text-brand-400" />
@@ -137,7 +137,7 @@ export function RecentGenerations() {
               placeholder="Search history..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs border-glass-border bg-surface-50/20 w-44 hover:border-glass-border-hover"
+              className="pl-9 h-9 text-xs border-glass-border bg-surface-50/20 w-44 hover:border-glass-border-hover border-scan"
             />
           </div>
 
@@ -146,7 +146,7 @@ export function RecentGenerations() {
               variant="ghost" 
               size="sm"
               onClick={clearHistory}
-              className="text-xs text-text-secondary hover:text-error hover:bg-error/5 border border-transparent hover:border-error/10 h-9"
+              className="text-xs text-text-secondary hover:text-error hover:bg-error/5 border border-transparent hover:border-error/10 h-9 border-dash"
             >
               Clear Logs
             </Button>
@@ -167,7 +167,7 @@ export function RecentGenerations() {
                 <button
                   key={cat}
                   onClick={() => setActiveFilter(cat)}
-                  className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md transition-all cursor-pointer border ${
+                  className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md transition-all cursor-pointer border border-dash glow-electric ${
                     activeFilter === cat
                       ? "bg-accent-500 text-text-inverse border-accent-500 shadow-glow-cyan"
                       : "bg-surface-50/40 text-text-secondary border-glass-border hover:bg-surface-100/50 hover:text-text-primary"
@@ -218,7 +218,7 @@ export function RecentGenerations() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.98 }}
                         transition={{ duration: 0.2 }}
-                        className="hover:bg-surface-50/25 transition-colors group cursor-pointer"
+                        className="hover:bg-surface-50/25 transition-colors group cursor-pointer border-scan"
                       >
                         {/* Tool column */}
                         <td className="px-6 py-4 font-medium text-text-primary whitespace-nowrap">
@@ -259,7 +259,7 @@ export function RecentGenerations() {
                             <Button
                               variant="secondary"
                               size="icon"
-                              className="h-8 w-8 hover:bg-surface-200 border-glass-border hover:border-glass-border-hover"
+                              className="h-8 w-8 hover:bg-surface-200 border-glass-border hover:border-glass-border-hover border-dash"
                               onClick={() => handleCopy(item.id, item.output)}
                             >
                               {copiedId === item.id ? (
@@ -271,7 +271,7 @@ export function RecentGenerations() {
                             <Button
                               variant="secondary"
                               size="icon"
-                              className="h-8 w-8 hover:bg-surface-200 border-glass-border hover:border-glass-border-hover"
+                              className="h-8 w-8 hover:bg-surface-200 border-glass-border hover:border-glass-border-hover border-dash"
                               onClick={() => setSelectedGen(item)}
                             >
                               <Eye className="h-3.5 w-3.5" />

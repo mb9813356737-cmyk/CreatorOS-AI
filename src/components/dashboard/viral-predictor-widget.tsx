@@ -27,7 +27,7 @@ export function ViralPredictorWidget() {
   };
 
   return (
-    <Card variant="glass" className="relative overflow-hidden h-full flex flex-col" hoverEffect={false} role="region" aria-label="Quick Virality Predictor">
+    <Card variant="glass" className="relative overflow-hidden h-full flex flex-col border-electric glow-electric" hoverEffect={false} role="region" aria-label="Quick Virality Predictor">
       <div 
         className="absolute -top-12 -right-12 h-44 w-44 pointer-events-none" 
         style={{ backgroundImage: 'radial-gradient(circle, var(--color-accent-500) 0%, transparent 70%)', opacity: 0.15 }}
@@ -50,7 +50,7 @@ export function ViralPredictorWidget() {
                 <Textarea
                   id="widget-content-draft"
                   placeholder="Paste your hooks, captions, or script segments to predict virality score..."
-                  className="flex-1 min-h-[120px] text-xs resize-none bg-surface-50/20 hover:border-glass-border-hover border-glass-border"
+                  className="flex-1 min-h-[120px] text-xs resize-none bg-surface-50/20 hover:border-glass-border-hover border-glass-border border-scan"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   disabled={isGenerating}
@@ -60,13 +60,15 @@ export function ViralPredictorWidget() {
 
               <div className="space-y-1">
                 <label htmlFor="widget-platform-select" className="text-[10px] font-bold text-text-secondary uppercase tracking-widest block pl-0.5">Target Platform</label>
-                <Select
-                  id="widget-platform-select"
-                  options={PLATFORMS}
-                  value={platform}
-                  onChange={setPlatform}
-                  disabled={isGenerating}
-                />
+                <div className="border-scan rounded-lg">
+                  <Select
+                    id="widget-platform-select"
+                    options={PLATFORMS}
+                    value={platform}
+                    onChange={setPlatform}
+                    disabled={isGenerating}
+                  />
+                </div>
               </div>
             </div>
 
@@ -74,7 +76,7 @@ export function ViralPredictorWidget() {
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full h-10.5 font-bold text-xs shadow-glow-sm"
+                className="w-full h-10.5 font-bold text-xs shadow-glow-sm border-dash"
                 disabled={isGenerating}
                 isLoading={isGenerating}
                 rightIcon={!isGenerating && <Sparkles className="h-3.5 w-3.5" />}

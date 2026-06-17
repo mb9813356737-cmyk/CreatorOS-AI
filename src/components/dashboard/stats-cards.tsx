@@ -38,7 +38,7 @@ export function StatsCards() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
       
       {/* 1. Plan Card */}
-      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-brand-500/35 transition-all duration-300 hover:shadow-glow-sm">
+      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-brand-500/35 transition-all duration-300 hover:shadow-glow-sm border-electric glow-electric flicker">
         <div 
           className="absolute top-0 right-0 h-24 w-24 pointer-events-none" 
           style={{ backgroundImage: 'radial-gradient(circle, var(--color-brand-500) 0%, transparent 70%)', opacity: 0.15 }}
@@ -67,7 +67,7 @@ export function StatsCards() {
               <MagneticButton>
                 <button
                   onClick={() => setUpgradeModalOpen(true)}
-                  className="text-[10px] font-extrabold text-brand-400 hover:text-brand-300 transition-colors uppercase tracking-widest cursor-pointer select-none"
+                  className="text-[10px] font-extrabold text-brand-400 hover:text-brand-300 transition-colors uppercase tracking-widest cursor-pointer select-none border-dash"
                 >
                   Upgrade &rarr;
                 </button>
@@ -78,7 +78,7 @@ export function StatsCards() {
       </Card>
 
       {/* 2. Credit circular Gauge Card */}
-      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-accent-500/35 transition-all duration-300 hover:shadow-glow-cyan">
+      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-accent-500/35 transition-all duration-300 hover:shadow-glow-cyan border-electric glow-electric">
         <div 
           className="absolute top-0 right-0 h-24 w-24 pointer-events-none" 
           style={{ backgroundImage: 'radial-gradient(circle, var(--color-accent-500) 0%, transparent 70%)', opacity: 0.15 }}
@@ -148,7 +148,7 @@ export function StatsCards() {
       </Card>
 
       {/* 3. Generations Card */}
-      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-emerald-500/35 transition-all duration-300 hover:shadow-glow-emerald">
+      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-emerald-500/35 transition-all duration-300 hover:shadow-glow-emerald border-electric glow-electric">
         <div 
           className="absolute top-0 right-0 h-24 w-24 pointer-events-none" 
           style={{ backgroundImage: 'radial-gradient(circle, var(--color-emerald-500) 0%, transparent 70%)', opacity: 0.15 }}
@@ -170,7 +170,7 @@ export function StatsCards() {
       </Card>
 
       {/* 4. Virality Card */}
-      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-amber-500/35 transition-all duration-300 hover:shadow-glow-amber">
+      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-amber-500/35 transition-all duration-300 hover:shadow-glow-amber border-electric glow-electric">
         <div 
           className="absolute top-0 right-0 h-24 w-24 pointer-events-none" 
           style={{ backgroundImage: 'radial-gradient(circle, var(--color-amber-500) 0%, transparent 70%)', opacity: 0.15 }}

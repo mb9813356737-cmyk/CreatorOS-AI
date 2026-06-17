@@ -117,7 +117,7 @@ export function QuickActions() {
                 <Card
                   variant="glass"
                   className={cn(
-                    "h-48 flex flex-col justify-between p-5 border border-glass-border hover:bg-surface-50/80 transition-all select-none duration-300 relative overflow-hidden",
+                    "h-48 flex flex-col justify-between p-5 border border-glass-border hover:bg-surface-50/80 transition-all select-none duration-300 relative overflow-hidden border-electric glow-electric",
                     colors.glow,
                     tool.isLocked && "opacity-75"
                   )}
@@ -131,13 +131,13 @@ export function QuickActions() {
                       </div>
                       
                       {tool.isLocked ? (
-                        <div className="flex items-center gap-1 bg-surface-100 border border-glass-border/60 text-text-muted px-2 py-0.5 rounded-full text-[10px] font-bold">
+                        <div className="flex items-center gap-1 bg-surface-100 border border-glass-border/60 text-text-muted px-2 py-0.5 rounded-full text-[10px] font-bold border-dash">
                           <Lock className="h-2.5 w-2.5" />
                           <span>Locked</span>
                         </div>
                       ) : tool.badge ? (
                         <span className={cn(
-                          "text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider",
+                          "text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border-dash glow-electric",
                           tool.badge === "Agency" ? "bg-pink-500/20 text-pink-400 border border-pink-500/30" : "bg-brand-500/20 text-brand-400 border border-brand-500/30"
                         )}>
                           {tool.badge}
@@ -159,7 +159,7 @@ export function QuickActions() {
 
                   <div className="text-[10px] font-semibold text-text-muted mt-2 uppercase tracking-widest flex justify-between items-center">
                     <span>Active engine</span>
-                    <span className="opacity-0 group-hover:opacity-100 text-brand-400 font-bold transition-all duration-300">launch &rarr;</span>
+                    <span className="opacity-0 group-hover:opacity-100 text-brand-400 font-bold transition-all duration-300 border-dash px-1 rounded">launch &rarr;</span>
                   </div>
                 </Card>
               </Link>

@@ -44,7 +44,7 @@ export function Sidebar() {
       initial={false}
       animate={{ width: sidebarCollapsed ? 80 : 260 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="hidden md:flex flex-col h-screen bg-linear-to-b from-surface-50 to-surface-0 border-r border-glass-border/40 shrink-0 select-none overflow-hidden"
+      className="hidden md:flex flex-col h-screen bg-linear-to-b from-surface-50 to-surface-0 border-r border-glass-border/40 shrink-0 select-none overflow-hidden border-trace glow-electric"
     >
       {/* Sidebar Header */}
       <div className="flex h-16 items-center justify-between px-6 border-b border-glass-border/20">
@@ -234,7 +234,7 @@ export function Sidebar() {
             {activePlanName === "FREE" && (
               <button
                 onClick={() => setUpgradeModalOpen(true)}
-                className="w-full h-8 flex items-center justify-center gap-1.5 rounded-md bg-linear-to-r from-brand-500 to-accent-400 hover:from-brand-600 hover:to-accent-500 text-white font-bold text-xs shadow-glow-sm hover:shadow-glow-md transition-all cursor-pointer"
+                className="w-full h-8 flex items-center justify-center gap-1.5 rounded-md bg-linear-to-r from-brand-500 to-accent-400 hover:from-brand-600 hover:to-accent-500 text-white font-bold text-xs shadow-glow-sm hover:shadow-glow-md transition-all cursor-pointer border-dash"
               >
                 <Zap className="h-3 w-3 fill-current" />
                 Upgrade to Pro
@@ -247,7 +247,7 @@ export function Sidebar() {
         <div className="flex justify-center">
           <button
             onClick={toggleSidebar}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-glass-border/40 hover:border-brand-500/50 hover:bg-brand-500/10 text-text-secondary hover:text-brand-400 transition-colors cursor-pointer"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-glass-border/40 hover:border-brand-500/50 hover:bg-brand-500/10 text-text-secondary hover:text-brand-400 transition-colors cursor-pointer border-dash"
           >
             {sidebarCollapsed ? (
               <ChevronRight className="h-4 w-4" />
