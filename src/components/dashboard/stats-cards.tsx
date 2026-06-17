@@ -39,7 +39,10 @@ export function StatsCards() {
       
       {/* 1. Plan Card */}
       <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-brand-500/35 transition-all duration-300 hover:shadow-glow-sm">
-        <div className="absolute top-0 right-0 h-24 w-24 bg-radial-gradient(circle,rgba(124,58,237,0.03)_0%,transparent_70%) pointer-events-none" />
+        <div 
+          className="absolute top-0 right-0 h-24 w-24 pointer-events-none" 
+          style={{ backgroundImage: 'radial-gradient(circle, var(--color-brand-500) 0%, transparent 70%)', opacity: 0.15 }}
+        />
         <CardContent className="pt-6 pb-5 space-y-4">
           <div className="flex justify-between items-start select-none">
             <div className="space-y-1">
@@ -75,8 +78,11 @@ export function StatsCards() {
       </Card>
 
       {/* 2. Credit circular Gauge Card */}
-      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-pink-500/35 transition-all duration-300 hover:shadow-glow-pink">
-        <div className="absolute top-0 right-0 h-24 w-24 bg-radial-gradient(circle,rgba(236,72,153,0.03)_0%,transparent_70%) pointer-events-none" />
+      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-accent-500/35 transition-all duration-300 hover:shadow-glow-cyan">
+        <div 
+          className="absolute top-0 right-0 h-24 w-24 pointer-events-none" 
+          style={{ backgroundImage: 'radial-gradient(circle, var(--color-accent-500) 0%, transparent 70%)', opacity: 0.15 }}
+        />
         <CardContent className="pt-6 pb-5 space-y-4">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
@@ -107,7 +113,7 @@ export function StatsCards() {
                     cx="24"
                     cy="24"
                     r={radius}
-                    className="stroke-pink-500 fill-none"
+                    className="stroke-accent-500 fill-none"
                     strokeWidth={strokeWidth}
                     strokeDasharray={circumference}
                     initial={{ strokeDashoffset: circumference }}
@@ -121,7 +127,7 @@ export function StatsCards() {
                 </div>
               </div>
             ) : (
-              <div className="p-2.5 rounded-lg bg-pink-500/10 border border-pink-500/20 text-pink-400 group-hover:scale-105 transition-transform duration-300">
+              <div className="p-2.5 rounded-lg bg-accent-500/10 border border-accent-500/20 text-accent-500 group-hover:scale-105 transition-transform duration-300">
                 <Sparkles className="h-4.5 w-4.5" />
               </div>
             )}
@@ -142,8 +148,11 @@ export function StatsCards() {
       </Card>
 
       {/* 3. Generations Card */}
-      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-emerald-500/35 transition-all duration-300 hover:shadow-emerald">
-        <div className="absolute top-0 right-0 h-24 w-24 bg-radial-gradient(circle,rgba(16,185,129,0.03)_0%,transparent_70%) pointer-events-none" />
+      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-emerald-500/35 transition-all duration-300 hover:shadow-glow-emerald">
+        <div 
+          className="absolute top-0 right-0 h-24 w-24 pointer-events-none" 
+          style={{ backgroundImage: 'radial-gradient(circle, var(--color-emerald-500) 0%, transparent 70%)', opacity: 0.15 }}
+        />
         <CardContent className="pt-6 pb-5 space-y-4">
           <div className="flex justify-between items-start select-none">
             <div className="space-y-1">
@@ -161,8 +170,11 @@ export function StatsCards() {
       </Card>
 
       {/* 4. Virality Card */}
-      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-amber-500/35 transition-all duration-300 hover:shadow-amber">
-        <div className="absolute top-0 right-0 h-24 w-24 bg-radial-gradient(circle,rgba(245,158,11,0.03)_0%,transparent_70%) pointer-events-none" />
+      <Card variant="glass" className="relative group overflow-hidden border border-glass-border hover:border-amber-500/35 transition-all duration-300 hover:shadow-glow-amber">
+        <div 
+          className="absolute top-0 right-0 h-24 w-24 pointer-events-none" 
+          style={{ backgroundImage: 'radial-gradient(circle, var(--color-amber-500) 0%, transparent 70%)', opacity: 0.15 }}
+        />
         <CardContent className="pt-6 pb-5 space-y-4">
           <div className="flex justify-between items-start select-none">
             <div className="space-y-1">

@@ -81,13 +81,13 @@ export function QuickActions() {
         bg: "bg-emerald-500/10",
         text: "text-emerald-400",
         border: "border-emerald-500/20",
-        glow: "hover:shadow-emerald",
+        glow: "hover:shadow-glow-emerald",
       },
       amber: {
         bg: "bg-amber-500/10",
         text: "text-amber-400",
         border: "border-amber-500/20",
-        glow: "hover:shadow-amber",
+        glow: "hover:shadow-glow-amber",
       },
     };
     return maps[color] || maps.brand;

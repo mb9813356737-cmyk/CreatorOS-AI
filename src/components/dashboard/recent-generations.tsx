@@ -169,7 +169,7 @@ export function RecentGenerations() {
                   onClick={() => setActiveFilter(cat)}
                   className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md transition-all cursor-pointer border ${
                     activeFilter === cat
-                      ? "bg-brand-500 text-white border-brand-500 shadow-glow-xs"
+                      ? "bg-accent-500 text-text-inverse border-accent-500 shadow-glow-cyan"
                       : "bg-surface-50/40 text-text-secondary border-glass-border hover:bg-surface-100/50 hover:text-text-primary"
                   }`}
                 >
@@ -224,11 +224,11 @@ export function RecentGenerations() {
                         <td className="px-6 py-4 font-medium text-text-primary whitespace-nowrap">
                           <div className="flex items-center gap-2.5">
                             {meta && (
-                              <div className="p-2 rounded bg-surface-100 border border-glass-border text-text-secondary group-hover:border-brand-500/20 group-hover:text-brand-400 transition-colors">
+                              <div className="p-2 rounded bg-surface-100 border border-glass-border text-text-secondary group-hover:border-accent-500/20 group-hover:text-accent-500 transition-colors">
                                 <meta.icon className="h-4 w-4" />
                               </div>
                             )}
-                            <span className="group-hover:text-brand-400 transition-colors">{meta?.label || item.type}</span>
+                            <span className="group-hover:text-accent-500 transition-colors">{meta?.label || item.type}</span>
                           </div>
                         </td>
 

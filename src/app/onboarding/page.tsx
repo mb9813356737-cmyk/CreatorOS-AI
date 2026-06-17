@@ -90,7 +90,10 @@ export default function OnboardingPage() {
     <div className="min-h-screen w-screen flex items-center justify-center bg-surface-0 relative overflow-hidden px-6 select-none">
       {/* Background aesthetics */}
       <FloatingParticles />
-      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(124,58,237,0.06)_0%,transparent_70%)] pointer-events-none" />
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{ backgroundImage: 'radial-gradient(circle, var(--color-brand-500) 0%, transparent 70%)', opacity: 0.15 }}
+      />
 
       {/* Centered Entropy background animation */}
       <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none opacity-20 mix-blend-screen">
@@ -100,12 +103,12 @@ export default function OnboardingPage() {
       {/* Main card wrapper */}
       <div className="relative z-10 w-full max-w-2xl my-12">
         <div className="relative rounded-2xl border border-glass-border bg-surface-50/80 p-6 sm:p-10 shadow-cinematic backdrop-blur-md overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-brand-500 via-pink-500 to-brand-500 opacity-70" />
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-brand-500 via-accent-500 to-brand-500 opacity-70" />
           
           {/* Top Progress bar */}
           <div className="w-full flex items-center gap-2 mb-8">
-            <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${step >= 1 ? "bg-brand-500 shadow-glow-sm" : "bg-surface-200"}`} />
-            <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${step >= 2 ? "bg-brand-500 shadow-glow-sm" : "bg-surface-200"}`} />
+            <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${step >= 1 ? "bg-accent-500 shadow-glow-cyan" : "bg-surface-200"}`} />
+            <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${step >= 2 ? "bg-accent-500 shadow-glow-cyan" : "bg-surface-200"}`} />
           </div>
 
           {/* Title Header */}
@@ -158,20 +161,20 @@ export default function OnboardingPage() {
                         setSelectedNiche(niche.value);
                         setError(null);
                       }}
-                      className="text-left w-full focus:outline-hidden"
+                      className="text-left w-full focus:outline-hidden cursor-pointer"
                     >
                       <Card
                         variant="glass"
                         className={`p-4 border transition-all duration-200 cursor-pointer h-24 flex flex-col justify-between relative overflow-hidden ${
                           isSelected
-                            ? "border-brand-500 bg-brand-950/10 shadow-glow-sm"
+                            ? "border-accent-500 bg-accent-500/10 shadow-glow-cyan"
                             : "border-glass-border hover:border-glass-border-hover"
                         }`}
                         hoverEffect={false}
                       >
                         <div className="flex items-start justify-between">
                           <span className="text-lg select-none">{niche.emoji}</span>
-                          {isSelected && <CheckCircle2 className="h-4.5 w-4.5 text-brand-400 fill-current" />}
+                          {isSelected && <CheckCircle2 className="h-4.5 w-4.5 text-accent-500 fill-current" />}
                         </div>
                         <div>
                           <h4 className="font-bold text-text-primary text-xs tracking-tight">{niche.label}</h4>
@@ -194,20 +197,20 @@ export default function OnboardingPage() {
                         setSelectedPlatform(platform.value);
                         setError(null);
                       }}
-                      className="text-left w-full focus:outline-hidden"
+                      className="text-left w-full focus:outline-hidden cursor-pointer"
                     >
                       <Card
                         variant="glass"
                         className={`p-4 border transition-all duration-200 cursor-pointer h-24 flex flex-col justify-between relative overflow-hidden ${
                           isSelected
-                            ? "border-brand-500 bg-brand-950/10 shadow-glow-sm"
+                            ? "border-accent-500 bg-accent-500/10 shadow-glow-cyan"
                             : "border-glass-border hover:border-glass-border-hover"
                         }`}
                         hoverEffect={false}
                       >
                         <div className="flex items-start justify-between">
                           <platform.icon className={`h-5 w-5 ${platform.color.split(" ")[0]}`} />
-                          {isSelected && <CheckCircle2 className="h-4.5 w-4.5 text-brand-400 fill-current" />}
+                          {isSelected && <CheckCircle2 className="h-4.5 w-4.5 text-accent-500 fill-current" />}
                         </div>
                         <div>
                           <h4 className="font-bold text-text-primary text-xs tracking-tight">{platform.label}</h4>

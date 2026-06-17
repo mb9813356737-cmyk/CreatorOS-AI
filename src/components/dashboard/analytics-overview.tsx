@@ -18,12 +18,12 @@ const DEFAULT_HISTORY = [
 ];
 
 const DEFAULT_DISTRIBUTION = [
-  { name: "Hooks", count: 0, color: "#7c3aed" },
-  { name: "Captions", count: 0, color: "#06b6d4" },
-  { name: "Scripts", count: 0, color: "#ec4899" },
-  { name: "Thumbnails", count: 0, color: "#10b981" },
-  { name: "Trends", count: 0, color: "#f59e0b" },
-  { name: "Repurpose", count: 0, color: "#a855f7" },
+  { name: "Hooks", count: 0, color: "var(--color-brand-500)" },
+  { name: "Captions", count: 0, color: "var(--color-pink-500)" },
+  { name: "Scripts", count: 0, color: "var(--color-accent-500)" },
+  { name: "Thumbnails", count: 0, color: "var(--color-emerald-500)" },
+  { name: "Trends", count: 0, color: "var(--color-amber-500)" },
+  { name: "Repurpose", count: 0, color: "var(--color-brand-700)" },
 ];
 
 export function AnalyticsOverview() {
@@ -124,7 +124,10 @@ export function AnalyticsOverview() {
   return (
     <Card variant="glass" className="relative overflow-hidden group">
       {/* Background radial spotlight */}
-      <div className="absolute -top-12 -left-12 h-64 w-64 bg-radial-gradient(circle,rgba(124,58,237,0.04)_0%,transparent_70%) pointer-events-none" />
+      <div 
+        className="absolute -top-12 -left-12 h-64 w-64 pointer-events-none" 
+        style={{ backgroundImage: 'radial-gradient(circle, var(--color-brand-500) 0%, transparent 70%)', opacity: 0.1 }}
+      />
 
       {/* Header section */}
       <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-glass-border/20 pb-5">
@@ -142,7 +145,7 @@ export function AnalyticsOverview() {
             onClick={() => setViewType("views")}
             className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200 cursor-pointer ${
               viewType === "views"
-                ? "bg-brand-500 text-white shadow-glow-sm"
+                ? "bg-accent-500 text-text-inverse shadow-glow-cyan"
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
@@ -152,7 +155,7 @@ export function AnalyticsOverview() {
             onClick={() => setViewType("tools")}
             className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all duration-200 cursor-pointer ${
               viewType === "tools"
-                ? "bg-brand-500 text-white shadow-glow-sm"
+                ? "bg-accent-500 text-text-inverse shadow-glow-cyan"
                 : "text-text-secondary hover:text-text-primary"
             }`}
           >
@@ -193,7 +196,7 @@ export function AnalyticsOverview() {
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-extrabold text-text-primary">{bestChannel}</span>
                     {bestChannel !== "None" && (
-                      <div className="h-1.5 w-1.5 rounded-full bg-pink-500 animate-pulse" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-accent-500 animate-pulse" />
                     )}
                   </div>
                 </div>
@@ -209,12 +212,12 @@ export function AnalyticsOverview() {
                 <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-full overflow-visible">
                   <defs>
                     <linearGradient id="svgYoutubeGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="var(--color-brand-500)" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="var(--color-brand-500)" stopOpacity={0.0} />
                     </linearGradient>
                     <linearGradient id="svgReelsGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ec4899" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#ec4899" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="var(--color-accent-500)" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="var(--color-accent-500)" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
 
@@ -239,17 +242,18 @@ export function AnalyticsOverview() {
                   <path d={getAreaD(reelsCoords)} fill="url(#svgReelsGrad)" />
 
                   {/* Stroke lines */}
-                  <path d={getPathD(youtubeCoords)} fill="none" stroke="#7c3aed" strokeWidth={2} />
-                  <path d={getPathD(reelsCoords)} fill="none" stroke="#ec4899" strokeWidth={2} />
+                  <path d={getPathD(youtubeCoords)} fill="none" stroke="var(--color-brand-500)" strokeWidth={2} />
+                  <path d={getPathD(reelsCoords)} fill="none" stroke="var(--color-accent-500)" strokeWidth={2} />
 
                   {/* Interactive vertical hover indicator */}
                   {hoverIndex !== null && (
                     <line
+                      key="hover-line"
                       x1={youtubeCoords[hoverIndex].x}
                       y1={paddingY}
                       x2={youtubeCoords[hoverIndex].x}
                       y2={chartHeight - paddingY}
-                      stroke="rgba(124,58,237,0.3)"
+                      stroke="rgba(206,255,26,0.3)"
                       strokeWidth={1.5}
                       strokeDasharray="2 2"
                     />
@@ -258,8 +262,8 @@ export function AnalyticsOverview() {
                   {/* Data Point Circles on Hover */}
                   {hoverIndex !== null && (
                     <>
-                      <circle cx={youtubeCoords[hoverIndex].x} cy={youtubeCoords[hoverIndex].y} r={4.5} fill="#7c3aed" stroke="#000" strokeWidth={1} />
-                      <circle cx={reelsCoords[hoverIndex].x} cy={reelsCoords[hoverIndex].y} r={4.5} fill="#ec4899" stroke="#000" strokeWidth={1} />
+                      <circle cx={youtubeCoords[hoverIndex].x} cy={youtubeCoords[hoverIndex].y} r={4.5} fill="var(--color-brand-500)" stroke="#000" strokeWidth={1} />
+                      <circle cx={reelsCoords[hoverIndex].x} cy={reelsCoords[hoverIndex].y} r={4.5} fill="var(--color-accent-500)" stroke="#000" strokeWidth={1} />
                     </>
                   )}
 
@@ -334,7 +338,7 @@ export function AnalyticsOverview() {
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="flex items-center gap-1 text-text-secondary">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#7c3aed]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
                         Youtube (Long)
                       </span>
                       <span className="font-extrabold text-text-primary">
@@ -343,7 +347,7 @@ export function AnalyticsOverview() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="flex items-center gap-1 text-text-secondary">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#ec4899]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-500" />
                         Reels (Short)
                       </span>
                       <span className="font-extrabold text-text-primary">

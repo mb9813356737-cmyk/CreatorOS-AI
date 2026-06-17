@@ -28,7 +28,10 @@ export function ViralPredictorWidget() {
 
   return (
     <Card variant="glass" className="relative overflow-hidden h-full flex flex-col" hoverEffect={false} role="region" aria-label="Quick Virality Predictor">
-      <div className="absolute -top-12 -right-12 h-44 w-44 bg-radial-gradient(circle,rgba(236,72,153,0.03)_0%,transparent_70%) pointer-events-none" />
+      <div 
+        className="absolute -top-12 -right-12 h-44 w-44 pointer-events-none" 
+        style={{ backgroundImage: 'radial-gradient(circle, var(--color-accent-500) 0%, transparent 70%)', opacity: 0.15 }}
+      />
       
       <CardHeader className="border-b border-glass-border/20 py-4.5 select-none">
         <CardTitle className="text-base font-bold flex items-center gap-2">
