@@ -48,18 +48,18 @@ export function InteractiveGlow() {
         className="absolute w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(99,102,241,0.06)_0%,rgba(99,102,241,0.01)_50%,transparent_100%)] mix-blend-screen filter blur-[20px] pointer-events-none"
       />
 
-      {/* Secondary Accent Neon Lime Glow Follower (Smaller, intense core) */}
+      {/* Secondary Accent Violet Glow Follower (Smaller, intense core) */}
       <motion.div
         style={{
           x: secondaryX,
           y: secondaryY,
         }}
-        className="absolute w-[350px] h-[350px] rounded-full bg-[radial-gradient(circle,rgba(206,255,26,0.03)_0%,rgba(206,255,26,0.005)_50%,transparent_100%)] mix-blend-screen filter blur-[30px] pointer-events-none"
+        className="absolute w-[350px] h-[350px] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.04)_0%,rgba(168,85,247,0.008)_50%,transparent_100%)] mix-blend-screen filter blur-[30px] pointer-events-none"
       />
 
       {/* Static ambient background blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.03)_0%,transparent_70%)] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(206,255,26,0.02)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.02)_0%,transparent_70%)] pointer-events-none" />
     </div>
   );
 }

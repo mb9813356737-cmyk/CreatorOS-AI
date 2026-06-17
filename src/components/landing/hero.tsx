@@ -55,7 +55,7 @@ export function Hero() {
     <section className="relative pt-12 pb-12 overflow-hidden select-none w-full bg-black flex flex-col justify-center">
       {/* Mesh Grid & Top Radial Light Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:4.5rem_4.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none z-0" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-[radial-gradient(circle_at_top,rgba(206,255,26,0.07)_0%,transparent_60%)] pointer-events-none z-0" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.07)_0%,transparent_60%)] pointer-events-none z-0" />
 
       <ContainerScroll
         titleComponent={
@@ -65,9 +65,9 @@ export function Hero() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-accent-500/30 bg-accent-500/5 text-accent-400 text-xs font-bold tracking-wider uppercase shadow-glow-sm"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-brand-500/30 bg-brand-500/5 text-brand-300 text-xs font-bold tracking-wider uppercase shadow-glow-sm"
             >
-              <Sparkles className="h-3.5 w-3.5 fill-current animate-pulse text-accent-400" />
+              <Sparkles className="h-3.5 w-3.5 fill-current animate-pulse text-brand-300" />
               <span>Next-Gen Creator Suite for India</span>
             </motion.div>
 
@@ -89,7 +89,7 @@ export function Hero() {
                       fontSize: responsiveFontSize,
                       fontWeight: 800,
                     }}
-                    color="rgb(206, 255, 26)"
+                    color="rgb(168, 85, 247)"
                     spread={5}
                     density={5}
                     animation={{
@@ -137,7 +137,7 @@ export function Hero() {
                   variant="secondary"
                   size="lg"
                   className="w-full sm:w-auto h-12 border border-glass-border hover:bg-surface-50/10 font-bold"
-                  leftIcon={<Zap className="h-4.5 w-4.5 text-accent-400" />}
+                  leftIcon={<Zap className="h-4.5 w-4.5 text-brand-400" />}
                 >
                   View Pricing
                 </Button>
@@ -222,7 +222,7 @@ export function Hero() {
 
               {/* Main Mock Output with Depth Lift */}
               <div className="p-4 rounded-xl border border-glass-border bg-surface-100/25 space-y-3 relative overflow-hidden mt-auto" style={{ transform: "translateZ(50px)" }}>
-                <div className="absolute top-0 right-0 h-16 w-16 bg-radial-gradient(circle,rgba(206,255,26,0.1),transparent_70%) pointer-events-none" />
+                <div className="absolute top-0 right-0 h-16 w-16 bg-radial-gradient(circle,rgba(168,85,247,0.1),transparent_70%) pointer-events-none" />
                 
                 <div className="flex items-center gap-2">
                   <Badge variant="gradient" className="text-[8px] tracking-wider font-extrabold bg-linear-to-r from-pink-500 to-accent-500 text-white">Hinglish Output</Badge>
