@@ -30,47 +30,13 @@ export default function DashboardLayout({
     }
   }, [usage, isLoading, router, isAuthenticated]);
 
-  // Render a skeleton loading state to prevent layout flashing (Rule 10)
+  // Render a loading state during evaluation to prevent UI flashing
   if (authLoading || isLoading || (usage && (!usage.niche || !usage.platform))) {
     return (
-      <div className="flex h-screen w-screen bg-surface-0 relative overflow-hidden">
-        {/* Mock Sidebar Skeleton */}
-        <div className="hidden md:flex flex-col w-64 border-r border-glass-border bg-surface-50 p-6 space-y-8">
-          <div className="h-8 w-36 skeleton" />
-          <div className="space-y-4 flex-1">
-            <div className="h-10 w-full skeleton" />
-            <div className="h-10 w-full skeleton" />
-            <div className="h-10 w-full skeleton" />
-            <div className="h-10 w-full skeleton" />
-            <div className="h-10 w-full skeleton" />
-          </div>
-          <div className="h-16 w-full skeleton" />
-        </div>
-
-        {/* Mock Main Layout Skeleton */}
-        <div className="flex-1 flex flex-col p-6 md:p-8 space-y-8 overflow-hidden">
-          {/* Topbar Skeleton */}
-          <div className="flex justify-between items-center pb-4 border-b border-glass-border">
-            <div className="h-8 w-48 skeleton" />
-            <div className="flex space-x-4">
-              <div className="h-10 w-10 rounded-full skeleton" />
-              <div className="h-10 w-28 skeleton" />
-            </div>
-          </div>
-
-          {/* Grid Content Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="h-28 rounded-lg skeleton" />
-            <div className="h-28 rounded-lg skeleton" />
-            <div className="h-28 rounded-lg skeleton" />
-            <div className="h-28 rounded-lg skeleton" />
-          </div>
-
-          {/* Chart + Widgets Skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
-            <div className="lg:col-span-7 h-80 rounded-lg skeleton" />
-            <div className="lg:col-span-5 h-80 rounded-lg skeleton" />
-          </div>
+      <div className="flex h-screen w-screen items-center justify-center bg-surface-0 relative overflow-hidden">
+        <FloatingParticles />
+        <div className="relative z-10">
+          <CoreSpinLoader text="Syncing profile details..." />
         </div>
       </div>
     );
