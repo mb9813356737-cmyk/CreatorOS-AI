@@ -1,0 +1,420 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════
+   CreatorOS AI — Design System
+   Dark-first, cinematic, glassmorphic, premium SaaS tokens
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Theme Inline (Tailwind v4) ─────────────────────────── */
+@theme {
+  /* Brand Colors */
+  --color-brand-50: #EEF2FF;
+  --color-brand-100: #E0E7FF;
+  --color-brand-200: #C7D2FE;
+  --color-brand-300: #A5B4FC;
+  --color-brand-400: #818CF8;
+  --color-brand-500: #6366F1;
+  --color-brand-600: #4F46E5;
+  --color-brand-700: #4338CA;
+  --color-brand-800: #3730A3;
+  --color-brand-900: #312E81;
+  --color-brand-950: #1E1B4B;
+
+  /* Accent - Neon Lime (High Restraint) */
+  --color-accent-400: #E2FF70;
+  --color-accent-500: #CEFF1A;
+  --color-accent-600: #B4E600;
+
+  /* Accent - Violet/Purple (replaces Pink/Magenta for highlight glow/hover variants) */
+  --color-pink-400: #C084FC;
+  --color-pink-500: #A78BFA;
+  --color-pink-600: #8B5CF6;
+
+  /* Accent - Emerald */
+  --color-emerald-400: oklch(0.76 0.17 160);
+  --color-emerald-500: oklch(0.68 0.19 160);
+
+  /* Accent - Amber */
+  --color-amber-400: oklch(0.82 0.16 80);
+  --color-amber-500: oklch(0.75 0.18 75);
+
+  /* Surface Colors (Dark mode) */
+  --color-surface-0: #030307;
+  --color-surface-50: #0A0A12;
+  --color-surface-100: #0F0F1A;
+  --color-surface-200: #141426;
+  --color-surface-300: #1B1B33;
+  --color-surface-400: #262647;
+
+  /* Text Colors */
+  --color-text-primary: #F5F5F5;
+  --color-text-secondary: #E5E7EB;
+  --color-text-muted: #8E93A6;
+  --color-text-inverse: #030307;
+
+  /* Semantic */
+  --color-success: oklch(0.72 0.19 155);
+  --color-success-400: oklch(0.76 0.17 160);
+  --color-success-500: oklch(0.68 0.19 160);
+
+  --color-warning: oklch(0.80 0.16 75);
+  --color-warning-400: oklch(0.82 0.16 80);
+  --color-warning-500: oklch(0.75 0.18 75);
+
+  --color-error: oklch(0.65 0.22 25);
+  --color-error-400: oklch(0.72 0.22 25);
+  --color-error-500: oklch(0.65 0.22 25);
+  --color-error-600: oklch(0.55 0.22 25);
+
+  --color-info: oklch(0.70 0.15 230);
+
+  /* Background + Foreground (for Shadcn compat) */
+  --color-background: var(--color-surface-0);
+  --color-foreground: var(--color-text-primary);
+
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-glow-sm: 0 0 15px -3px rgba(167, 139, 250, 0.25);
+  --shadow-glow-md: 0 0 30px -5px rgba(167, 139, 250, 0.35);
+  --shadow-glow-lg: 0 0 60px -10px rgba(167, 139, 250, 0.45);
+  --shadow-glow-pink: 0 0 30px -5px rgba(167, 139, 250, 0.35);
+  --shadow-glow-cyan: 0 0 30px -5px rgba(206, 255, 26, 0.35);
+  --shadow-glow-emerald: 0 0 30px -5px oklch(0.68 0.19 160 / 0.3);
+  --shadow-glow-amber: 0 0 30px -5px oklch(0.75 0.18 75 / 0.3);
+  --shadow-emerald: 0 0 30px -5px oklch(0.68 0.19 160 / 0.35);
+  --shadow-amber: 0 0 30px -5px oklch(0.75 0.18 75 / 0.35);
+  --shadow-cinematic: 0 25px 60px -15px oklch(0 0 0 / 0.5);
+  --shadow-elevated: 0 8px 32px -4px oklch(0 0 0 / 0.4);
+
+  /* Animations */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-slide-up: slide-up 0.5s ease-out;
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-spin-slow: spin 8s linear infinite;
+  --animate-particle: particle-float 15s ease-in-out infinite;
+  --animate-gradient: gradient-shift 8s ease infinite;
+}
+
+/* ─── CSS Custom Properties ──────────────────────────────── */
+:root {
+  --glass-bg: rgba(10, 10, 18, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-border-hover: rgba(206, 255, 26, 0.2);
+  --glass-blur: 20px;
+
+  --gradient-hero: linear-gradient(135deg, #6366F1, #CEFF1A);
+  --gradient-hero-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(206, 255, 26, 0.08));
+  --gradient-card: linear-gradient(145deg, rgba(10, 10, 18, 0.85), rgba(5, 5, 8, 0.7));
+  --gradient-sidebar: linear-gradient(180deg, #030307, #0A0A0F);
+  --gradient-text: linear-gradient(135deg, #A78BFA, #CEFF1A);
+
+  /* Transition presets */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Keyframes ──────────────────────────────────────────── */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  33% {
+    transform: translateY(-12px) rotate(1deg);
+  }
+
+  66% {
+    transform: translateY(-6px) rotate(-1deg);
+  }
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    box-shadow: var(--shadow-glow-sm);
+  }
+
+  50% {
+    box-shadow: var(--shadow-glow-md);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes particle-float {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  50% {
+    transform: translate(var(--tx, 100px), var(--ty, -200px)) scale(var(--s, 1.2));
+  }
+}
+
+@keyframes gradient-shift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes typewriter-cursor {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes counter-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Base Styles ────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-surface-0);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-display);
+}
+
+/* ─── Selection ──────────────────────────────────────────── */
+::selection {
+  background: oklch(0.55 0.25 270 / 0.3);
+  color: oklch(0.95 0.01 270);
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.30 0.01 270);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.40 0.01 270);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.30 0.01 270) transparent;
+}
+
+/* ─── Utility Classes ────────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.glass-hover:hover {
+  border-color: var(--glass-border-hover);
+  background: oklch(0.18 0.01 270 / 0.7);
+}
+
+.glass-strong {
+  background: oklch(0.14 0.015 270 / 0.85);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid oklch(1 0 0 / 0.08);
+}
+
+.gradient-text {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-border {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-hero);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.gradient-border:hover::before {
+  opacity: 1;
+}
+
+.neon-glow {
+  box-shadow: var(--shadow-glow-md);
+}
+
+.neon-glow-hover:hover {
+  box-shadow: var(--shadow-glow-lg);
+}
+
+.shimmer-bg {
+  background: linear-gradient(90deg,
+      oklch(0.16 0.01 270) 25%,
+      oklch(0.22 0.01 270) 50%,
+      oklch(0.16 0.01 270) 75%);
+  background-size: 400% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ─── Focus Styles (Accessibility) ───────────────────────── */
+:focus-visible {
+  outline: 2px solid oklch(0.55 0.25 270);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Noise Texture Overlay ──────────────────────────────── */
+.noise-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+}
+
+/* ─── Loading Skeleton ───────────────────────────────────── */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: oklch(0.16 0.01 270);
+  border-radius: var(--radius-md);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 25%,
+      oklch(0.22 0.02 270 / 0.3) 50%,
+      transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ─── Page Transition Base ───────────────────────────────── */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
