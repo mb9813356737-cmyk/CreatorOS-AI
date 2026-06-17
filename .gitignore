@@ -37,3 +37,4 @@ vercel-env-backup.env
 *.njsproj
 *.sln
 *.sw?
+.vercel
