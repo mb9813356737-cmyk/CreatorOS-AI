@@ -108,6 +108,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const data = await res.json();
 
       if (!res.ok) {
+        // If the server included a `debug` field (only in non-production),
+        // log it to the browser console so the developer can see the real
+        // Postgres/Prisma error in DevTools without it surfacing to the user.
+        if (data.debug) {
+          console.error("[signup debug] Server error detail:", data.debug);
+        }
         throw new Error(data.error || "Failed to sign up.");
       }
     } finally {

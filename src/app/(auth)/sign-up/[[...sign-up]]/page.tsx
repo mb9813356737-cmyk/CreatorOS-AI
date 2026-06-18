@@ -51,8 +51,12 @@ export default function SignUpPage() {
         router.push("/verify/pending");
         router.refresh();
       }, 800);
-    } catch (err: any) {
-      setError(err.message || "Failed to register account. Please try again.");
+    } catch (err: unknown) {
+      // err.message is set by auth-store from data.error (the safe user-facing string).
+      // If the API also returned a `debug` field, it was already console.error'd
+      // by the store — here we surface the clean message to the UI.
+      const message = err instanceof Error ? err.message : "Failed to register account. Please try again.";
+      setError(message);
     }
   };
 
