@@ -43,14 +43,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
-      return NextResponse.json(
-        { error: "Please verify your email to log in. Check your inbox." },
-        { status: 403 }
-      );
-    }
-
     // Create session JWT
     const token = await signJWT({
       userId: user.id,

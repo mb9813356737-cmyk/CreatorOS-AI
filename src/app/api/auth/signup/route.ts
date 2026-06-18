@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { signJWT } from "@/lib/jwt";
+import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
@@ -67,10 +69,6 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate verification token
-    const verificationToken = crypto.randomUUID();
-    const verificationExpires = new Date(Date.now() + 24 * 3600 * 1000); // 24 hours
-
     // Create user in database
     let user;
     try {
@@ -84,9 +82,7 @@ export async function POST(req: Request) {
           subscriptionStatus: "INACTIVE",
           monthlyCredits: 10,
           creditsUsed: 0,
-          emailVerified: false,
-          emailVerificationToken: verificationToken,
-          emailVerificationExpires: verificationExpires,
+          emailVerified: true,
         },
       });
     } catch (createErr: unknown) {
@@ -107,27 +103,32 @@ export async function POST(req: Request) {
       );
     }
 
-    // Send verification email (non-blocking — never throws)
-    try {
-      // Dynamic base URL check for dev/production/Vercel
-      let appUrl = "http://localhost:3000";
-      if (process.env.NODE_ENV === "production") {
-        if (process.env.NEXT_PUBLIC_APP_URL) {
-          appUrl = process.env.NEXT_PUBLIC_APP_URL;
-        } else if (process.env.VERCEL_URL) {
-          appUrl = `https://${process.env.VERCEL_URL}`;
-        }
-      }
-      const verificationUrl = `${appUrl}/verify?token=${verificationToken}`;
-      const { sendVerificationEmail } = await import("@/lib/email");
-      sendVerificationEmail(user.email, name, verificationUrl);
-    } catch (emailErr) {
-      console.error("Signup email send failed (non-critical):", emailErr);
-    }
+    // Create session JWT
+    const token = await signJWT({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      emailVerified: user.emailVerified,
+    });
+
+    // Set cookie
+    const cookieStore = await cookies();
+    cookieStore.set("creatoros_session", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 86400, // 24 hours
+    });
 
     return NextResponse.json({
       success: true,
-      message: "Please check your email to verify your account.",
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     });
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : "Internal server error during registration.";
