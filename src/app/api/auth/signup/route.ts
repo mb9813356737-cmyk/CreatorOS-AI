@@ -3,34 +3,60 @@ import { db } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { signJWT } from "@/lib/jwt";
 import { cookies } from "next/headers";
+import { z } from "zod";
+import { rateLimit } from "@/lib/redis";
+
+// Enforce validation schema using Zod
+const signupSchema = z.object({
+  email: z.string().trim().email("Invalid email format").min(5).max(100),
+  password: z.string().min(8, "Password must be at least 8 characters long").max(100),
+  name: z.string().trim().min(2, "Name must be at least 2 characters long").max(50),
+});
 
 export async function POST(req: Request) {
   try {
-    const { email, password, name } = await req.json();
-
-    if (!email || !password || !name) {
+    // ── Rate Limiting (IP-based sliding window: 10 signups per 15 minutes) ──
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1";
+    const rateLimitResult = await rateLimit(`rate_limit:signup:ip:${ip}`, 10, 900);
+    
+    if (!rateLimitResult.success) {
       return NextResponse.json(
-        { error: "Email, password, and name are required." },
+        { error: "Too many registration attempts. Please try again in 15 minutes." },
+        { 
+          status: 429,
+          headers: {
+            "Retry-After": "900",
+            "X-RateLimit-Limit": String(rateLimitResult.limit),
+            "X-RateLimit-Remaining": String(rateLimitResult.remaining),
+            "X-RateLimit-Reset": String(rateLimitResult.reset),
+          }
+        }
+      );
+    }
+
+    // Parse and validate input
+    const body = await req.json();
+    const parseResult = signupSchema.safeParse(body);
+    
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: parseResult.error.issues[0].message },
         { status: 400 }
       );
     }
 
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters long." },
-        { status: 400 }
-      );
-    }
+    const { email, password, name } = parseResult.data;
+    
+    // Sanitize name to prevent simple HTML/XSS injection
+    const sanitizedName = name.replace(/[<>]/g, "");
 
     // ── Verify DATABASE_URL is set ──────────────────────────────────
-    // If missing, log the exact reason and return a clear 500.
     if (!process.env.DATABASE_URL) {
       console.error(
-        "[signup] FATAL: DATABASE_URL is not set in Vercel environment variables. " +
-        "Go to Vercel → Project → Settings → Environment Variables and add DATABASE_URL, then redeploy."
+        "[signup] FATAL: DATABASE_URL is not set in Vercel environment variables."
       );
       return NextResponse.json(
-        { error: "Server configuration error: missing database URL. Please contact support." },
+        { error: "Server configuration error. Please contact support." },
         { status: 500 }
       );
     }
@@ -42,9 +68,7 @@ export async function POST(req: Request) {
         where: { email: email.toLowerCase() },
       });
     } catch (dbErr: unknown) {
-      // Log the EXACT underlying Postgres / Prisma message so it appears in
-      // Vercel runtime logs (Vercel → Project → Functions → Logs).
-      const dbErrMsg  = dbErr instanceof Error ? dbErr.message  : String(dbErr);
+      const dbErrMsg = dbErr instanceof Error ? dbErr.message : String(dbErr);
       const dbErrCode = (dbErr as { code?: string })?.code ?? "N/A";
       console.error(
         `[signup] DB lookup failed — code: ${dbErrCode} | message: ${dbErrMsg}`
@@ -52,7 +76,6 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error: "Could not reach the database. Please try again in a moment.",
-          // include for browser console visibility without exposing internals to real users
           debug: process.env.NODE_ENV !== "production" ? dbErrMsg : undefined,
         },
         { status: 500 }
@@ -66,7 +89,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash password
+    // Hash password with 10 salt rounds
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user in database
@@ -76,7 +99,7 @@ export async function POST(req: Request) {
         data: {
           email: email.toLowerCase(),
           password: hashedPassword,
-          name,
+          name: sanitizedName,
           plan: "FREE",
           role: "USER",
           subscriptionStatus: "INACTIVE",
@@ -90,7 +113,6 @@ export async function POST(req: Request) {
       console.error(
         `[signup] user.create failed — Prisma code: ${errObj?.code ?? "N/A"} | message: ${errObj?.message ?? String(createErr)}`
       );
-      // P2002 = unique constraint violation (duplicate email race condition)
       if (errObj?.code === "P2002" || errObj?.message?.includes("unique")) {
         return NextResponse.json(
           { error: "An account with this email already exists." },
@@ -103,15 +125,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create session JWT
+    // Create session JWT with password-hash signature binding
     const token = await signJWT({
       userId: user.id,
       email: user.email,
       role: user.role,
       emailVerified: user.emailVerified,
+      passwordVersion: user.password ? user.password.substring(0, 10) : "",
     });
 
-    // Set cookie
+    // Set cookie securely
     const cookieStore = await cookies();
     cookieStore.set("creatoros_session", token, {
       httpOnly: true,
@@ -134,7 +157,7 @@ export async function POST(req: Request) {
     const errMsg = err instanceof Error ? err.message : "Internal server error during registration.";
     console.error("Signup unexpected error:", errMsg);
     return NextResponse.json(
-      { error: errMsg },
+      { error: "Internal server error during registration." },
       { status: 500 }
     );
   }

@@ -14,20 +14,31 @@ export async function auth() {
     const session = token ? await verifyJWT(token) : null;
 
     if (session) {
-      userId = session.userId;
+      // Query database to ensure user is active, not banned/suspended, and session is valid
+      const user = await db.user.findUnique({
+        where: { id: session.userId },
+        select: { id: true, banned: true, suspendedUntil: true, role: true, password: true },
+      });
 
-      // Handle admin impersonation cookie override
-      const impersonatedId = cookieStore.get("impersonate_user_id")?.value;
-      if (impersonatedId) {
-        const actualUser = await db.user.findUnique({
-          where: { id: session.userId },
-        });
+      if (user && !user.banned && !(user.suspendedUntil && user.suspendedUntil > new Date())) {
+        const dbPwVersion = user.password ? user.password.substring(0, 10) : "";
         
-        // Only allow non-USER role to impersonate
-        if (actualUser && actualUser.role !== "USER") {
-          userId = impersonatedId;
-          isImpersonated = true;
+        if (session.passwordVersion === dbPwVersion) {
+          userId = session.userId;
+
+          // Handle admin impersonation cookie override
+          const impersonatedId = cookieStore.get("impersonate_user_id")?.value;
+          if (impersonatedId && user.role !== "USER") {
+            userId = impersonatedId;
+            isImpersonated = true;
+          }
+        } else {
+          console.warn(`[Security] Password mismatch for user ${session.userId}. Expiring cookie.`);
+          cookieStore.set("creatoros_session", "", { path: "/", maxAge: 0 });
         }
+      } else if (user) {
+        console.warn(`[Security] Session accessed by banned or suspended user ${session.userId}. Expiring cookie.`);
+        cookieStore.set("creatoros_session", "", { path: "/", maxAge: 0 });
       }
     }
   } catch (err) {

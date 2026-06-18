@@ -56,47 +56,52 @@ export default async function proxy(req: NextRequest) {
 
   // Retrieve token from cookie
   const token = req.cookies.get("creatoros_session")?.value;
-  const session = token ? await verifyJWT(token) : null;
+  let session = null;
+  let clearCookie = false;
+
+  if (token) {
+    session = await verifyJWT(token);
+    if (!session) {
+      clearCookie = true;
+    }
+  }
+
+  // Set up default response
+  let response = NextResponse.next();
 
   // Redirect authenticated users away from sign-in/up pages to dashboard
   if (session && (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up"))) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
-  }
-
-  // Allow public routes through without any checks
-  if (isPublicPath(pathname)) {
-    return NextResponse.next();
-  }
-
-
-
+    response = NextResponse.redirect(new URL("/dashboard", req.url));
+  } 
   // Redirect unauthenticated users on protected routes to sign-in
-  if (!session && isProtectedPath(pathname)) {
+  else if (!session && isProtectedPath(pathname)) {
     const signInUrl = new URL("/sign-in", req.url);
     signInUrl.searchParams.set("redirect_url", req.url);
-    return NextResponse.redirect(signInUrl);
+    response = NextResponse.redirect(signInUrl);
   }
-
   // Block non-admin users from admin routes
-  if (isAdminPath(pathname)) {
+  else if (isAdminPath(pathname)) {
     if (!session) {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
-    }
-
-    const role = session.role;
-    if (role !== "SUPER_ADMIN" && role !== "FINANCE_ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      response = NextResponse.redirect(new URL("/admin/login", req.url));
+    } else {
+      const role = session.role;
+      if (role !== "SUPER_ADMIN" && role !== "FINANCE_ADMIN") {
+        response = NextResponse.redirect(new URL("/dashboard", req.url));
+      }
     }
   }
-
   // Require authentication for all other non-public routes
-  if (!session) {
+  else if (!session && !isPublicPath(pathname)) {
     const signInUrl = new URL("/sign-in", req.url);
     signInUrl.searchParams.set("redirect_url", req.url);
-    return NextResponse.redirect(signInUrl);
+    response = NextResponse.redirect(signInUrl);
   }
 
-  return NextResponse.next();
+  if (clearCookie) {
+    response.cookies.set("creatoros_session", "", { path: "/", maxAge: 0 });
+  }
+
+  return response;
 }
 
 export const config = {

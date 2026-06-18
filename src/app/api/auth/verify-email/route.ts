@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       email: updatedUser.email,
       role: updatedUser.role,
       emailVerified: true,
+      passwordVersion: updatedUser.password ? updatedUser.password.substring(0, 10) : "",
     });
 
     const cookieStore = await cookies();
