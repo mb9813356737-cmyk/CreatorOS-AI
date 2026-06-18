@@ -110,19 +110,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!res.ok) {
         throw new Error(data.error || "Failed to sign up.");
       }
-
-      // Sync session details
-      const sessionRes = await fetch("/api/auth/session");
-      if (sessionRes.ok) {
-        const sessionData = await sessionRes.json();
-        if (sessionData.user) {
-          set({
-            user: sessionData.user,
-            role: sessionData.user.role,
-            isAuthenticated: true,
-          });
-        }
-      }
     } finally {
       set({ loading: false });
     }

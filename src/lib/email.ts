@@ -23,7 +23,7 @@ export async function sendOTPEmail(email: string, otp: string): Promise<EmailRes
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "CreatorOS AI <onboarding@resend.dev>",
+        from: process.env.RESEND_FROM_EMAIL || "CreatorOS AI <no-reply@creatoros.ai>",
         to: [email],
         subject: "Verify your CreatorOS AI Account",
         html: `
@@ -85,7 +85,7 @@ export async function sendVerificationEmail(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "CreatorOS AI <onboarding@resend.dev>",
+        from: process.env.RESEND_FROM_EMAIL || "CreatorOS AI <no-reply@creatoros.ai>",
         to: [email],
         subject: "Verify your CreatorOS AI Account",
         html: `

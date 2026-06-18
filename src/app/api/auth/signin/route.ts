@@ -43,6 +43,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: "Please verify your email to log in. Check your inbox." },
+        { status: 403 }
+      );
+    }
+
     // Create session JWT
     const token = await signJWT({
       userId: user.id,
@@ -70,7 +78,7 @@ export async function POST(req: Request) {
         role: user.role,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Signin error:", err);
     return NextResponse.json(
       { error: "Internal server error during sign in." },

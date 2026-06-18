@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
-import { signJWT } from "@/lib/jwt";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
@@ -37,10 +35,11 @@ export async function POST(req: Request) {
       existingUser = await db.user.findUnique({
         where: { email: email.toLowerCase() },
       });
-    } catch (dbErr: any) {
-      console.error("Signup DB lookup error:", dbErr?.message || dbErr);
+    } catch (dbErr: unknown) {
+      const dbErrMsg = dbErr instanceof Error ? dbErr.message : String(dbErr);
+      console.error("Signup DB lookup error:", dbErrMsg);
       return NextResponse.json(
-        { error: `Database connection failed: ${dbErr?.message || "Unknown DB error"}` },
+        { error: `Database connection failed: ${dbErrMsg}` },
         { status: 500 }
       );
     }
@@ -77,62 +76,49 @@ export async function POST(req: Request) {
           emailVerificationExpires: verificationExpires,
         },
       });
-    } catch (createErr: any) {
-      console.error("Signup user.create error:", createErr?.message || createErr);
+    } catch (createErr: unknown) {
+      const errObj = createErr as { code?: string; message?: string };
+      console.error("Signup user.create error:", errObj?.message || errObj);
       // Handle duplicate email race condition
-      if (createErr?.code === "P2002" || createErr?.message?.includes("unique")) {
+      if (errObj?.code === "P2002" || errObj?.message?.includes("unique")) {
         return NextResponse.json(
           { error: "An account with this email already exists." },
           { status: 400 }
         );
       }
       return NextResponse.json(
-        { error: `Failed to create account: ${createErr?.message || "Database error"}` },
+        { error: `Failed to create account: ${errObj?.message || "Database error"}` },
         { status: 500 }
       );
     }
 
     // Send verification email (non-blocking — never throws)
     try {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-      const verificationUrl = `${appUrl}/verify-email?token=${verificationToken}`;
+      // Dynamic base URL check for dev/production/Vercel
+      let appUrl = "http://localhost:3000";
+      if (process.env.NODE_ENV === "production") {
+        if (process.env.NEXT_PUBLIC_APP_URL) {
+          appUrl = process.env.NEXT_PUBLIC_APP_URL;
+        } else if (process.env.VERCEL_URL) {
+          appUrl = `https://${process.env.VERCEL_URL}`;
+        }
+      }
+      const verificationUrl = `${appUrl}/verify?token=${verificationToken}`;
       const { sendVerificationEmail } = await import("@/lib/email");
       sendVerificationEmail(user.email, name, verificationUrl);
     } catch (emailErr) {
       console.error("Signup email send failed (non-critical):", emailErr);
     }
 
-    // Create session JWT
-    const token = await signJWT({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      emailVerified: false,
-    });
-
-    // Set cookie
-    const cookieStore = await cookies();
-    cookieStore.set("creatoros_session", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 86400, // 24 hours
-    });
-
     return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      message: "Please check your email to verify your account.",
     });
-  } catch (err: any) {
-    console.error("Signup unexpected error:", err?.message || err);
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : "Internal server error during registration.";
+    console.error("Signup unexpected error:", errMsg);
     return NextResponse.json(
-      { error: err?.message || "Internal server error during registration." },
+      { error: errMsg },
       { status: 500 }
     );
   }

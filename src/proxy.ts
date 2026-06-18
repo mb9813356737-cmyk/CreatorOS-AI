@@ -18,6 +18,7 @@ const PUBLIC_PATHS = [
   "/api/payments/webhook",
   "/api/auth",
   "/verify-email",
+  "/verify",
 ];
 
 function isPublicPath(pathname: string) {
@@ -70,8 +71,8 @@ export default async function proxy(req: NextRequest) {
   }
 
   // Redirect unverified users to the verification pending page
-  if (session && !session.emailVerified && !pathname.startsWith("/verify-email")) {
-    return NextResponse.redirect(new URL("/verify-email/pending", req.url));
+  if (session && !session.emailVerified && !pathname.startsWith("/verify") && !pathname.startsWith("/verify-email")) {
+    return NextResponse.redirect(new URL("/verify/pending", req.url));
   }
 
   // Redirect unauthenticated users on protected routes to sign-in

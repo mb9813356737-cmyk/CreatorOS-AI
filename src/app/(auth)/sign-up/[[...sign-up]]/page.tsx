@@ -48,7 +48,7 @@ export default function SignUpPage() {
       await signUp(email, name, password);
       setSuccess("Account successfully created! Please check your email to verify.");
       setTimeout(() => {
-        router.push("/verify-email/pending");
+        router.push("/verify/pending");
         router.refresh();
       }, 800);
     } catch (err: any) {
