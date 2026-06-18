@@ -61,71 +61,9 @@ export async function POST(req: Request) {
       !priceAgencyMonthly.includes("placeholder") &&
       !priceAgencyYearly.includes("placeholder");
 
-    // In production, strictly block simulation and fail if Stripe keys/prices are missing
-    const isProduction = process.env.NODE_ENV === "production";
-    const runSimulation = !isProduction && (simulate || !isStripeConfigured || !arePricesConfigured);
-
-    if (isProduction && (!isStripeConfigured || !arePricesConfigured)) {
-      console.error("[Stripe API] Stripe payment credentials or price IDs are not configured in production.");
+    if (!isStripeConfigured || !arePricesConfigured) {
+      console.error("[Stripe API] Stripe payment credentials or price IDs are not configured.");
       return NextResponse.json({ error: "Stripe payment gateway is currently unavailable" }, { status: 503 });
-    }
-
-    // Simulation check
-    if (runSimulation) {
-      console.log(`[STRIPE SIMULATOR] Simulating checkout for ${user.email} -> ${plan} (${billingPeriod})`);
-      
-      let amount = plan === "PRO" ? 49900 : 199900;
-      if (billingPeriod === "yearly") {
-        const monthlyEquivalent = Math.floor((amount / 100) * 0.8);
-        amount = monthlyEquivalent * 100 * 12; // Yearly total
-      }
-
-      // Calculate expiration date
-      const subEnd = new Date();
-      if (billingPeriod === "yearly") {
-        subEnd.setFullYear(subEnd.getFullYear() + 1);
-      } else {
-        subEnd.setDate(subEnd.getDate() + 30);
-      }
-
-      const monthlyCredits = plan === "PRO" ? 500 : -1;
-
-      // Update database directly in simulator
-      const updatedUser = await db.$transaction(async (tx) => {
-        const u = await tx.user.update({
-          where: { id: user.id },
-          data: {
-            plan: plan as any,
-            subscriptionStatus: "ACTIVE",
-            subscriptionEnd: subEnd,
-            monthlyCredits,
-            creditsUsed: 0,
-            stripeSubscriptionId: `sim_sub_${crypto.randomUUID().slice(0, 12)}`,
-            stripeCustomerId: `sim_cus_${crypto.randomUUID().slice(0, 12)}`,
-          },
-        });
-
-        await tx.payment.create({
-          data: {
-            userId: user.id,
-            stripePaymentId: `sim_pay_${crypto.randomUUID().slice(0, 12)}`,
-            stripeSubscriptionId: u.stripeSubscriptionId,
-            amount,
-            status: "SUCCESS",
-            plan: plan as any,
-            billingPeriod,
-            metadata: { note: "Simulated Stripe payment" },
-          },
-        });
-
-        return u;
-      });
-
-      return NextResponse.json({
-        simulated: true,
-        plan: updatedUser.plan,
-        status: updatedUser.subscriptionStatus,
-      });
     }
 
     // Real Stripe Integration

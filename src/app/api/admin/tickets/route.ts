@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { db } from "@/lib/prisma";
-import { getMockTickets } from "@/lib/mockDb";
 import { handleRouteError } from "@/lib/errors";
 
 export async function GET() {
@@ -30,12 +29,8 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
       });
     } catch (err) {
-      console.warn("Database offline in admin tickets lookup, using mock inbox:", err);
-      dbOffline = true;
-    }
-
-    if ((dbOffline || tickets.length === 0) && process.env.NODE_ENV !== "production") {
-      tickets = getMockTickets();
+      console.error("Database connection issue in admin tickets lookup GET:", err);
+      return NextResponse.json({ error: "Database offline. Unable to load support tickets." }, { status: 500 });
     }
 
     return NextResponse.json({ dbOffline, tickets });
@@ -65,20 +60,17 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
-      // If resolving mock, do not hit DB
-      if (!ticketId.startsWith("mock_")) {
-        ticket = await db.ticket.update({
-          where: { id: ticketId },
-          data: {
-            status,
-            priority,
-            assignedTo,
-            internalNote,
-          },
-        });
-      }
+      ticket = await db.ticket.update({
+        where: { id: ticketId },
+        data: {
+          status,
+          priority,
+          assignedTo,
+          internalNote,
+        },
+      });
     } catch (err) {
-      console.warn("DB offline in admin tickets update. Mocking updates:", err);
+      console.error("Database connection issue in admin tickets update:", err);
       dbOffline = true;
     }
 

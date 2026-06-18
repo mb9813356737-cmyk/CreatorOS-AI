@@ -95,18 +95,17 @@ export async function handleAIGeneration({
     const providerKeyDefined = !!rawKey && !rawKey.includes("placeholder") && rawKey !== "";
 
     if (!providerKeyDefined) {
-      // Mock mode
-      const mockResult = await generateMock(systemPrompt, userPrompt);
-      content = mockResult.content;
-      tokens = mockResult.tokens;
-      modelName = mockResult.model;
-    } else {
-      // Real API mode
-      const aiResult = await generateAI(systemPrompt, userPrompt);
-      content = aiResult.content;
-      tokens = aiResult.tokens;
-      modelName = aiResult.model;
+      return NextResponse.json(
+        { error: "AI Generation is unavailable: Missing API credentials on the server. Please configure GOOGLE_GENERATIVE_AI_KEY." },
+        { status: 500 }
+      );
     }
+
+    // Real API mode
+    const aiResult = await generateAI(systemPrompt, userPrompt);
+    content = aiResult.content;
+    tokens = aiResult.tokens;
+    modelName = aiResult.model;
 
     // Attempt to parse out viralScore if it exists in the JSON output
     let viralScore: number | undefined;

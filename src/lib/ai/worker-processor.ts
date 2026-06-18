@@ -152,18 +152,14 @@ export async function processJobDirectly({
   const providerKeyDefined = !!rawKey && !rawKey.includes("placeholder") && rawKey !== "";
 
   if (!providerKeyDefined) {
-    console.log("[AI Worker Processor] Using generateMock due to missing keys.");
-    const mockResult = await generateMock(systemPrompt, userPrompt);
-    content = mockResult.content;
-    tokens = mockResult.tokens;
-    modelName = mockResult.model;
-  } else {
-    console.log("[AI Worker Processor] Calling generateAI with sequential failovers.");
-    const aiResult = await generateAI(systemPrompt, userPrompt, { userId });
-    content = aiResult.content;
-    tokens = aiResult.tokens;
-    modelName = aiResult.model;
+    throw new Error("AI Service Configuration Error: Missing Google Gemini API Key on server.");
   }
+
+  console.log("[AI Worker Processor] Calling generateAI with sequential failovers.");
+  const aiResult = await generateAI(systemPrompt, userPrompt, { userId });
+  content = aiResult.content;
+  tokens = aiResult.tokens;
+  modelName = aiResult.model;
 
   // 3. Parse viral score if present
   let viralScore: number | undefined;

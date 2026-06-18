@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { db } from "@/lib/prisma";
-import { getMockUsers } from "@/lib/mockDb";
 import { handleRouteError } from "@/lib/errors";
 
 export async function GET(req: Request) {
@@ -58,21 +57,8 @@ export async function GET(req: Request) {
       });
 
     } catch (dbErr) {
-      console.warn("Database offline in admin users GET, returning mock users:", dbErr);
-      dbOffline = true;
-    }
-
-    // Dynamic mock users for developer fallback (only in development environment)
-    if ((dbOffline || users.length === 0) && process.env.NODE_ENV !== "production") {
-      const allMockUsers = getMockUsers();
-
-      users = allMockUsers.filter(u => {
-        if (search && !u.email.toLowerCase().includes(search.toLowerCase()) && !u.name.toLowerCase().includes(search.toLowerCase())) return false;
-        if (filterPlan !== "all" && u.plan !== filterPlan) return false;
-        if (filterRole !== "all" && u.role !== filterRole) return false;
-        if (filterBanned !== "all" && String(u.banned) !== filterBanned) return false;
-        return true;
-      });
+      console.error("Database connection issue in admin users GET:", dbErr);
+      return NextResponse.json({ error: "Database offline. Unable to fetch users." }, { status: 500 });
     }
 
     return NextResponse.json({ dbOffline, users });

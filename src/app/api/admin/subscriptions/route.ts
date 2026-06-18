@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { db } from "@/lib/prisma";
 import { getCoupons, addCoupon, toggleCoupon, deleteCoupon } from "@/lib/coupons-store";
-import { getMockPayments } from "@/lib/mockDb";
 import { handleRouteError } from "@/lib/errors";
 
 export async function GET() {
@@ -29,12 +28,8 @@ export async function GET() {
         take: 30,
       });
     } catch (err) {
-      console.warn("Database offline in admin subscriptions logs, returning mock transactions:", err);
-      dbOffline = true;
-    }
-
-    if ((dbOffline || payments.length === 0) && process.env.NODE_ENV !== "production") {
-      payments = getMockPayments();
+      console.error("Database connection issue in admin subscriptions logs GET:", err);
+      return NextResponse.json({ error: "Database offline. Unable to fetch payment history." }, { status: 500 });
     }
 
     const currentCoupons = getCoupons();

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { db } from "@/lib/prisma";
 import { getAIQueue } from "@/lib/ai/queue";
-import { getMockQueueJobs } from "@/lib/mockDb";
 import { handleRouteError } from "@/lib/errors";
 
 export async function GET() {
@@ -68,8 +67,8 @@ export async function GET() {
         },
       });
     } catch (err) {
-      console.warn("[Admin Queue] DB offline while fetching queue jobs. Using mock jobs.");
-      recentJobs = getMockQueueJobs();
+      console.error("[Admin Queue] DB connection error while fetching queue jobs:", err);
+      return NextResponse.json({ error: "Database offline. Unable to load queue logs." }, { status: 500 });
     }
 
     return NextResponse.json({
