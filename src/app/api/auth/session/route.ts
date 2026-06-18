@@ -20,7 +20,7 @@ export async function GET() {
       return NextResponse.json({ user: null });
     }
 
-    // Retrieve user from DB to ensure freshest state (e.g. niche, platform, plan)
+    // Retrieve user from DB to ensure freshest state and validate session integrity
     const user = await db.user.findUnique({
       where: { id: payload.userId },
       select: {
@@ -35,6 +35,9 @@ export async function GET() {
         monthlyCredits: true,
         creditsUsed: true,
         emailVerified: true,
+        banned: true,
+        suspendedUntil: true,
+        password: true,
       },
     });
 
@@ -42,7 +45,26 @@ export async function GET() {
       return NextResponse.json({ user: null });
     }
 
-    return NextResponse.json({ user });
+    // Enforce ban, suspension, and password version check
+    if (user.banned || (user.suspendedUntil && user.suspendedUntil > new Date())) {
+      console.warn(`[Security] Session rejected: user ${user.id} is banned or suspended.`);
+      const response = NextResponse.json({ user: null });
+      cookieStore.set("creatoros_session", "", { path: "/", maxAge: 0 });
+      return response;
+    }
+
+    const dbPwVersion = user.password ? user.password.substring(0, 10) : "";
+    if (payload.passwordVersion !== dbPwVersion) {
+      console.warn(`[Security] Session rejected: passwordVersion mismatch for user ${user.id}.`);
+      const response = NextResponse.json({ user: null });
+      cookieStore.set("creatoros_session", "", { path: "/", maxAge: 0 });
+      return response;
+    }
+
+    // Strip database password and ban fields before returning to client
+    const { password: _pw, banned: _banned, suspendedUntil: _susp, ...safeUser } = user;
+
+    return NextResponse.json({ user: safeUser });
   } catch (err: any) {
     console.error("Session GET error:", err);
     return NextResponse.json({ user: null });
