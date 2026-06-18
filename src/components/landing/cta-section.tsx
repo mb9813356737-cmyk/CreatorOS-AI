@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles, Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/lib/auth";
 
 export function CTASection() {
+  const { isSignedIn } = useAuth();
   return (
     <section className="py-24 px-6 max-w-5xl mx-auto relative z-10 select-none">
       <motion.div
@@ -56,7 +58,7 @@ export function CTASection() {
         </div>
 
         <div className="pt-6 flex justify-center">
-          <Link href="/sign-in">
+          <Link href={isSignedIn ? "/dashboard" : "/sign-up"}>
             <Button
               variant="primary"
               size="lg"

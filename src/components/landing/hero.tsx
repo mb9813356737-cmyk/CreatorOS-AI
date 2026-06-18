@@ -15,6 +15,7 @@ import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 const ROTATING_KEYWORDS = ["Viral Hooks", "Hinglish Captions", "Shorts Scripts", "Thumbnail Prompts"];
 
 export function Hero() {
+  const { isSignedIn } = useAuth();
   const [responsiveFontSize, setResponsiveFontSize] = useState("50px");
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
@@ -121,7 +122,7 @@ export function Hero() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
             >
-              <Link href="/sign-in" className="w-full sm:w-auto">
+              <Link href={isSignedIn ? "/dashboard" : "/sign-up"} className="w-full sm:w-auto">
                 <Button
                   variant="primary"
                   size="lg"
