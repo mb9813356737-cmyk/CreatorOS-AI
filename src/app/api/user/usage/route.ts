@@ -18,14 +18,6 @@ export async function GET() {
       user = await db.user.findUnique({
         where: { id: userId },
       });
-
-      if (user && user.role !== "SUPER_ADMIN") {
-        // Auto-upgrade existing user for local testing convenience
-        user = await db.user.update({
-          where: { id: user.id },
-          data: { role: "SUPER_ADMIN" },
-        });
-      }
     } catch (dbErr) {
       console.warn("DB Offline in user metrics route, providing offline default:", dbErr);
     }

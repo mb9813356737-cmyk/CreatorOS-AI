@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth-server";
 import { db } from "@/lib/prisma";
 import { generateAI, generateMock } from "./provider";
 import { checkRateLimit } from "./rate-limiter";
-import { RATE_LIMITS } from "@/lib/constants";
+import { RATE_LIMITS, PLANS } from "@/lib/constants";
 import type { GenerationType } from "@/types/ai";
 import { getSystemSettings } from "@/lib/system-settings";
 import { handleRouteError } from "@/lib/errors";
@@ -59,6 +59,18 @@ export async function handleAIGeneration({
         monthlyCredits: 500,
         creditsUsed: 0,
       };
+    }
+
+    // Check plan limits
+    const userPlan = (user.plan || "FREE") as keyof typeof PLANS;
+    const planConfig = PLANS[userPlan] || PLANS.FREE;
+    const isAllowed = planConfig.limits[type as keyof typeof planConfig.limits];
+
+    if (!isAllowed) {
+      return NextResponse.json(
+        { error: "This feature is not available on your current plan. Please upgrade to access it." },
+        { status: 403 }
+      );
     }
 
     // Check credits
