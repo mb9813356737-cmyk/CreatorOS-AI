@@ -103,6 +103,7 @@ export async function POST(req: Request) {
       role: user.role,
       emailVerified: user.emailVerified,
       passwordVersion: user.password.substring(0, 10),
+      plan: user.plan,
     });
 
     // Set secure cookie

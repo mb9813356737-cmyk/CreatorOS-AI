@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { verifyJWT } from "@/lib/jwt";
+import { verifyJWT, signJWT } from "@/lib/jwt";
 import { db } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +59,27 @@ export async function GET() {
       const response = NextResponse.json({ user: null });
       cookieStore.set("creatoros_session", "", { path: "/", maxAge: 0 });
       return response;
+    }
+
+    // Refresh token if plan has updated
+    if (payload.plan !== user.plan) {
+      console.log(`[Session] Syncing plan mismatch (JWT: ${payload.plan || "NONE"} | DB: ${user.plan}) for user ${user.id}`);
+      const newToken = await signJWT({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        passwordVersion: dbPwVersion,
+        plan: user.plan,
+      });
+
+      cookieStore.set("creatoros_session", newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 86400,
+      });
     }
 
     // Strip database password and ban fields before returning to client

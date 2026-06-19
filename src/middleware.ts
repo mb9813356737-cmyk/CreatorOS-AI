@@ -51,7 +51,16 @@ function isProtectedPath(pathname: string) {
   );
 }
 
-export default async function proxy(req: NextRequest) {
+// ─── Plan Gated Routes (allowed plan configurations) ───────
+const PLAN_GATED_ROUTES = [
+  { prefix: "/scripts", allowedPlans: ["PRO", "AGENCY"] },
+  { prefix: "/thumbnails", allowedPlans: ["PRO", "AGENCY"] },
+  { prefix: "/trends", allowedPlans: ["PRO", "AGENCY"] },
+  { prefix: "/viral-score", allowedPlans: ["PRO", "AGENCY"] },
+  { prefix: "/repurpose", allowedPlans: ["AGENCY"] },
+];
+
+export default async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
   // Retrieve token from cookie
@@ -78,6 +87,14 @@ export default async function proxy(req: NextRequest) {
     const signInUrl = new URL("/sign-in", req.url);
     signInUrl.searchParams.set("redirect_url", req.url);
     response = NextResponse.redirect(signInUrl);
+  }
+  // Gating plan restrictions for authenticated users
+  else if (session && PLAN_GATED_ROUTES.some((route) => pathname.startsWith(route.prefix))) {
+    const gatedRoute = PLAN_GATED_ROUTES.find((route) => pathname.startsWith(route.prefix))!;
+    const userPlan = (session.plan || "FREE") as string;
+    if (!gatedRoute.allowedPlans.includes(userPlan)) {
+      response = NextResponse.redirect(new URL("/dashboard", req.url));
+    }
   }
   // Block non-admin users from admin routes
   else if (isAdminPath(pathname)) {

@@ -28,6 +28,7 @@ export interface JWTPayload {
   role: string;
   emailVerified: boolean;
   passwordVersion: string;
+  plan: string;
 }
 
 export async function signJWT(payload: JWTPayload) {
