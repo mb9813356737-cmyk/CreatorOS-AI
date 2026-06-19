@@ -125,7 +125,7 @@ export async function generateAI(
   }
 
   // 2. Sequential Failover Pipeline Execution
-  const settings = getSystemSettings();
+  const settings = await getSystemSettings();
   const providerSetting = settings.activeModel; // "gemini-flash" | "gpt-4o" | "llama3-groq"
 
   // Ordered fallback sequence starting with system active model or default

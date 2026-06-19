@@ -25,7 +25,7 @@ export async function handleAIGeneration({
 }) {
   try {
     // Check maintenance mode
-    const settings = getSystemSettings();
+    const settings = await getSystemSettings();
     if (settings.maintenanceMode) {
       return NextResponse.json(
         { error: "CreatorOS AI is currently undergoing scheduled maintenance. Please try again shortly." },

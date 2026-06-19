@@ -23,7 +23,7 @@ export async function GET() {
       // Database offline fallback, allow access for client development
     }
 
-    const settings = getSystemSettings();
+    const settings = await getSystemSettings();
     return NextResponse.json(settings);
   } catch (error: any) {
     return handleRouteError(error, "Fetch system settings error");
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { activeModel, maintenanceMode } = body;
 
-    const updated = saveSystemSettings({
+    const updated = await saveSystemSettings({
       ...(activeModel !== undefined && { activeModel }),
       ...(maintenanceMode !== undefined && { maintenanceMode }),
     });
