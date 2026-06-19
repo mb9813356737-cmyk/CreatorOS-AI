@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { useAIGenerate } from "@/hooks/use-ai-generate";
+import { toast } from "sonner";
 import { PLATFORMS } from "@/lib/constants";
 import { 
   Sparkles, Copy, Check, RefreshCw, AlertTriangle, 
@@ -272,7 +273,7 @@ export default function ViralScorePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() && !hook.trim() && !script.trim() && !thumbnailText.trim()) {
-      alert("Please fill in at least one field (Title, Hook, Script or Thumbnail text) to analyze.");
+      toast.warning("Please fill in at least one field (Title, Hook, Script or Thumbnail text) to analyze.");
       return;
     }
 

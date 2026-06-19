@@ -6,6 +6,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { UserButton, useUser } from "@/lib/auth";
 import { Menu, Zap, Loader2 } from "lucide-react";
 import { AnimatedSearch } from "@/components/ui/animated-search";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Topbar() {
   const { user } = useUser();
@@ -61,6 +62,9 @@ export function Topbar() {
             Upgrade
           </button>
         )}
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         {/* Clerk User Button */}
         <div className="flex items-center gap-2 border-l border-glass-border/20 pl-4 h-8">

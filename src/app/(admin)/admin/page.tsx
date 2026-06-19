@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { 
   Users, 
   TrendingUp, 
@@ -262,14 +263,14 @@ export default function AdminPage() {
 
       if (res.ok) {
         // Impersonation successful, redirect to client user dashboard page
-        alert(`Successfully acting as creator ${targetUser.name || targetUser.email}! Redirecting...`);
+        toast.success(`Successfully acting as creator ${targetUser.name || targetUser.email}! Redirecting...`);
         router.push("/dashboard");
       } else {
-        alert("Failed to start impersonation");
+        toast.error("Failed to start impersonation");
       }
     } catch (err) {
       console.error(err);
-      alert("Error setting up impersonation");
+      toast.error("Error setting up impersonation");
     } finally {
       setImpersonating(null);
     }
@@ -293,13 +294,13 @@ export default function AdminPage() {
       if (res.ok) {
         setUserModalOpen(false);
         loadTabStats();
-        alert(`Admin profile adjustment successful.`);
+        toast.success(`Admin profile adjustment successful.`);
       } else {
-        alert("Failed to perform administration action");
+        toast.error("Failed to perform administration action");
       }
     } catch (err) {
       console.error(err);
-      alert("Error modifying user details");
+      toast.error("Error modifying user details");
     } finally {
       setActionProcessing(false);
     }
@@ -322,13 +323,13 @@ export default function AdminPage() {
       if (res.ok) {
         setTicketModalOpen(false);
         loadTabStats();
-        alert(`Support ticket status updated.`);
+        toast.success(`Support ticket status updated.`);
       } else {
-        alert("Failed to modify support ticket");
+        toast.error("Failed to modify support ticket");
       }
     } catch (err) {
       console.error(err);
-      alert("Error modifying support ticket");
+      toast.error("Error modifying support ticket");
     } finally {
       setActionProcessing(false);
     }
@@ -351,7 +352,7 @@ export default function AdminPage() {
       if (res.ok) {
         loadTabStats();
       } else {
-        alert("Failed to update feature flag configuration");
+        toast.error("Failed to update feature flag configuration");
       }
     } catch (err) {
       console.error(err);
@@ -374,9 +375,9 @@ export default function AdminPage() {
 
       if (res.ok) {
         loadTabStats();
-        alert("Canary feature flag created successfully.");
+        toast.success("Canary feature flag created successfully.");
       } else {
-        alert("Failed to create feature flag");
+        toast.error("Failed to create feature flag");
       }
     } catch (err) {
       console.error(err);
@@ -402,11 +403,11 @@ export default function AdminPage() {
           setMaintenanceMode(data.settings.maintenanceMode);
         }
       } else {
-        alert("Failed to save system settings.");
+        toast.error("Failed to save system settings.");
       }
     } catch (err) {
       console.error(err);
-      alert("Error updating settings.");
+      toast.error("Error updating settings.");
     } finally {
       setActionProcessing(false);
     }
@@ -428,9 +429,9 @@ export default function AdminPage() {
 
       if (res.ok) {
         loadTabStats();
-        alert("Payment refunded successfully.");
+        toast.success("Payment refunded successfully.");
       } else {
-        alert("Failed to process payment refund");
+        toast.error("Failed to process payment refund");
       }
     } catch (err) {
       console.error(err);
@@ -455,7 +456,7 @@ export default function AdminPage() {
       if (res.ok) {
         loadTabStats();
       } else {
-        alert("Failed to toggle coupon status");
+        toast.error("Failed to toggle coupon status");
       }
     } catch (err) {
       console.error(err);
@@ -481,7 +482,7 @@ export default function AdminPage() {
       if (res.ok) {
         loadTabStats();
       } else {
-        alert("Failed to delete coupon");
+        toast.error("Failed to delete coupon");
       }
     } catch (err) {
       console.error(err);
@@ -507,9 +508,9 @@ export default function AdminPage() {
 
       if (res.ok) {
         loadTabStats();
-        alert("New coupon code registered successfully.");
+        toast.success("New coupon code registered successfully.");
       } else {
-        alert("Failed to create coupon code");
+        toast.error("Failed to create coupon code");
       }
     } catch (err) {
       console.error(err);
@@ -536,13 +537,13 @@ export default function AdminPage() {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-        alert("Database dump generated and downloaded successfully.");
+        toast.success("Database dump generated and downloaded successfully.");
       } else {
-        alert("Failed to compile database backup");
+        toast.error("Failed to compile database backup");
       }
     } catch (err) {
       console.error(err);
-      alert("Backup error");
+      toast.error("Backup error");
     } finally {
       setActionProcessing(false);
     }
@@ -1605,9 +1606,9 @@ export default function AdminPage() {
                   if (res.ok) {
                     setPromptModalOpen(false);
                     loadTabStats();
-                    alert("Prompt updated successfully.");
+                    toast.success("Prompt updated successfully.");
                   } else {
-                    alert("Error saving prompt.");
+                    toast.error("Error saving prompt.");
                   }
                   setActionProcessing(false);
                 }}

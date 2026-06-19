@@ -10,6 +10,7 @@ import { useUser } from "@/lib/auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useUsage } from "@/hooks/use-usage";
 import { useUIStore } from "@/stores/ui-store";
+import { toast } from "sonner";
 import { 
   User, 
   Settings as SettingsIcon, 
@@ -355,7 +356,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     <Button
-                      onClick={() => alert("WhatsApp Bot integration is coming soon in the next release!")}
+                      onClick={() => toast.info("WhatsApp Bot integration is coming soon in the next release!")}
                       disabled
                       className="h-9 px-5 bg-surface-200 text-text-muted font-bold text-xs cursor-not-allowed opacity-60"
                       leftIcon={<QrCode className="h-3.5 w-3.5" />}

@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Quote } from "lucide-react";
-import { motion } from "framer-motion";
+import { Marquee } from "@/components/magicui/marquee";
 
 const TESTIMONIALS = [
   {
@@ -31,8 +31,8 @@ const TESTIMONIALS = [
 
 export function Testimonials() {
   return (
-    <section className="py-20 max-w-6xl mx-auto px-6 relative z-10 select-none">
-      <div className="text-center space-y-3.5 mb-16">
+    <section className="py-20 overflow-hidden relative z-10 select-none">
+      <div className="text-center space-y-3.5 mb-16 max-w-6xl mx-auto px-6">
         <Badge variant="gradient" className="font-extrabold px-3 py-1 text-xs">Testimonials</Badge>
         <h2 className="text-3xl md:text-4xl font-extrabold text-text-primary tracking-tight">
           Validated by <span className="gradient-text">Top Bharatiya Creators</span>
@@ -42,19 +42,13 @@ export function Testimonials() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-        {TESTIMONIALS.map((test, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: idx * 0.1 }}
-            className="flex"
-          >
+      <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
+        <Marquee pauseOnHover className="[--duration:30s] gap-6">
+          {TESTIMONIALS.map((test, idx) => (
             <Card
+              key={idx}
               variant="glass"
-              className="p-5.5 flex flex-col justify-between border border-glass-border hover:border-glass-border-hover shadow-elevated bg-surface-50/20"
+              className="p-5.5 flex flex-col justify-between border border-glass-border hover:border-glass-border-hover shadow-elevated bg-surface-50/20 w-[360px] shrink-0"
               hoverEffect
             >
               <div>
@@ -78,8 +72,12 @@ export function Testimonials() {
                 </div>
               </div>
             </Card>
-          </motion.div>
-        ))}
+          ))}
+        </Marquee>
+
+        {/* Mask Gradients for Edge Fading */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-surface-0 z-10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-surface-0 z-10" />
       </div>
     </section>
   );

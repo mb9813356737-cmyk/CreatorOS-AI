@@ -1,14 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk, Geist } from "next/font/google";
 import { ClerkProvider } from "@/lib/auth";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 // ─── Fonts ─────────────────────────────────────────────────
-const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
@@ -74,6 +73,9 @@ export const viewport: Viewport = {
 };
 
 import { SessionLoader } from "@/components/shared/session-loader";
+import { cn } from "@/lib/utils";
+
+import { Toaster } from "sonner";
 
 // ─── Root Layout ───────────────────────────────────────────
 export default function RootLayout({
@@ -84,14 +86,24 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} dark`}
+      className={cn(spaceGrotesk.variable, jetbrainsMono.variable, "font-sans", geist.variable)}
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-surface-0 text-text-primary font-sans antialiased">
         <ClerkProvider>
-          <SessionLoader>
-            {children}
-          </SessionLoader>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SkeletonTheme baseColor="#141426" highlightColor="#1b1b33">
+              <SessionLoader>
+                {children}
+              </SessionLoader>
+              <Toaster richColors closeButton theme="dark" />
+            </SkeletonTheme>
+          </ThemeProvider>
         </ClerkProvider>
       </body>
     </html>

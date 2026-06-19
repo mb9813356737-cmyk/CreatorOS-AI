@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useSubscription } from "@/hooks/use-subscription";
 import { PLANS } from "@/lib/constants";
 import { formatDate, formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 import { 
   CreditCard, 
   Zap, 
@@ -171,13 +172,13 @@ export default function BillingPage() {
       if (res.ok) {
         await refetch();
         setShowCancelConfirm(false);
-        alert("Subscription downgraded to Starter successfully.");
+        toast.success("Subscription downgraded to Starter successfully.");
       } else {
-        alert("Failed to downgrade subscription. Please contact support.");
+        toast.error("Failed to downgrade subscription. Please contact support.");
       }
     } catch (err) {
       console.error("Error cancelling subscription:", err);
-      alert("Error cancelling subscription.");
+      toast.error("Error cancelling subscription.");
     } finally {
       setCancelling(false);
     }

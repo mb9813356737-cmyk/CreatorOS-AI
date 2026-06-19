@@ -4,6 +4,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { useUsage } from "@/hooks/use-usage";
 import { useGenerationStore } from "@/stores/generation-store";
 import { Card, CardContent } from "@/components/ui/card";
+import Skeleton from "react-loading-skeleton";
 import { AnimatedCounter } from "@/components/shared/animated-counter";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Zap, History, TrendingUp } from "lucide-react";
@@ -46,7 +47,7 @@ export function StatsCards() {
               <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Active Plan</p>
               <h3 className="text-2xl font-extrabold text-text-primary tracking-tight mt-0.5">
                 {subLoading ? (
-                  <span className="h-6 w-20 bg-surface-200 animate-pulse rounded block" />
+                  <Skeleton width={80} height={24} />
                 ) : (
                   planName
                 )}
@@ -83,7 +84,7 @@ export function StatsCards() {
               <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest select-none">Credits Remaining</p>
               <h3 className="text-2xl font-extrabold text-text-primary tracking-tight mt-0.5">
                 {usageLoading ? (
-                  <span className="h-6 w-16 bg-surface-200 animate-pulse rounded block" />
+                  <Skeleton width={64} height={24} />
                 ) : usage?.isUnlimited ? (
                   "Unlimited"
                 ) : (
