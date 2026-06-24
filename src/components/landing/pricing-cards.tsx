@@ -1,36 +1,38 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import Link from "next/link";
 import { PLANS } from "@/lib/constants";
 import { Card, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
-import { ShaderBackground } from "@/components/ui/shader-background";
-import { Entropy } from "@/components/ui/entropy";
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-} as const;
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20 } },
-} as const;
+import { Sparkles as SparklesComp } from "@/components/ui/sparkles";
+import { TimelineContent } from "@/components/ui/timeline-animation";
+import { VerticalCutReveal } from "@/components/ui/vertical-cut-reveal";
 
 export function PricingCards() {
   const { isSignedIn } = useAuth();
-  const billingPeriod = "monthly";
+  const pricingRef = useRef<HTMLDivElement>(null);
+
+  const revealVariants = {
+    visible: (i: number) => ({
+      y: 0,
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: {
+        delay: i * 0.4,
+        duration: 0.5,
+      },
+    }),
+    hidden: {
+      filter: "blur(10px)",
+      y: -20,
+      opacity: 0,
+    },
+  };
 
   const plans = Object.entries(PLANS).map(([key, plan]) => {
     let priceDisplay: string = plan.priceDisplay;
@@ -50,44 +52,102 @@ export function PricingCards() {
   });
 
   return (
-    <section className="py-24 max-w-6xl mx-auto px-6 relative z-10 select-none overflow-hidden" id="pricing">
-      {/* Background aesthetics */}
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[350px] h-[350px] bg-accent-500/5 rounded-full filter blur-[100px] pointer-events-none" />
-
-      {/* WebGL Shader Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-20 overflow-hidden">
-        <ShaderBackground />
-      </div>
-
-      {/* Entropy Particle Grid */}
-      <div className="absolute inset-0 flex items-center justify-center z-0 pointer-events-none opacity-15 mix-blend-screen overflow-hidden">
-        <Entropy size={500} />
-      </div>
-
-
-      {/* Header */}
-      <div className="text-center space-y-4 mb-16">
-        <Badge variant="gradient" className="font-extrabold px-3 py-1 text-xs bg-linear-to-r from-pink-500 to-accent-500 text-white">Pricing Tiers</Badge>
-        <h2 className="text-3xl md:text-5xl font-extrabold text-text-primary tracking-tight">
-          Flexible Pricing for <span className="bg-linear-to-r from-brand-500 to-accent-500 bg-clip-text text-transparent font-black">Every Scale</span>
-        </h2>
-        <p className="max-w-md mx-auto text-sm text-text-secondary">
-          Start with our free trial tier and unlock premium templates as you scale your creator channels.
-        </p>
-      </div>
-
-      {/* Grid */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "-100px" }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch"
+    <section 
+      ref={pricingRef}
+      className="py-24 max-w-6xl mx-auto px-6 relative z-10 select-none overflow-hidden w-full" 
+      id="pricing"
+    >
+      {/* Background Aesthetics from User Code */}
+      <TimelineContent
+        animationNum={4}
+        timelineRef={pricingRef}
+        customVariants={revealVariants}
+        className="absolute top-0 left-0 h-96 w-screen overflow-hidden [mask-image:radial-gradient(50%_50%,white,transparent)] pointer-events-none z-0"
       >
-        {plans.map((plan) => {
+        <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#ffffff1a_1px,transparent_1px),linear-gradient(to_bottom,#3a3a3a01_1px,transparent_1px)] bg-[size:70px_80px]" />
+        <SparklesComp
+          density={1200}
+          direction="bottom"
+          speed={0.8}
+          color="#FFFFFF"
+          className="absolute inset-x-0 bottom-0 h-full w-full [mask-image:radial-gradient(50%_50%,white,transparent_85%)] opacity-30"
+        />
+      </TimelineContent>
+
+      <TimelineContent
+        animationNum={5}
+        timelineRef={pricingRef}
+        customVariants={revealVariants}
+        className="absolute left-0 top-[-114px] w-full h-[113.625vh] flex flex-col items-start justify-start content-start flex-none flex-nowrap gap-2.5 overflow-hidden p-0 z-0 pointer-events-none"
+      >
+        <div className="w-full h-full relative">
+          <div
+            className="absolute left-[-200px] top-0 w-[600px] h-[600px] rounded-full opacity-20"
+            style={{
+              border: "150px solid #6366f1",
+              filter: "blur(92px)",
+              WebkitFilter: "blur(92px)",
+            }}
+          />
+          <div
+            className="absolute right-[-200px] top-0 w-[600px] h-[600px] rounded-full opacity-20"
+            style={{
+              border: "150px solid #a855f7",
+              filter: "blur(92px)",
+              WebkitFilter: "blur(92px)",
+            }}
+          />
+        </div>
+      </TimelineContent>
+
+      {/* Header with Vertical Cut Reveal Typography */}
+      <div className="text-center space-y-4 mb-16 relative z-10">
+        <Badge variant="gradient" className="font-extrabold px-3 py-1 text-xs bg-linear-to-r from-pink-500 to-accent-500 text-white">
+          Pricing Tiers
+        </Badge>
+        
+        <h2 className="text-3xl md:text-5xl font-extrabold text-text-primary tracking-tight">
+          <VerticalCutReveal
+            splitBy="words"
+            staggerDuration={0.12}
+            staggerFrom="first"
+            reverse={true}
+            containerClassName="justify-center flex-wrap"
+            transition={{
+              type: "spring",
+              stiffness: 250,
+              damping: 40,
+              delay: 0,
+            }}
+          >
+            Flexible Pricing for Every Scale
+          </VerticalCutReveal>
+        </h2>
+        
+        <TimelineContent
+          as="p"
+          animationNum={0}
+          timelineRef={pricingRef}
+          customVariants={revealVariants}
+          className="max-w-md mx-auto text-sm text-text-secondary"
+        >
+          Start with our free trial tier and unlock premium templates as you scale your creator channels.
+        </TimelineContent>
+      </div>
+
+      {/* Grid with staggered card entries */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch relative z-10">
+        {plans.map((plan, index) => {
           const isPopular = plan.key === "PRO";
           return (
-            <motion.div key={plan.key} variants={cardVariants} className="flex h-full">
+            <TimelineContent
+              key={plan.key}
+              as="div"
+              animationNum={1 + index}
+              timelineRef={pricingRef}
+              customVariants={revealVariants}
+              className="flex h-full"
+            >
               <Card
                 variant="glass"
                 className={cn(
@@ -159,10 +219,10 @@ export function PricingCards() {
                   </Link>
                 </CardFooter>
               </Card>
-            </motion.div>
+            </TimelineContent>
           );
         })}
-      </motion.div>
+      </div>
     </section>
   );
 }

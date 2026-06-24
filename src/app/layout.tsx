@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { ReactLenis } from "lenis/react";
 
 // ─── Fonts ─────────────────────────────────────────────────
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -98,9 +99,11 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <SkeletonTheme baseColor="#141426" highlightColor="#1b1b33">
-              <SessionLoader>
-                {children}
-              </SessionLoader>
+              <ReactLenis root>
+                <SessionLoader>
+                  {children}
+                </SessionLoader>
+              </ReactLenis>
               <Toaster richColors closeButton theme="dark" />
             </SkeletonTheme>
           </ThemeProvider>

@@ -267,7 +267,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </aside>
 
         {/* Content body container */}
-        <main className="flex-1 overflow-y-auto h-[calc(100vh-36px)] bg-[#07080a] relative select-none">
+        <main className="flex-1 overflow-y-auto h-[calc(100vh-36px)] bg-[#07080a] relative select-none" data-lenis-prevent>
           <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 select-none">
             {children}
           </div>

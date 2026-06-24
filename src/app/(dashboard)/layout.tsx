@@ -61,7 +61,7 @@ export default function DashboardLayout({
         <Topbar />
 
         {/* Dynamic Route Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8" data-lenis-prevent>
           <PageTransition className="w-full max-w-6xl mx-auto h-full">
             {children}
           </PageTransition>

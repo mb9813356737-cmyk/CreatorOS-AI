@@ -69,7 +69,7 @@ export function Sidebar() {
       </div>
 
       {/* Main Navigation */}
-      <div className="flex-1 py-6 px-4 space-y-8 overflow-y-auto scrollbar-none">
+      <div className="flex-1 py-6 px-4 space-y-8 overflow-y-auto scrollbar-none" data-lenis-prevent>
         <div className="space-y-1">
           {DASHBOARD_NAV.map((item) => {
             const isActive = pathname === item.href;
