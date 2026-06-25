@@ -82,6 +82,10 @@ export default async function middleware(req: NextRequest) {
   if (session && (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up"))) {
     response = NextResponse.redirect(new URL("/dashboard", req.url));
   } 
+  // Allow public routes through without any checks
+  else if (isPublicPath(pathname)) {
+    // Keep response as is (NextResponse.next())
+  }
   // Redirect unauthenticated users on protected routes to sign-in
   else if (!session && isProtectedPath(pathname)) {
     const signInUrl = new URL("/sign-in", req.url);
