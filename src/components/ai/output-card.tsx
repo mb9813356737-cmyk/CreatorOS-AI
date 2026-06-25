@@ -104,6 +104,41 @@ function parsePlainTextHooks(text: string) {
   return hooks.length > 0 ? hooks : null;
 }
 
+function parsePlainTextCaption(text: string) {
+  if (!text) return null;
+  if (!text.includes("CAPTION")) return null;
+
+  const openingLineMatch = text.match(/Opening Line:\s*(.*)/i);
+  const bodyMatch = text.match(/Body:\s*([\s\S]*?)(?=Hashtags:|$)/i);
+  const hashtagsMatch = text.match(/Hashtags:\s*([\s\S]*?)(?=Call To Action:|$)/i);
+  const ctaMatch = text.match(/Call To Action:\s*(.*)/i);
+
+  const openingLine = openingLineMatch ? openingLineMatch[1].trim() : "";
+  const body = bodyMatch ? bodyMatch[1].trim() : "";
+  const cta = ctaMatch ? ctaMatch[1].trim() : "";
+
+  let hashtags: string[] = [];
+  if (hashtagsMatch) {
+    hashtags = hashtagsMatch[1]
+      .split("\n")
+      .map((h) => h.trim())
+      .filter((h) => h.startsWith("#"));
+  }
+
+  // Combine opening line and body for full caption display
+  const caption = `${openingLine}\n\n${body}`.trim();
+
+  if (caption || hashtags.length > 0 || cta) {
+    return {
+      caption,
+      hashtags,
+      cta,
+    };
+  }
+
+  return null;
+}
+
 export function OutputCard({ type, output, isGenerating, error }: OutputCardProps) {
   const [copied, setCopied] = React.useState(false);
   const [ttsState, setTtsState] = React.useState<"none" | "generating" | "ready">("none");
@@ -236,7 +271,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     );
   }
 
-  const parsed = getCleanJSONOutput(output);
+  const parsed = getCleanJSONOutput(output) || parsePlainTextCaption(output || "");
 
   // ─── VIRAL_HOOK RENDERING ────────────────────────────────
   const rawList = (parsed && (Array.isArray(parsed) ? parsed : Array.isArray(parsed.hooks) ? parsed.hooks : null))
