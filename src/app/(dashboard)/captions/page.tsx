@@ -12,7 +12,7 @@ import { PLATFORMS, TONES, LANGUAGES } from "@/lib/constants";
 import { Sparkles } from "lucide-react";
 
 export default function CaptionsPage() {
-  const { generate, output, isGenerating, error } = useAIGenerate();
+  const { generate, output, isGenerating, error } = useAIGenerate("CAPTION");
   const [topic, setTopic] = React.useState("");
   const [platform, setPlatform] = React.useState("instagram");
   const [tone, setTone] = React.useState("casual");

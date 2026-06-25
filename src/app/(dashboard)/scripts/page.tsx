@@ -444,7 +444,7 @@ function ScriptLoadingSkeleton() {
 // ─── Main Page ──────────────────────────────────────────────
 
 export default function ScriptsPage() {
-  const { generate, output, isGenerating, error, reset } = useAIGenerate();
+  const { generate, output, isGenerating, error, reset } = useAIGenerate("SCRIPT");
   const [topic, setTopic] = React.useState("");
   const [duration, setDuration] = React.useState("30s");
   const [platform, setPlatform] = React.useState("shorts");

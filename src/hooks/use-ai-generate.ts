@@ -15,7 +15,7 @@ interface UseAIGenerateReturn {
   reset: () => void;
 }
 
-export function useAIGenerate(): UseAIGenerateReturn {
+export function useAIGenerate(expectedType?: GenerationType): UseAIGenerateReturn {
   const store = useGenerationStore();
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -47,7 +47,7 @@ export function useAIGenerate(): UseAIGenerateReturn {
         }
 
         const data = await response.json();
-        store.setOutput(data.output);
+        store.setOutput(type, data.output);
 
         // Add to history
         const result: GenerationResult = {
@@ -71,11 +71,28 @@ export function useAIGenerate(): UseAIGenerateReturn {
     [store]
   );
 
+  const getOutput = () => {
+    if (!expectedType) return null;
+    switch (expectedType) {
+      case "VIRAL_HOOK": return store.hooksOutput;
+      case "CAPTION": return store.captionOutput;
+      case "SCRIPT": return store.scriptOutput;
+      case "TREND": return store.trendOutput;
+      case "VIRAL_SCORE": return store.viralScoreOutput;
+      case "REPURPOSE": return store.repurposeOutput;
+      case "THUMBNAIL": return store.thumbnailOutput;
+      default: return null;
+    }
+  };
+
+  const isGenerating = store.isGenerating && store.currentType === expectedType;
+  const error = store.currentType === expectedType ? (store.error || localError) : null;
+
   return {
     generate,
-    output: store.currentOutput,
-    isGenerating: store.isGenerating,
-    error: store.error || localError,
+    output: getOutput(),
+    isGenerating,
+    error,
     reset: store.reset,
   };
 }

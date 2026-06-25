@@ -411,7 +411,7 @@ function ScannerLoader() {
 
 // ─── Main Page Component ──────────────────────────────────────
 export default function ThumbnailsPage() {
-  const { generate, output, isGenerating, error } = useAIGenerate();
+  const { generate, output, isGenerating, error } = useAIGenerate("THUMBNAIL");
   const [topic, setTopic] = React.useState("");
   const [selectedMode, setSelectedMode] = React.useState<string>("MrBeast style");
   const [additionalContext, setAdditionalContext] = React.useState("");

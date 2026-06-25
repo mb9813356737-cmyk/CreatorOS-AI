@@ -189,7 +189,7 @@ function ScannerLoader() {
 
 // ─── Main Page Component ──────────────────────────────────────
 export default function ViralScorePage() {
-  const { generate, output, isGenerating, error } = useAIGenerate();
+  const { generate, output, isGenerating, error } = useAIGenerate("VIRAL_SCORE");
   
   // Form Inputs
   const [title, setTitle] = React.useState("");

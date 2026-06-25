@@ -11,15 +11,23 @@ interface GenerationState {
   isGenerating: boolean;
   currentType: GenerationType | null;
   currentInput: GenerationInput | null;
-  currentOutput: string | null;
   error: string | null;
+
+  // Isolated outputs
+  hooksOutput: string | null;
+  captionOutput: string | null;
+  scriptOutput: string | null;
+  trendOutput: string | null;
+  viralScoreOutput: string | null;
+  repurposeOutput: string | null;
+  thumbnailOutput: string | null;
 
   // History cache (client-side)
   recentGenerations: GenerationResult[];
 
   // Actions
   startGeneration: (type: GenerationType, input: GenerationInput) => void;
-  setOutput: (output: string) => void;
+  setOutput: (type: GenerationType, output: string) => void;
   setError: (error: string) => void;
   reset: () => void;
   addToHistory: (result: GenerationResult) => void;
@@ -31,21 +39,36 @@ export const useGenerationStore = create<GenerationState>((set) => ({
   isGenerating: false,
   currentType: null,
   currentInput: null,
-  currentOutput: null,
   error: null,
+
+  hooksOutput: null,
+  captionOutput: null,
+  scriptOutput: null,
+  trendOutput: null,
+  viralScoreOutput: null,
+  repurposeOutput: null,
+  thumbnailOutput: null,
+
   recentGenerations: [],
 
-  startGeneration: (type, input) =>
+  startGeneration: (type, input) => {
+    const resetKey = getOutputKey(type);
     set({
       isGenerating: true,
       currentType: type,
       currentInput: input,
-      currentOutput: null,
       error: null,
-    }),
+      ...(resetKey ? { [resetKey]: null } : {}),
+    });
+  },
 
-  setOutput: (output) =>
-    set({ currentOutput: output, isGenerating: false }),
+  setOutput: (type, output) => {
+    const outputKey = getOutputKey(type);
+    set({
+      isGenerating: false,
+      ...(outputKey ? { [outputKey]: output } : {}),
+    });
+  },
 
   setError: (error) =>
     set({ error, isGenerating: false }),
@@ -55,8 +78,14 @@ export const useGenerationStore = create<GenerationState>((set) => ({
       isGenerating: false,
       currentType: null,
       currentInput: null,
-      currentOutput: null,
       error: null,
+      hooksOutput: null,
+      captionOutput: null,
+      scriptOutput: null,
+      trendOutput: null,
+      viralScoreOutput: null,
+      repurposeOutput: null,
+      thumbnailOutput: null,
     }),
 
   addToHistory: (result) =>
@@ -74,3 +103,16 @@ export const useGenerationStore = create<GenerationState>((set) => ({
   clearHistory: () =>
     set({ recentGenerations: [] }),
 }));
+
+function getOutputKey(type: GenerationType): string | null {
+  switch (type) {
+    case "VIRAL_HOOK": return "hooksOutput";
+    case "CAPTION": return "captionOutput";
+    case "SCRIPT": return "scriptOutput";
+    case "TREND": return "trendOutput";
+    case "VIRAL_SCORE": return "viralScoreOutput";
+    case "REPURPOSE": return "repurposeOutput";
+    case "THUMBNAIL": return "thumbnailOutput";
+    default: return null;
+  }
+}

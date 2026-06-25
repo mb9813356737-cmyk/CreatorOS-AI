@@ -13,7 +13,7 @@ import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function TrendsPage() {
-  const { generate, output, isGenerating, error, reset } = useAIGenerate();
+  const { generate, output, isGenerating, error, reset } = useAIGenerate("TREND");
   const [activeTab, setActiveTab] = React.useState<"niche" | "competitor">("niche");
   const [niche, setNiche] = React.useState("");
   const [competitorHandle, setCompetitorHandle] = React.useState("");

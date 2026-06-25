@@ -12,7 +12,7 @@ import { PLATFORMS, TONES } from "@/lib/constants";
 import { Sparkles, MessageSquare } from "lucide-react";
 
 export default function HooksPage() {
-  const { generate, output, isGenerating, error } = useAIGenerate();
+  const { generate, output, isGenerating, error } = useAIGenerate("VIRAL_HOOK");
   const [topic, setTopic] = React.useState("");
   const [platform, setPlatform] = React.useState("youtube");
   const [tone, setTone] = React.useState("professional");

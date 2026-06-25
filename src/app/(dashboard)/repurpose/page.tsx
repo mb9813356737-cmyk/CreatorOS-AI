@@ -14,7 +14,7 @@ import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function RepurposePage() {
-  const { generate, output, isGenerating, error, reset } = useAIGenerate();
+  const { generate, output, isGenerating, error, reset } = useAIGenerate("REPURPOSE");
   const [activeTab, setActiveTab] = React.useState<"text" | "video">("text");
   const [content, setContent] = React.useState("");
   const [youtubeUrl, setYoutubeUrl] = React.useState("");

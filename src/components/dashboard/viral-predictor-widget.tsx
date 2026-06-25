@@ -12,7 +12,7 @@ import { Sparkles, TrendingUp } from "lucide-react";
 import { MagneticButton } from "@/components/motion/magnetic-button";
 
 export function ViralPredictorWidget() {
-  const { generate, output, isGenerating, error } = useAIGenerate();
+  const { generate, output, isGenerating, error } = useAIGenerate("VIRAL_SCORE");
   const [content, setContent] = useState("");
   const [platform, setPlatform] = useState("youtube");
 
