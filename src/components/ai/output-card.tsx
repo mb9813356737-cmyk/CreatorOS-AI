@@ -168,7 +168,9 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   const parsed = getCleanJSONOutput(output);
 
   // ─── VIRAL_HOOK RENDERING ────────────────────────────────
-  if (type === "VIRAL_HOOK" && Array.isArray(parsed)) {
+  const hooksList = parsed && (Array.isArray(parsed) ? parsed : Array.isArray(parsed.hooks) ? parsed.hooks : null);
+
+  if (type === "VIRAL_HOOK" && hooksList) {
     return (
       <Card variant="glass" className="h-full flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
@@ -181,7 +183,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
           </Button>
         </CardHeader>
         <CardContent className="p-5 flex-1 overflow-y-auto space-y-3.5">
-          {parsed.map((item: any, idx: number) => (
+          {hooksList.map((item: any, idx: number) => (
             <div key={idx} className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 hover:border-brand-500/30 transition-all select-all">
               <div className="flex justify-between items-start gap-3 mb-2">
                 <p className="text-sm font-semibold text-text-primary leading-snug">{item.hook}</p>
