@@ -32,13 +32,20 @@ interface ViralScoreGaugeProps {
 
 export function ViralScoreGauge({ output, isGenerating, error }: ViralScoreGaugeProps) {
   const getCleanJSONOutput = (text: string): ViralScoreData | null => {
+    if (!text) return null;
     try {
-      const clean = text.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-      const parsed = JSON.parse(clean);
-      return parsed;
+      return JSON.parse(text.trim());
     } catch {
-      return null;
+      try {
+        const match = text.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+        if (match) {
+          return JSON.parse(match[0].trim());
+        }
+      } catch {
+        // Ignore
+      }
     }
+    return null;
   };
 
   if (isGenerating) {
@@ -84,7 +91,19 @@ export function ViralScoreGauge({ output, isGenerating, error }: ViralScoreGauge
     );
   }
 
-  const { overall_score, breakdown, improvements, benchmark_comparison, verdict } = data;
+  const overall_score = typeof data.overall_score === 'number' ? data.overall_score : (typeof (data as any).virality_score === 'number' ? (data as any).virality_score : 0);
+  const verdict = data.verdict || "";
+  const benchmark_comparison = data.benchmark_comparison || "";
+  const improvements = data.improvements || [];
+
+  const breakdown = {
+    hook: data.breakdown?.hook || 0,
+    emotion: typeof data.breakdown?.emotion === 'number' ? data.breakdown.emotion : (typeof (data as any).emotional_score === 'number' ? (data as any).emotional_score : 0),
+    shareability: data.breakdown?.shareability || 0,
+    relatability: data.breakdown?.relatability || 0,
+    timeliness: data.breakdown?.timeliness || 0,
+    platform_fit: data.breakdown?.platform_fit || 0,
+  };
 
   // Circle path details for SVG Gauge
   const radius = 60;

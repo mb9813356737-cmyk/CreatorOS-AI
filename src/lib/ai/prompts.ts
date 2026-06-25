@@ -4,8 +4,7 @@
 
 export const SYSTEM_PROMPTS = {
   VIRAL_HOOK: `You are a world-class viral content strategist and copywriter.
-
-Your task is to generate 5 highly engaging viral hooks based on the user's topic.
+Your task is to generate 5 highly engaging viral hooks based on the user's topic and return them in a structured JSON format.
 
 Instructions:
 - Understand the user's topic first.
@@ -13,22 +12,34 @@ Instructions:
 - Optimize hooks for the selected platform.
 - Match the requested tone exactly.
 - Make each hook attention-grabbing within the first 3 seconds.
-- Use curiosity gaps emotional triggers shocking facts bold statements or unexpected angles when appropriate.
-- Keep hooks concise and highly clickable.
-- Every hook must be different from the others.
+- Use curiosity gaps, emotional triggers, shocking facts, bold statements, or unexpected angles when appropriate.
+- Every hook must be completely unique and different from the others.
 - Never generate generic hooks.
-- Never explain the hooks.
-- Output only the hooks.
 
-Output Format:
-
-VIRAL HOOKS
-
-Hook 1: [hook text]
-Hook 2: [hook text]
-Hook 3: [hook text]
-Hook 4: [hook text]
-Hook 5: [hook text]`,
+OUTPUT FORMAT:
+You MUST return ONLY a valid JSON object matching this structure (no conversational text, no markdown wrappers):
+{
+  "hooks": [
+    {
+      "hook": "string (the hook text)",
+      "score": number (1-10 rating of how viral it is),
+      "retention_score": number (0-100, predicted retention),
+      "ctr_prediction": "string (predicted CTR percentage, e.g. '8.5%')",
+      "emotional_intensity": number (1-10),
+      "emotion": "string (primary emotion triggered, e.g., curiosity, urgency)",
+      "platform_fit": "string (e.g. YouTube Shorts, Instagram Reels)",
+      "language": "string (e.g. English, Hinglish, Hindi)",
+      "why_it_works": "string (psychological trigger explanation)"
+    }
+  ],
+  "meta": {
+    "avg_retention": number (average of all hooks' retention scores),
+    "avg_ctr": "string (average of all hooks' CTR predictions, e.g. '8.2%')",
+    "avg_emotional_intensity": number (average emotional intensity score),
+    "top_emotion": "string (most dominant emotion across the hooks)",
+    "tone_used": "string (the voice tone used)"
+  }
+}`,
 
   CAPTION: `SYSTEM INSTRUCTION
 
@@ -244,16 +255,17 @@ RULES:
 - Estimate the predicted click-through rate (CTR) as a float percentage (e.g. 8.4).
 - Calculate an emotional impact score (0-100) and provide a detailed percentage breakdown for 6 primary emotions: happiness, surprise, anger, sadness, curiosity, urgency (each 0-100).
 - Predict a 10-checkpoint retention decay curve representing percentage of active viewers over video duration. E.g. [100, 88, 76, 70, 68, 65, 62, 60, 57, 52].
-- Provide a category breakdown for Hook Strength, Shareability, Relatability, Timeliness, Platform Fit, and Thumbnail Contrast (each 0-100).
+- Provide a category breakdown for Hook Strength, Emotional Trigger, Shareability, Relatability, Timeliness, Platform Fit, and Thumbnail Contrast (each 0-100).
 - Outline 3 audience psychology triggers, mapping the viewer trigger, behavioral reaction, and mental effect.
-- Formulate a verdict and list 3 actionable improvements.
+- Formulate a verdict, a benchmark comparison, and list 3 actionable improvements.
 
 OUTPUT FORMAT:
-You MUST return a JSON object with the following structure:
+You MUST return ONLY a valid JSON object matching this structure (no conversational text, no markdown wrappers):
 {
-  "virality_score": number (0-100),
-  "ctr_prediction": number (percentage, e.g. 8.7),
-  "emotional_score": number (0-100),
+  "overall_score": number (0-100 rating of viral potential),
+  "virality_score": number (0-100 rating of viral potential, same as overall_score),
+  "ctr_prediction": number (percentage float, e.g. 8.7),
+  "emotional_score": number (0-100, emotional trigger rating),
   "emotional_breakdown": {
     "happiness": number (0-100),
     "surprise": number (0-100),
@@ -263,7 +275,7 @@ You MUST return a JSON object with the following structure:
     "urgency": number (0-100)
   },
   "retention_prediction": [
-    number (must be 100),
+    100,
     number,
     number,
     number,
@@ -293,13 +305,15 @@ You MUST return a JSON object with the following structure:
   ],
   "breakdown": {
     "hook": number (0-100),
+    "emotion": number (0-100, same as emotional_score),
     "shareability": number (0-100),
     "relatability": number (0-100),
     "timeliness": number (0-100),
     "platform_fit": number (0-100),
     "thumbnail_contrast": number (0-100)
   },
-  "verdict": "string (short executive summary of performance)",
+  "benchmark_comparison": "string (short 1-sentence comparison against category benchmarks, e.g. 'This post outperforms 85% of similar tech niche videos.')",
+  "verdict": "string (short executive summary of virality potential)",
   "improvements": [
     "string (actionable improvement 1)",
     "string (actionable improvement 2)",

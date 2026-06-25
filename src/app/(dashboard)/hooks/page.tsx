@@ -6,10 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { OutputCard } from "@/components/ai/output-card";
+import { HookGeneratorOutput } from "@/components/ai/hook-generator-output";
 import { useAIGenerate } from "@/hooks/use-ai-generate";
 import { PLATFORMS, TONES } from "@/lib/constants";
-import { Sparkles, MessageSquare } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export default function HooksPage() {
   const { generate, output, isGenerating, error } = useAIGenerate("VIRAL_HOOK");
@@ -80,11 +80,15 @@ export default function HooksPage() {
 
         {/* Right Side: Visual output parser */}
         <div className="lg:col-span-7 h-full">
-          <OutputCard
-            type="VIRAL_HOOK"
+          <HookGeneratorOutput
             output={output}
             isGenerating={isGenerating}
             error={error}
+            onRegenerate={() => {
+              if (topic.trim()) {
+                generate("VIRAL_HOOK", { topic, platform, tone });
+              }
+            }}
           />
         </div>
       </div>

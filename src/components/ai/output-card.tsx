@@ -225,13 +225,20 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   };
 
   const getCleanJSONOutput = (text: string) => {
+    if (!text) return null;
     try {
-      const clean = text.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-      const parsed = JSON.parse(clean);
-      return parsed;
+      return JSON.parse(text.trim());
     } catch {
-      return null;
+      try {
+        const match = text.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+        if (match) {
+          return JSON.parse(match[0].trim());
+        }
+      } catch {
+        // Ignore
+      }
     }
+    return null;
   };
 
   if (isGenerating) {
@@ -283,14 +290,14 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     };
   }
   // 2. Detect and normalize Script Generator format
-  else if (parsed && (parsed.content_type === "script" || parsed.generator === "script_generator")) {
+  else if (parsed && (parsed.content_type === "script" || parsed.generator === "script_generator" || Array.isArray(parsed.scenes))) {
     const data = parsed.output || parsed;
     parsed = {
       content_type: "script",
       title: data.title || "",
       duration: data.duration || "",
       language: data.language || "",
-      sections: data.sections || data.scenes || [],
+      sections: data.scenes || data.sections || [],
       tips: data.tips || [],
       hashtags: data.hashtags || [],
     };
@@ -312,13 +319,14 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     };
   }
 
-  // Determine effective rendering type based on parsed content_type
+  // Determine effective rendering type based on parsed content_type or structure
   let effectiveType = type;
-  if (parsed && parsed.content_type) {
+  if (parsed) {
     if (parsed.content_type === "caption") effectiveType = "CAPTION";
-    else if (parsed.content_type === "script") effectiveType = "SCRIPT";
+    else if (parsed.content_type === "script" || Array.isArray(parsed.sections)) effectiveType = "SCRIPT";
     else if (parsed.content_type === "hooks") effectiveType = "VIRAL_HOOK";
     else if (parsed.content_type === "title") effectiveType = "TITLE";
+    else if (parsed.content_type === "repurpose" || Array.isArray(parsed.repurposed) || Array.isArray(parsed.shorts)) effectiveType = "REPURPOSE";
   }
 
   // ─── VIRAL_HOOK RENDERING ────────────────────────────────

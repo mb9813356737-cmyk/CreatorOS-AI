@@ -260,10 +260,40 @@ export default function ViralScorePage() {
   React.useEffect(() => {
     if (output) {
       try {
-        const clean = output.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-        const parsed = JSON.parse(clean) as ViralScoreResult;
-        setActiveReport(parsed);
-        setIsSavedThisReport(false);
+        let parsed: any = null;
+        try {
+          parsed = JSON.parse(output.trim());
+        } catch {
+          const match = output.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+          if (match) {
+            parsed = JSON.parse(match[0].trim());
+          }
+        }
+        if (parsed) {
+          // Normalize virality_score / overall_score
+          parsed.virality_score = typeof parsed.virality_score === 'number' ? parsed.virality_score : (typeof parsed.overall_score === 'number' ? parsed.overall_score : 0);
+          parsed.overall_score = parsed.virality_score;
+
+          // Normalize emotional_score / emotion breakdown
+          parsed.emotional_score = typeof parsed.emotional_score === 'number' ? parsed.emotional_score : (typeof parsed.breakdown?.emotion === 'number' ? parsed.breakdown.emotion : 0);
+
+          // Normalize breakdown
+          if (parsed.breakdown) {
+            parsed.breakdown.emotion = typeof parsed.breakdown.emotion === 'number' ? parsed.breakdown.emotion : parsed.emotional_score;
+          }
+
+          // Safely parse ctr_prediction to float
+          if (parsed.ctr_prediction !== undefined && parsed.ctr_prediction !== null) {
+            parsed.ctr_prediction = parseFloat(String(parsed.ctr_prediction).replace(/%/g, ''));
+          } else {
+            parsed.ctr_prediction = 0;
+          }
+
+          setActiveReport(parsed as ViralScoreResult);
+          setIsSavedThisReport(false);
+        } else {
+          console.error("Failed to parse JSON content from generator");
+        }
       } catch (err) {
         console.error("Failed to parse JSON content from generator", err);
       }
