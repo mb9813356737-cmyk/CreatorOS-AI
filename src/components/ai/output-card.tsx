@@ -106,12 +106,11 @@ function parsePlainTextHooks(text: string) {
 
 function parsePlainTextCaption(text: string) {
   if (!text) return null;
-  if (!text.includes("CAPTION")) return null;
 
-  const openingLineMatch = text.match(/Opening Line:\s*(.*)/i);
-  const bodyMatch = text.match(/Body:\s*([\s\S]*?)(?=Hashtags:|$)/i);
-  const hashtagsMatch = text.match(/Hashtags:\s*([\s\S]*?)(?=Call To Action:|$)/i);
-  const ctaMatch = text.match(/Call To Action:\s*(.*)/i);
+  const openingLineMatch = text.match(/Opening\s*Line:\s*\n*([^\n]+(?:\n+(?!\s*Body:)[^\n]+)*)/i);
+  const bodyMatch = text.match(/Body:\s*\n*([\s\S]*?)(?=\n*(?:Hashtags:|Call\s*To\s*Action:|$))/i);
+  const hashtagsMatch = text.match(/Hashtags:\s*\n*([\s\S]*?)(?=\n*(?:Call\s*To\s*Action:|$))/i);
+  const ctaMatch = text.match(/(?:Call\s*To\s*Action|CTA):\s*\n*([^\n]+(?:\n+[^\n]+)*)/i);
 
   const openingLine = openingLineMatch ? openingLineMatch[1].trim() : "";
   const body = bodyMatch ? bodyMatch[1].trim() : "";
@@ -120,13 +119,13 @@ function parsePlainTextCaption(text: string) {
   let hashtags: string[] = [];
   if (hashtagsMatch) {
     hashtags = hashtagsMatch[1]
-      .split("\n")
+      .split(/\s+/)
       .map((h) => h.trim())
       .filter((h) => h.startsWith("#"));
   }
 
   // Combine opening line and body for full caption display
-  const caption = `${openingLine}\n\n${body}`.trim();
+  const caption = openingLine ? `${openingLine}\n\n${body}`.trim() : body.trim();
 
   if (caption || hashtags.length > 0 || cta) {
     return {

@@ -35,7 +35,11 @@ export async function processJobDirectly({
       break;
 
     case "CAPTION":
-      systemPrompt = SYSTEM_PROMPTS.CAPTION;
+      systemPrompt = SYSTEM_PROMPTS.CAPTION
+        .replace("{{topic}}", payload.topic || "")
+        .replace("{{platform}}", resolvedPlatform)
+        .replace("{{tone}}", payload.tone || "")
+        .replace("{{language}}", resolvedLanguage);
       userPrompt = `Topic: ${payload.topic || ""}\nPlatform: ${resolvedPlatform}\nTone: ${payload.tone || ""}\nLanguage: ${resolvedLanguage}`;
       break;
 

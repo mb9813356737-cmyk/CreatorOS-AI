@@ -13,9 +13,15 @@ export async function POST(req: Request) {
 
     const userPrompt = `Topic: ${topic}\nPlatform: ${platform}\nTone: ${tone}\nLanguage: ${language}`;
 
+    const systemPrompt = SYSTEM_PROMPTS.CAPTION
+      .replace("{{topic}}", topic)
+      .replace("{{platform}}", platform)
+      .replace("{{tone}}", tone)
+      .replace("{{language}}", language);
+
     return await handleAIGeneration({
       type: "CAPTION",
-      systemPrompt: SYSTEM_PROMPTS.CAPTION,
+      systemPrompt,
       userPrompt,
       platform,
       language,
