@@ -54,6 +54,12 @@ export function useSubscription(): UseSubscriptionReturn {
   const canAccess = useCallback(
     (feature: string): boolean => {
       if (!subscription) return false;
+      
+      // SUPER_ADMIN has access to all features (paid or free)
+      if (subscription.role === "SUPER_ADMIN") {
+        return true;
+      }
+      
       const plan = subscription.plan;
       // Map features to required plans
       const featureAccess: Record<string, Plan[]> = {

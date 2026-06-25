@@ -22,7 +22,10 @@ export function MobileNav() {
 
     const userPlan = subscription?.plan || "FREE";
     const isFreeUser = userPlan === "FREE";
+    const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
     const lockedFeatures = ["/thumbnails", "/trends", "/viral-score", "/repurpose"];
+
+    if (isSuperAdmin) return; // Super admin has bypass to everything
 
     if (isFreeUser && lockedFeatures.includes(href)) {
       e.preventDefault();
@@ -85,8 +88,11 @@ export function MobileNav() {
                 {DASHBOARD_NAV.map((item) => {
                   const isActive = pathname === item.href;
                   const isFreeUser = planName === "FREE";
-                  const isLocked = (item.requiresPlan && !item.requiresPlan.includes(planName)) ||
-                    (isFreeUser && ["/thumbnails", "/trends", "/viral-score", "/repurpose"].includes(item.href));
+                  const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
+                  const isLocked = !isSuperAdmin && (
+                    (item.requiresPlan && !item.requiresPlan.includes(planName)) ||
+                    (isFreeUser && ["/thumbnails", "/trends", "/viral-score", "/repurpose"].includes(item.href))
+                  );
 
                   return (
                     <Link
@@ -103,7 +109,7 @@ export function MobileNav() {
                       <item.icon className={cn("h-5 w-5", isActive ? "text-brand-400" : "text-text-secondary", isLocked && "text-text-muted")} />
                       <span className="flex-1 truncate flex items-center gap-1.5">
                         <span>{item.label}</span>
-                        {isFreeUser && ["Thumbnails", "Trends", "Viral Score"].includes(item.label) && (
+                        {isFreeUser && !isSuperAdmin && ["Thumbnails", "Trends", "Viral Score"].includes(item.label) && (
                           <span className="text-xs select-none">🔒</span>
                         )}
                       </span>

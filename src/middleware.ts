@@ -92,11 +92,12 @@ export default async function middleware(req: NextRequest) {
     signInUrl.searchParams.set("redirect_url", req.url);
     response = NextResponse.redirect(signInUrl);
   }
-  // Gating plan restrictions for authenticated users
+  // Gating plan restrictions for authenticated users (SUPER_ADMIN bypasses all plan restrictions)
   else if (session && PLAN_GATED_ROUTES.some((route) => pathname.startsWith(route.prefix))) {
     const gatedRoute = PLAN_GATED_ROUTES.find((route) => pathname.startsWith(route.prefix))!;
     const userPlan = (session.plan || "FREE") as string;
-    if (!gatedRoute.allowedPlans.includes(userPlan)) {
+    const isSuperAdmin = session.role === "SUPER_ADMIN";
+    if (!isSuperAdmin && !gatedRoute.allowedPlans.includes(userPlan)) {
       response = NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }

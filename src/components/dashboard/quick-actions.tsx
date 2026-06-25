@@ -39,7 +39,8 @@ export function QuickActions() {
       requiredPlans = ["AGENCY"];
     }
 
-    const isLocked = !requiredPlans.includes(userPlan);
+    const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
+    const isLocked = !isSuperAdmin && !requiredPlans.includes(userPlan);
     const badge = type === "REPURPOSE" ? "Agency" : (type === "SCRIPT" || type === "THUMBNAIL" || type === "TREND" || type === "VIRAL_SCORE" ? "Pro" : null);
 
     return {
@@ -51,6 +52,9 @@ export function QuickActions() {
   });
 
   const handleToolClick = (e: React.MouseEvent, type: string, label: string, isLocked: boolean) => {
+    const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
+    if (isSuperAdmin) return; // Super admin has bypass to everything
+
     if (isLocked) {
       e.preventDefault();
       if (userPlan === "FREE" && ["THUMBNAIL", "TREND", "VIRAL_SCORE", "REPURPOSE"].includes(type)) {

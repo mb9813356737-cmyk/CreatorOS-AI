@@ -28,7 +28,10 @@ export function Sidebar() {
   const handleFeatureClick = (e: React.MouseEvent, href: string, label: string, requiresPlan?: string[]) => {
     const userPlan = subscription?.plan || "FREE";
     const isFreeUser = userPlan === "FREE";
+    const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
     const lockedFeatures = ["/thumbnails", "/trends", "/viral-score", "/repurpose"];
+
+    if (isSuperAdmin) return; // Super admin has bypass to everything
 
     if (isFreeUser && lockedFeatures.includes(href)) {
       e.preventDefault();
@@ -83,8 +86,11 @@ export function Sidebar() {
             const isActive = pathname === item.href;
             const userPlan = subscription?.plan || "FREE";
             const isFreeUser = userPlan === "FREE";
-            const isLocked = (item.requiresPlan && !item.requiresPlan.includes(userPlan)) ||
-              (isFreeUser && ["/thumbnails", "/trends", "/viral-score", "/repurpose"].includes(item.href));
+            const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
+            const isLocked = !isSuperAdmin && (
+              (item.requiresPlan && !item.requiresPlan.includes(userPlan)) ||
+              (isFreeUser && ["/thumbnails", "/trends", "/viral-score", "/repurpose"].includes(item.href))
+            );
 
             return (
               <Link
@@ -120,7 +126,7 @@ export function Sidebar() {
                     className="flex-1 truncate flex items-center gap-1.5"
                   >
                     <span>{item.label}</span>
-                    {isFreeUser && ["Thumbnails", "Trends", "Viral Score"].includes(item.label) && (
+                    {isFreeUser && !isSuperAdmin && ["Thumbnails", "Trends", "Viral Score"].includes(item.label) && (
                       <span className="text-xs select-none">🔒</span>
                     )}
                   </motion.span>
