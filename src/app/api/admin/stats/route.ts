@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { db } from "@/lib/prisma";
 import { handleRouteError } from "@/lib/errors";
+import { isSuperAdmin } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -47,7 +48,7 @@ export async function GET() {
       });
 
       // Strict role check
-      if (!actualUser || actualUser.role !== "SUPER_ADMIN") {
+      if (!actualUser || !isSuperAdmin(actualUser)) {
         return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
       }
 

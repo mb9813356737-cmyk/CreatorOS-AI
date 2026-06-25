@@ -4,6 +4,7 @@ import { db } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { signJWT } from "@/lib/jwt";
 import { handleRouteError } from "@/lib/errors";
+import { isSuperAdmin } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
     } else {
       // Check if password, role, or emailVerified needs updating
       const passwordMatch = adminUser.password ? await bcrypt.compare("Mohit1306", adminUser.password) : false;
-      if (!passwordMatch || adminUser.role !== "SUPER_ADMIN" || !adminUser.emailVerified) {
+      if (!passwordMatch || !isSuperAdmin(adminUser) || !adminUser.emailVerified) {
         console.log("[Admin Sync] Updating admin password hash, role, and verification state in database...");
         adminUser = await db.user.update({
           where: { email: "admin@creatoros.ai" },

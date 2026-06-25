@@ -61,9 +61,9 @@ export async function GET() {
       return response;
     }
 
-    // Refresh token if plan has updated
-    if (payload.plan !== user.plan) {
-      console.log(`[Session] Syncing plan mismatch (JWT: ${payload.plan || "NONE"} | DB: ${user.plan}) for user ${user.id}`);
+    // Refresh token if plan or role has updated
+    if (payload.plan !== user.plan || payload.role !== user.role) {
+      console.log(`[Session] Syncing plan/role mismatch (JWT: plan=${payload.plan || "NONE"}, role=${payload.role || "NONE"} | DB: plan=${user.plan}, role=${user.role}) for user ${user.id}`);
       const newToken = await signJWT({
         userId: user.id,
         email: user.email,

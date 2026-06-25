@@ -10,6 +10,7 @@ import { DASHBOARD_NAV, DASHBOARD_NAV_BOTTOM, APP_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { X, Sparkles, Lock, Zap, LogOut } from "lucide-react";
 import { SignOutButton } from "@/lib/auth";
+import { isSuperAdmin } from "@/lib/utils";
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -22,10 +23,10 @@ export function MobileNav() {
 
     const userPlan = subscription?.plan || "FREE";
     const isFreeUser = userPlan === "FREE";
-    const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
+    const isSuperAdminUser = isSuperAdmin(subscription);
     const lockedFeatures = ["/thumbnails", "/trends", "/viral-score", "/repurpose"];
 
-    if (isSuperAdmin) return; // Super admin has bypass to everything
+    if (isSuperAdminUser) return; // Super admin has bypass to everything
 
     if (isFreeUser && lockedFeatures.includes(href)) {
       e.preventDefault();
@@ -88,8 +89,8 @@ export function MobileNav() {
                 {DASHBOARD_NAV.map((item) => {
                   const isActive = pathname === item.href;
                   const isFreeUser = planName === "FREE";
-                  const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
-                  const isLocked = !isSuperAdmin && (
+                  const isSuperAdminUser = isSuperAdmin(subscription);
+                  const isLocked = !isSuperAdminUser && (
                     (item.requiresPlan && !item.requiresPlan.includes(planName)) ||
                     (isFreeUser && ["/thumbnails", "/trends", "/viral-score", "/repurpose"].includes(item.href))
                   );

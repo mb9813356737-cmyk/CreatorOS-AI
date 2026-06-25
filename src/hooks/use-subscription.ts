@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Plan, SubscriptionStatus } from "@/types/subscription";
+import { isSuperAdmin } from "@/lib/utils";
 
 // ─── Subscription Hook ─────────────────────────────────────
 
@@ -48,15 +49,15 @@ export function useSubscription(): UseSubscriptionReturn {
     fetchSubscription();
   }, [fetchSubscription]);
 
-  const isPro = subscription?.plan === "PRO" || subscription?.plan === "AGENCY";
-  const isAgency = subscription?.plan === "AGENCY";
+  const isPro = subscription?.plan === "PRO" || subscription?.plan === "AGENCY" || isSuperAdmin(subscription);
+  const isAgency = subscription?.plan === "AGENCY" || isSuperAdmin(subscription);
 
   const canAccess = useCallback(
     (feature: string): boolean => {
       if (!subscription) return false;
       
       // SUPER_ADMIN has access to all features (paid or free)
-      if (subscription.role === "SUPER_ADMIN") {
+      if (isSuperAdmin(subscription)) {
         return true;
       }
       

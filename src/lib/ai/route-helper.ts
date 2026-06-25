@@ -7,6 +7,7 @@ import { RATE_LIMITS, PLANS } from "@/lib/constants";
 import type { GenerationType } from "@/types/ai";
 import { getSystemSettings } from "@/lib/system-settings";
 import { handleRouteError } from "@/lib/errors";
+import { isSuperAdmin } from "@/lib/utils";
 
 export async function handleAIGeneration({
   type,
@@ -58,13 +59,16 @@ export async function handleAIGeneration({
         plan: "PRO",
         monthlyCredits: 500,
         creditsUsed: 0,
+        role: "USER",
       };
     }
+
+    const isSuperAdminUser = isSuperAdmin(user);
 
     // Check plan limits
     const userPlan = (user.plan || "FREE") as keyof typeof PLANS;
     const planConfig = PLANS[userPlan] || PLANS.FREE;
-    const isAllowed = planConfig.limits[type as keyof typeof planConfig.limits];
+    const isAllowed = isSuperAdminUser || planConfig.limits[type as keyof typeof planConfig.limits];
 
     if (!isAllowed) {
       return NextResponse.json(
@@ -74,7 +78,7 @@ export async function handleAIGeneration({
     }
 
     // Check credits
-    const isUnlimited = user.monthlyCredits === -1;
+    const isUnlimited = user.monthlyCredits === -1 || isSuperAdminUser;
     if (!isUnlimited && user.creditsUsed >= user.monthlyCredits) {
       return NextResponse.json(
         { error: "No credits remaining. Please upgrade your plan." },
@@ -82,14 +86,16 @@ export async function handleAIGeneration({
       );
     }
 
-    // 3. Rate Limit check
-    const rateLimitConfig = RATE_LIMITS[user.plan as keyof typeof RATE_LIMITS] || RATE_LIMITS.FREE;
-    const rateLimitResult = await checkRateLimit(user.id, rateLimitConfig);
-    if (!rateLimitResult.allowed) {
-      return NextResponse.json(
-        { error: "Rate limit exceeded. Please wait a moment." },
-        { status: 429 }
-      );
+    // 3. Rate Limit check (SUPER_ADMIN is exempt from rate limits)
+    if (!isSuperAdminUser) {
+      const rateLimitConfig = RATE_LIMITS[user.plan as keyof typeof RATE_LIMITS] || RATE_LIMITS.FREE;
+      const rateLimitResult = await checkRateLimit(user.id, rateLimitConfig);
+      if (!rateLimitResult.allowed) {
+        return NextResponse.json(
+          { error: "Rate limit exceeded. Please wait a moment." },
+          { status: 429 }
+        );
+      }
     }
 
     // 4. Generate content

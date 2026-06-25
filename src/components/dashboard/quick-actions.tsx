@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { GENERATION_TYPES, PLANS } from "@/lib/constants";
 import { ArrowRight, Lock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, isSuperAdmin } from "@/lib/utils";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -39,8 +39,8 @@ export function QuickActions() {
       requiredPlans = ["AGENCY"];
     }
 
-    const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
-    const isLocked = !isSuperAdmin && !requiredPlans.includes(userPlan);
+    const isSuperAdminUser = isSuperAdmin(subscription);
+    const isLocked = !isSuperAdminUser && !requiredPlans.includes(userPlan);
     const badge = type === "REPURPOSE" ? "Agency" : (type === "SCRIPT" || type === "THUMBNAIL" || type === "TREND" || type === "VIRAL_SCORE" ? "Pro" : null);
 
     return {
@@ -52,8 +52,8 @@ export function QuickActions() {
   });
 
   const handleToolClick = (e: React.MouseEvent, type: string, label: string, isLocked: boolean) => {
-    const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
-    if (isSuperAdmin) return; // Super admin has bypass to everything
+    const isSuperAdminUser = isSuperAdmin(subscription);
+    if (isSuperAdminUser) return; // Super admin has bypass to everything
 
     if (isLocked) {
       e.preventDefault();

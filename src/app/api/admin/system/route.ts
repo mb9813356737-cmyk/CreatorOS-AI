@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth-server";
 import { db } from "@/lib/prisma";
 import { getSystemSettings, saveSystemSettings } from "@/lib/system-settings";
 import { handleRouteError } from "@/lib/errors";
+import { isSuperAdmin } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -16,7 +17,7 @@ export async function GET() {
         where: { id: userId },
       });
 
-      if (!adminUser || adminUser.role !== "SUPER_ADMIN") {
+      if (!adminUser || !isSuperAdmin(adminUser)) {
         return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
       }
     } catch {
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
         where: { id: userId },
       });
 
-      if (!adminUser || adminUser.role !== "SUPER_ADMIN") {
+      if (!adminUser || !isSuperAdmin(adminUser)) {
         return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
       }
     } catch {

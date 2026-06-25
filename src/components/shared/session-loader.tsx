@@ -15,6 +15,7 @@ export function SessionLoader({ children }: { children: React.ReactNode }) {
             useAuthStore.setState({
               isAuthenticated: true,
               user: data.user,
+              role: data.user.role,
               loading: false,
               isRestored: true,
             });

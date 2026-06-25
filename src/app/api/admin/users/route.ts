@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { db } from "@/lib/prisma";
 import { handleRouteError } from "@/lib/errors";
+import { isSuperAdmin } from "@/lib/utils";
 
 export async function GET(req: Request) {
   try {
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
         where: { id: userId },
       });
 
-      if (!actualUser || actualUser.role !== "SUPER_ADMIN") {
+      if (!actualUser || !isSuperAdmin(actualUser)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
@@ -89,7 +90,7 @@ export async function POST(req: Request) {
         where: { id: userId },
       });
 
-      if (!adminUser || adminUser.role !== "SUPER_ADMIN") {
+      if (!adminUser || !isSuperAdmin(adminUser)) {
         return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
       }
 

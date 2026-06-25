@@ -18,6 +18,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { SignOutButton } from "@/lib/auth";
+import { isSuperAdmin } from "@/lib/utils";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -28,10 +29,10 @@ export function Sidebar() {
   const handleFeatureClick = (e: React.MouseEvent, href: string, label: string, requiresPlan?: string[]) => {
     const userPlan = subscription?.plan || "FREE";
     const isFreeUser = userPlan === "FREE";
-    const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
+    const isSuperAdminUser = isSuperAdmin(subscription);
     const lockedFeatures = ["/thumbnails", "/trends", "/viral-score", "/repurpose"];
 
-    if (isSuperAdmin) return; // Super admin has bypass to everything
+    if (isSuperAdminUser) return; // Super admin has bypass to everything
 
     if (isFreeUser && lockedFeatures.includes(href)) {
       e.preventDefault();
@@ -86,8 +87,8 @@ export function Sidebar() {
             const isActive = pathname === item.href;
             const userPlan = subscription?.plan || "FREE";
             const isFreeUser = userPlan === "FREE";
-            const isSuperAdmin = subscription?.role === "SUPER_ADMIN";
-            const isLocked = !isSuperAdmin && (
+            const isSuperAdminUser = isSuperAdmin(subscription);
+            const isLocked = !isSuperAdminUser && (
               (item.requiresPlan && !item.requiresPlan.includes(userPlan)) ||
               (isFreeUser && ["/thumbnails", "/trends", "/viral-score", "/repurpose"].includes(item.href))
             );

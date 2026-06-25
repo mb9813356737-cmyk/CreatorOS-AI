@@ -83,3 +83,10 @@ export function calcPercentage(used: number, total: number): number {
   if (total === 0) return 0;
   return Math.min(Math.round((used / total) * 100), 100);
 }
+
+// ─── Super Admin Helper ────────────────────────────────────
+export function isSuperAdmin(user?: any): boolean {
+  if (!user || !user.role) return false;
+  const roleUpper = String(user.role).toUpperCase();
+  return roleUpper === "SUPER_ADMIN";
+}

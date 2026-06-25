@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { calcPercentage } from "@/lib/utils";
+import { calcPercentage, isSuperAdmin } from "@/lib/utils";
 
 // ─── Usage Hook ────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ export function useUsage(): UseUsageReturn {
       if (!res.ok) return;
       const data = await res.json();
 
-      const isUnlimited = data.monthlyCredits === -1;
+      const isUnlimited = data.monthlyCredits === -1 || isSuperAdmin(data);
       const creditsRemaining = isUnlimited
         ? Infinity
         : Math.max(0, data.monthlyCredits - data.creditsUsed);

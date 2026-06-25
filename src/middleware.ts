@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyJWT } from "@/lib/jwt";
+import { isSuperAdmin } from "@/lib/utils";
 
 // ─── Public Routes (no auth required) ──────────────────────
 const PUBLIC_PATHS = [
@@ -96,8 +97,8 @@ export default async function middleware(req: NextRequest) {
   else if (session && PLAN_GATED_ROUTES.some((route) => pathname.startsWith(route.prefix))) {
     const gatedRoute = PLAN_GATED_ROUTES.find((route) => pathname.startsWith(route.prefix))!;
     const userPlan = (session.plan || "FREE") as string;
-    const isSuperAdmin = session.role === "SUPER_ADMIN";
-    if (!isSuperAdmin && !gatedRoute.allowedPlans.includes(userPlan)) {
+    const isSuperAdminUser = isSuperAdmin(session);
+    if (!isSuperAdminUser && !gatedRoute.allowedPlans.includes(userPlan)) {
       response = NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
@@ -106,8 +107,8 @@ export default async function middleware(req: NextRequest) {
     if (!session) {
       response = NextResponse.redirect(new URL("/admin/login", req.url));
     } else {
-      const role = session.role;
-      if (role !== "SUPER_ADMIN" && role !== "FINANCE_ADMIN") {
+      const isSuperAdminUser = isSuperAdmin(session);
+      if (!isSuperAdminUser && session.role !== "FINANCE_ADMIN") {
         response = NextResponse.redirect(new URL("/dashboard", req.url));
       }
     }
