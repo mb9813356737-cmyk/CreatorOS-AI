@@ -437,7 +437,9 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   }
 
   // ─── THUMBNAIL RENDERING ────────────────────────────────
-  if (type === "THUMBNAIL" && parsed && Array.isArray(parsed.prompts)) {
+  const promptsList = parsed && (Array.isArray(parsed.prompts) ? parsed.prompts : (parsed.prompt ? [parsed] : null));
+
+  if (type === "THUMBNAIL" && promptsList) {
     return (
       <Card variant="glass" className="h-full flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
@@ -451,11 +453,11 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
         </CardHeader>
         <CardContent className="p-5 flex-1 overflow-y-auto space-y-6 select-all">
           <div className="space-y-4">
-            {parsed.prompts.map((item: any, idx: number) => (
+            {promptsList.map((item: any, idx: number) => (
               <div key={idx} className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 space-y-3 hover:border-brand-500/35 transition-colors">
                 <div className="flex justify-between items-center select-none">
                   <Badge variant="gradient" className="uppercase tracking-wider text-[9px] font-bold">
-                    {item.variant} Prompt
+                    {item.variant || "Default"} Prompt
                   </Badge>
                   <Button 
                     variant="ghost" 
@@ -478,7 +480,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
                   </div>
                   <div>
                     <span className="font-extrabold text-brand-400 block uppercase text-[8px] mb-0.5">Color theme</span>
-                    {item.colors || "—"}
+                    {item.colors || item.color_psychology?.palette || "—"}
                   </div>
                 </div>
               </div>
@@ -505,7 +507,8 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     if (parsed.competitor) {
       return <CompetitorSpyView parsed={parsed} handleCopy={handleCopy} copied={copied} />;
     }
-    if (Array.isArray(parsed.current_trends)) {
+    const trendsList = Array.isArray(parsed.current_trends) ? parsed.current_trends : Array.isArray(parsed.trends) ? parsed.trends : Array.isArray(parsed) ? parsed : null;
+    if (trendsList) {
       return (
         <Card variant="glass" className="h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
@@ -521,7 +524,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
           <div className="space-y-4">
             <span className="text-xs font-bold text-text-muted uppercase tracking-wider block select-none">Active Trends</span>
             <div className="grid grid-cols-1 gap-3.5">
-              {parsed.current_trends.map((item: any, idx: number) => (
+              {trendsList.map((item: any, idx: number) => (
                 <div key={idx} className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 space-y-2 select-all">
                   <div className="flex justify-between items-start gap-2 select-none">
                     <h5 className="font-bold text-text-primary text-sm">{item.topic}</h5>
