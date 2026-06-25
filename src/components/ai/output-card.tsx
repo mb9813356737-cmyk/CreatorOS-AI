@@ -270,7 +270,16 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     );
   }
 
-  const parsed = getCleanJSONOutput(output) || parsePlainTextCaption(output || "");
+  let parsed = getCleanJSONOutput(output) || parsePlainTextCaption(output || "");
+
+  // Normalize caption structure if it's in the new multi-tool caption_generator JSON format
+  if (parsed && parsed.content_type === "caption" && parsed.generator === "caption_generator" && parsed.output) {
+    parsed = {
+      caption: `${parsed.output.opening_line || ""}\n\n${parsed.output.body || ""}`.trim(),
+      hashtags: parsed.output.hashtags || [],
+      cta: parsed.output.call_to_action || "",
+    };
+  }
 
   // ─── VIRAL_HOOK RENDERING ────────────────────────────────
   const rawList = (parsed && (Array.isArray(parsed) ? parsed : Array.isArray(parsed.hooks) ? parsed.hooks : null))
