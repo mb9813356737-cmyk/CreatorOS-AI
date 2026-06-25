@@ -32,8 +32,8 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // Redirect to admin console
-        router.push(data.redirect || "/admin?tab=overview");
+        // Redirect to admin console with full reload to update sessions
+        window.location.href = data.redirect || "/admin?tab=overview";
       } else {
         setError(data.error || "Invalid admin credentials");
       }

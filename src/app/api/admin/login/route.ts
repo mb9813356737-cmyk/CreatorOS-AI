@@ -43,15 +43,16 @@ export async function POST(req: Request) {
         },
       });
     } else {
-      // Check if password or role needs updating
+      // Check if password, role, or emailVerified needs updating
       const passwordMatch = adminUser.password ? await bcrypt.compare("Mohit1306", adminUser.password) : false;
-      if (!passwordMatch || adminUser.role !== "SUPER_ADMIN") {
-        console.log("[Admin Sync] Updating admin password hash and role in database...");
+      if (!passwordMatch || adminUser.role !== "SUPER_ADMIN" || !adminUser.emailVerified) {
+        console.log("[Admin Sync] Updating admin password hash, role, and verification state in database...");
         adminUser = await db.user.update({
           where: { email: "admin@creatoros.ai" },
           data: {
             password: hashedPassword,
             role: "SUPER_ADMIN",
+            emailVerified: true,
           },
         });
       }
