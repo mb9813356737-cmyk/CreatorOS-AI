@@ -36,6 +36,26 @@ interface OutputCardProps {
 function parsePlainTextHooks(text: string) {
   if (!text) return null;
   
+  // Try parsing the new simple Hook 1: text format first
+  const simpleRegex = /Hook\s+\d+\s*:\s*(.*)/gi;
+  const simpleHooks: any[] = [];
+  let match;
+  
+  simpleRegex.lastIndex = 0;
+  while ((match = simpleRegex.exec(text)) !== null) {
+    const hookVal = match[1].trim();
+    if (hookVal) {
+      simpleHooks.push({
+        hook: hookVal.replace(/^\[|\]$/g, ""),
+      });
+    }
+  }
+
+  if (simpleHooks.length > 0) {
+    return simpleHooks;
+  }
+  
+  // Fallback to original complex format split
   const parts = text.split(/HOOK\s+\d+/i);
   const hooks: any[] = [];
   
