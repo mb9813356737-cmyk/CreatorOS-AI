@@ -13,15 +13,24 @@ import { SignOutButton } from "@/lib/auth";
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { sidebarMobileOpen, setSidebarMobileOpen, setUpgradeModalOpen } = useUIStore();
+  const { sidebarMobileOpen, setSidebarMobileOpen, setUpgradeModalOpen, setLockedFeatureModalOpen } = useUIStore();
   const { subscription } = useSubscription();
   const { usage } = useUsage();
 
-  const handleLinkClick = (e: React.MouseEvent, requiresPlan?: string[]) => {
+  const handleLinkClick = (e: React.MouseEvent, href: string, label: string, requiresPlan?: string[]) => {
     setSidebarMobileOpen(false);
 
+    const userPlan = subscription?.plan || "FREE";
+    const isFreeUser = userPlan === "FREE";
+    const lockedFeatures = ["/thumbnails", "/trends", "/viral-score", "/repurpose"];
+
+    if (isFreeUser && lockedFeatures.includes(href)) {
+      e.preventDefault();
+      setLockedFeatureModalOpen(true, label);
+      return;
+    }
+
     if (requiresPlan) {
-      const userPlan = subscription?.plan || "FREE";
       const hasAccess = requiresPlan.includes(userPlan);
       if (!hasAccess) {
         e.preventDefault();
@@ -75,13 +84,15 @@ export function MobileNav() {
               <div className="space-y-1">
                 {DASHBOARD_NAV.map((item) => {
                   const isActive = pathname === item.href;
-                  const isLocked = item.requiresPlan && !item.requiresPlan.includes(planName);
+                  const isFreeUser = planName === "FREE";
+                  const isLocked = (item.requiresPlan && !item.requiresPlan.includes(planName)) ||
+                    (isFreeUser && ["/thumbnails", "/trends", "/viral-score", "/repurpose"].includes(item.href));
 
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      onClick={(e) => handleLinkClick(e, item.requiresPlan as any)}
+                      onClick={(e) => handleLinkClick(e, item.href, item.label, item.requiresPlan as any)}
                       className={cn(
                         "flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-all duration-200 cursor-pointer",
                         isActive
@@ -89,9 +100,14 @@ export function MobileNav() {
                           : "text-text-secondary hover:text-text-primary hover:bg-surface-100/50"
                       )}
                     >
-                      <item.icon className={cn("h-5 w-5", isActive ? "text-brand-400" : "text-text-secondary")} />
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {isLocked && <Lock className="h-3.5 w-3.5 text-text-muted" />}
+                      <item.icon className={cn("h-5 w-5", isActive ? "text-brand-400" : "text-text-secondary", isLocked && "text-text-muted")} />
+                      <span className="flex-1 truncate flex items-center gap-1.5">
+                        <span>{item.label}</span>
+                        {isFreeUser && ["Thumbnails", "Trends", "Viral Score"].includes(item.label) && (
+                          <span className="text-xs select-none">🔒</span>
+                        )}
+                      </span>
+                      {isLocked && !["Thumbnails", "Trends", "Viral Score"].includes(item.label) && <Lock className="h-3.5 w-3.5 text-text-muted" />}
                       {item.badge && (
                         <span className={cn(
                           "text-[9px] px-1.5 py-0.5 rounded-full font-bold tracking-wider uppercase",

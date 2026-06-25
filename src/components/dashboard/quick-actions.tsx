@@ -26,7 +26,7 @@ const itemVariants = {
 
 export function QuickActions() {
   const { subscription } = useSubscription();
-  const { setUpgradeModalOpen } = useUIStore();
+  const { setUpgradeModalOpen, setLockedFeatureModalOpen } = useUIStore();
 
   const userPlan = subscription?.plan || "FREE";
 
@@ -50,10 +50,14 @@ export function QuickActions() {
     };
   });
 
-  const handleToolClick = (e: React.MouseEvent, isLocked: boolean) => {
+  const handleToolClick = (e: React.MouseEvent, type: string, label: string, isLocked: boolean) => {
     if (isLocked) {
       e.preventDefault();
-      setUpgradeModalOpen(true);
+      if (userPlan === "FREE" && ["THUMBNAIL", "TREND", "VIRAL_SCORE", "REPURPOSE"].includes(type)) {
+        setLockedFeatureModalOpen(true, label);
+      } else {
+        setUpgradeModalOpen(true);
+      }
     }
   };
 
@@ -111,7 +115,7 @@ export function QuickActions() {
             <motion.div key={tool.type} variants={itemVariants}>
               <Link
                 href={tool.href}
-                onClick={(e) => handleToolClick(e, tool.isLocked)}
+                onClick={(e) => handleToolClick(e, tool.type, tool.label, tool.isLocked)}
                 className="block group"
               >
                 <Card

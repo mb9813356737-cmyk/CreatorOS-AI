@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { UpgradeModal } from "@/components/shared/upgrade-modal";
+import { LockedFeatureModal } from "@/components/shared/locked-feature-modal";
 import { PageTransition } from "@/components/motion/page-transition";
 import { FloatingParticles } from "@/components/shared/floating-particles";
 import { SpiralAnimation } from "@/components/ui/spiral-animation";
@@ -73,6 +74,9 @@ export default function DashboardLayout({
 
       {/* App-Wide Upgrade Gating Dialog */}
       <UpgradeModal />
+
+      {/* Locked Feature Purchase Overlay Dialog */}
+      <LockedFeatureModal />
     </div>
   );
 }

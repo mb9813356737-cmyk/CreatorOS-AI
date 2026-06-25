@@ -20,6 +20,11 @@ interface UIState {
   // Upgrade modal
   upgradeModalOpen: boolean;
   setUpgradeModalOpen: (open: boolean) => void;
+
+  // Locked feature modal
+  lockedFeatureModalOpen: boolean;
+  lockedFeatureName: string;
+  setLockedFeatureModalOpen: (open: boolean, featureName?: string) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -36,6 +41,14 @@ export const useUIStore = create<UIState>()(
 
       upgradeModalOpen: false,
       setUpgradeModalOpen: (open) => set({ upgradeModalOpen: open }),
+
+      lockedFeatureModalOpen: false,
+      lockedFeatureName: "",
+      setLockedFeatureModalOpen: (open, featureName) =>
+        set((state) => ({
+          lockedFeatureModalOpen: open,
+          lockedFeatureName: featureName !== undefined ? featureName : state.lockedFeatureName,
+        })),
     }),
     {
       name: "creatoros-ui",

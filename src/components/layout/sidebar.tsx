@@ -21,14 +21,22 @@ import { SignOutButton } from "@/lib/auth";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarCollapsed, toggleSidebar, setUpgradeModalOpen } = useUIStore();
+  const { sidebarCollapsed, toggleSidebar, setUpgradeModalOpen, setLockedFeatureModalOpen } = useUIStore();
   const { subscription, isPro, isAgency } = useSubscription();
   const { usage } = useUsage();
 
-  const handleFeatureClick = (e: React.MouseEvent, requiresPlan?: string[]) => {
-    if (!requiresPlan) return;
-    
+  const handleFeatureClick = (e: React.MouseEvent, href: string, label: string, requiresPlan?: string[]) => {
     const userPlan = subscription?.plan || "FREE";
+    const isFreeUser = userPlan === "FREE";
+    const lockedFeatures = ["/thumbnails", "/trends", "/viral-score", "/repurpose"];
+
+    if (isFreeUser && lockedFeatures.includes(href)) {
+      e.preventDefault();
+      setLockedFeatureModalOpen(true, label);
+      return;
+    }
+
+    if (!requiresPlan) return;
     const hasAccess = requiresPlan.includes(userPlan);
     
     if (!hasAccess) {
@@ -74,13 +82,15 @@ export function Sidebar() {
           {DASHBOARD_NAV.map((item) => {
             const isActive = pathname === item.href;
             const userPlan = subscription?.plan || "FREE";
-            const isLocked = item.requiresPlan && !item.requiresPlan.includes(userPlan);
+            const isFreeUser = userPlan === "FREE";
+            const isLocked = (item.requiresPlan && !item.requiresPlan.includes(userPlan)) ||
+              (isFreeUser && ["/thumbnails", "/trends", "/viral-score", "/repurpose"].includes(item.href));
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={(e) => handleFeatureClick(e, item.requiresPlan as any)}
+                onClick={(e) => handleFeatureClick(e, item.href, item.label, item.requiresPlan as any)}
                 className={cn(
                   "relative flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-all duration-200 group cursor-pointer",
                   isActive
@@ -107,13 +117,16 @@ export function Sidebar() {
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex-1 truncate"
+                    className="flex-1 truncate flex items-center gap-1.5"
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {isFreeUser && ["Thumbnails", "Trends", "Viral Score"].includes(item.label) && (
+                      <span className="text-xs select-none">🔒</span>
+                    )}
                   </motion.span>
                 )}
 
-                {!sidebarCollapsed && isLocked && (
+                {!sidebarCollapsed && isLocked && !["Thumbnails", "Trends", "Viral Score"].includes(item.label) && (
                   <Lock className="h-3.5 w-3.5 text-text-muted shrink-0" />
                 )}
 
