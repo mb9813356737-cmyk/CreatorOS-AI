@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
     // 2. Admin active session cookie (verified by admin/layout)
     cookieStore.set("admin_session_active", "true", {
-      httpOnly: true,
+      httpOnly: false, // Must be readable by client-side document.cookie in layout.tsx
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
