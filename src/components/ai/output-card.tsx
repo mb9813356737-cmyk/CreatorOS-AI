@@ -27,7 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface OutputCardProps {
-  type: "VIRAL_HOOK" | "CAPTION" | "SCRIPT" | "THUMBNAIL" | "TREND" | "VIRAL_SCORE" | "REPURPOSE";
+  type: "VIRAL_HOOK" | "CAPTION" | "SCRIPT" | "THUMBNAIL" | "TREND" | "VIRAL_SCORE" | "REPURPOSE" | "TITLE";
   output: string | null;
   isGenerating: boolean;
   error: string | null;
@@ -272,13 +272,53 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
 
   let parsed = getCleanJSONOutput(output) || parsePlainTextCaption(output || "");
 
-  // Normalize caption structure if it's in the new multi-tool caption_generator JSON format
-  if (parsed && parsed.content_type === "caption" && parsed.generator === "caption_generator" && parsed.output) {
+  // 1. Detect and normalize Caption Generator format
+  if (parsed && (parsed.content_type === "caption" || parsed.generator === "caption_generator")) {
+    const data = parsed.output || parsed;
     parsed = {
-      caption: `${parsed.output.opening_line || ""}\n\n${parsed.output.body || ""}`.trim(),
-      hashtags: parsed.output.hashtags || [],
-      cta: parsed.output.call_to_action || "",
+      content_type: "caption",
+      caption: data.caption || `${data.opening_line || ""}\n\n${data.body || ""}`.trim(),
+      hashtags: data.hashtags || [],
+      cta: data.cta || data.call_to_action || "",
     };
+  }
+  // 2. Detect and normalize Script Generator format
+  else if (parsed && (parsed.content_type === "script" || parsed.generator === "script_generator")) {
+    const data = parsed.output || parsed;
+    parsed = {
+      content_type: "script",
+      title: data.title || "",
+      duration: data.duration || "",
+      language: data.language || "",
+      sections: data.sections || data.scenes || [],
+      tips: data.tips || [],
+      hashtags: data.hashtags || [],
+    };
+  }
+  // 3. Detect and normalize Hooks Generator format
+  else if (parsed && (parsed.content_type === "hooks" || parsed.generator === "hooks_generator")) {
+    const data = parsed.output || parsed;
+    parsed = {
+      content_type: "hooks",
+      hooks: Array.isArray(data) ? data : data.hooks || [],
+    };
+  }
+  // 4. Detect and normalize Title Generator format
+  else if (parsed && (parsed.content_type === "title" || parsed.generator === "title_generator")) {
+    const data = parsed.output || parsed;
+    parsed = {
+      content_type: "title",
+      titles: Array.isArray(data) ? data : data.titles || [],
+    };
+  }
+
+  // Determine effective rendering type based on parsed content_type
+  let effectiveType = type;
+  if (parsed && parsed.content_type) {
+    if (parsed.content_type === "caption") effectiveType = "CAPTION";
+    else if (parsed.content_type === "script") effectiveType = "SCRIPT";
+    else if (parsed.content_type === "hooks") effectiveType = "VIRAL_HOOK";
+    else if (parsed.content_type === "title") effectiveType = "TITLE";
   }
 
   // ─── VIRAL_HOOK RENDERING ────────────────────────────────
@@ -300,7 +340,32 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     weakness: item.weakness || "",
   }));
 
-  if (type === "VIRAL_HOOK" && hooksList) {
+  // ─── TITLE RENDERING ────────────────────────────────────
+  if (effectiveType === "TITLE" && parsed && Array.isArray(parsed.titles)) {
+    return (
+      <Card variant="glass" className="h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
+          <CardTitle className="text-sm font-bold flex items-center gap-2">
+            <Sparkles className="h-4.5 w-4.5 text-brand-400" />
+            Suggested Titles
+          </CardTitle>
+          <Button variant="secondary" size="sm" onClick={handleCopy} leftIcon={copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}>
+            {copied ? "Copied All" : "Copy All"}
+          </Button>
+        </CardHeader>
+        <CardContent className="p-5 flex-1 overflow-y-auto space-y-3.5">
+          {parsed.titles.map((title: string, idx: number) => (
+            <div key={idx} className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 hover:border-brand-500/30 transition-all select-all flex justify-between items-center gap-3">
+              <span className="text-sm font-semibold text-text-primary leading-snug">{title}</span>
+              <Badge variant="gradient" className="text-[10px] shrink-0 font-bold">#{idx + 1}</Badge>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (effectiveType === "VIRAL_HOOK" && hooksList) {
     return (
       <Card variant="glass" className="h-full flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
@@ -378,7 +443,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   }
 
   // ─── CAPTION RENDERING ──────────────────────────────────
-  if (type === "CAPTION" && parsed && parsed.caption) {
+  if (effectiveType === "CAPTION" && parsed && parsed.caption) {
     return (
       <Card variant="glass" className="h-full flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
@@ -418,7 +483,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   }
 
   // ─── SCRIPT RENDERING ───────────────────────────────────
-  if (type === "SCRIPT" && parsed && Array.isArray(parsed.sections)) {
+  if (effectiveType === "SCRIPT" && parsed && Array.isArray(parsed.sections)) {
     return (
       <Card variant="glass" className="h-full flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
@@ -615,7 +680,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   // ─── THUMBNAIL RENDERING ────────────────────────────────
   const promptsList = parsed && (Array.isArray(parsed.prompts) ? parsed.prompts : (parsed.prompt ? [parsed] : null));
 
-  if (type === "THUMBNAIL" && promptsList) {
+  if (effectiveType === "THUMBNAIL" && promptsList) {
     return (
       <Card variant="glass" className="h-full flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
@@ -679,7 +744,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   }
 
   // ─── TREND RENDERING ────────────────────────────────────
-  if (type === "TREND" && parsed) {
+  if (effectiveType === "TREND" && parsed) {
     if (parsed.competitor) {
       return <CompetitorSpyView parsed={parsed} handleCopy={handleCopy} copied={copied} />;
     }
@@ -738,7 +803,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   }
 
   // ─── REPURPOSE RENDERING ─────────────────────────────────
-  if (type === "REPURPOSE" && parsed) {
+  if (effectiveType === "REPURPOSE" && parsed) {
     if (Array.isArray(parsed.shorts)) {
       return <VideoRepurposeView parsed={parsed} handleCopy={handleCopy} copied={copied} />;
     }

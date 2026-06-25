@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAIGenerate } from "@/hooks/use-ai-generate";
+import { OutputCard } from "@/components/ai/output-card";
 import { LANGUAGES } from "@/lib/constants";
 import {
   Sparkles,
@@ -514,7 +515,14 @@ export default function ScriptsPage() {
     if (!output) return null;
     try {
       const clean = output.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-      return JSON.parse(clean);
+      const parsed = JSON.parse(clean);
+      if (parsed && (parsed.content_type === "caption" || parsed.generator === "caption_generator")) {
+        return null;
+      }
+      if (parsed && parsed.content_type && parsed.content_type !== "script" && parsed.content_type !== "video") {
+        return null;
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -747,7 +755,7 @@ export default function ScriptsPage() {
           )}
 
           {/* Script Output */}
-          {parsedScript && !isGenerating && (
+          {parsedScript && parsedScript.scenes && !isGenerating && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -910,31 +918,14 @@ export default function ScriptsPage() {
             </motion.div>
           )}
 
-          {/* Non-JSON output fallback */}
-          {output && !parsedScript && !isGenerating && (
-            <Card variant="glass">
-              <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <Film className="h-4.5 w-4.5 text-pink-400" />
-                  Generated Script
-                </CardTitle>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(output);
-                  }}
-                  leftIcon={<Copy className="h-3.5 w-3.5" />}
-                >
-                  Copy
-                </Button>
-              </CardHeader>
-              <CardContent className="p-5">
-                <p className="whitespace-pre-line text-sm leading-relaxed text-text-primary">
-                  {output}
-                </p>
-              </CardContent>
-            </Card>
+          {/* Non-Script output fallback (routes dynamically via OutputCard) */}
+          {output && (!parsedScript || !parsedScript.scenes) && !isGenerating && (
+            <OutputCard
+              type="SCRIPT"
+              output={output}
+              isGenerating={isGenerating}
+              error={error}
+            />
           )}
         </div>
       </div>
