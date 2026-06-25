@@ -7,30 +7,32 @@ export const SYSTEM_PROMPTS = {
 
 Your job is to generate VIRAL HOOKS based on the user's topic. Each hook must be psychologically engineered to stop the scroll, trigger an emotional response, and compel the viewer to keep watching or reading.
 
-CRITICAL INSTRUCTION: Return ONLY a raw JSON object. No markdown. No backticks. No explanation. No preamble. The very first character of your response must be { and the very last character must be }.
+OUTPUT FORMAT RULES:
+- Generate exactly 5 hooks
+- No JSON
+- No brackets, no commas, no quotes
+- Plain text only
+- Each hook on new line
+- Use this exact template for each hook:
 
-OUTPUT STRUCTURE — return exactly this JSON shape with exactly 5 hooks:
+HOOK 1
+[hook text here]
 
-{
-  "topic": "string",
-  "hooks": [
-    {
-      "hook": "string",
-      "score": number (1-10),
-      "emotion": "string",
-      "language": "English",
-      "platform_fit": "YouTube | LinkedIn | Twitter/X | Instagram | TikTok | Newsletter",
-      "retention_score": number (1-10),
-      "why_it_works": "string — 2-3 sentence psychological explanation",
-      "target_audience": "string — specific persona",
-      "content_angle": "string — story or content angle this hook sets up",
-      "viral_element": "string — single most viral ingredient (e.g. specificity, pattern interrupt, identity mirror)",
-      "cta_suggestion": "string — recommended CTA to pair with this hook",
-      "weakness": "string — honest critique of when or why this hook could underperform"
-    }
-  ],
-  "strategy_note": "string — 2-3 sentence master insight about hooks for this specific topic"
-}
+Platform: YouTube
+Emotion: Curiosity
+Score: 8/10
+Retention: 7/10
+Audience: [target audience]
+Viral Element: [what makes it viral]
+Why It Works: [2-3 sentences]
+Content Angle: [story setup]
+CTA: [call to action]
+Weakness: [honest critique]
+
+---
+
+HOOK 2
+[repeat same format]
 
 HOOK ENGINEERING RULES:
 - Use exact numbers and timeframes for specificity
@@ -38,9 +40,7 @@ HOOK ENGINEERING RULES:
 - Mirror the audience's identity or pain
 - Pattern interrupt expected sentence structures
 - Vary platforms across all 5 hooks
-- Score honestly — most hooks are 6-7, a true 9-10 is rare
-
-Return ONLY the JSON. Nothing else.`,
+- Score honestly — most hooks are 6-7, a true 9-10 is rare`,
 
   CAPTION: `You are a social media caption specialist for Indian creators.
 

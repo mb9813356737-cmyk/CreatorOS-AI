@@ -33,6 +33,57 @@ interface OutputCardProps {
   error: string | null;
 }
 
+function parsePlainTextHooks(text: string) {
+  if (!text) return null;
+  
+  const parts = text.split(/HOOK\s+\d+/i);
+  const hooks: any[] = [];
+  
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    
+    const lines = trimmed.split("\n");
+    const hookText = lines[0].trim();
+    
+    const restText = lines.slice(1).join("\n");
+    
+    const getField = (regex: RegExp) => {
+      const match = restText.match(regex);
+      return match ? match[1].trim() : "";
+    };
+    
+    const platform = getField(/Platform:\s*(.*)/i);
+    const emotion = getField(/Emotion:\s*(.*)/i);
+    const scoreVal = getField(/Score:\s*(.*)/i);
+    const retentionVal = getField(/Retention:\s*(.*)/i);
+    const audience = getField(/Audience:\s*(.*)/i);
+    const viralElement = getField(/Viral\s+Element:\s*(.*)/i);
+    const whyItWorks = getField(/Why\s+It\s+Works:\s*(.*)/i);
+    const contentAngle = getField(/Content\s+Angle:\s*(.*)/i);
+    const cta = getField(/CTA:\s*(.*)/i);
+    const weakness = getField(/Weakness:\s*(.*)/i);
+    
+    if (hookText && (platform || emotion || scoreVal)) {
+      hooks.push({
+        hook: hookText.replace(/^\[|\]$/g, ""),
+        platform: platform.replace(/^\[|\]$/g, ""),
+        emotion: emotion.replace(/^\[|\]$/g, ""),
+        score: scoreVal.replace(/^\[|\]$/g, ""),
+        retention: retentionVal.replace(/^\[|\]$/g, ""),
+        audience: audience.replace(/^\[|\]$/g, ""),
+        viralElement: viralElement.replace(/^\[|\]$/g, ""),
+        whyItWorks: whyItWorks.replace(/^\[|\]$/g, ""),
+        contentAngle: contentAngle.replace(/^\[|\]$/g, ""),
+        cta: cta.replace(/^\[|\]$/g, ""),
+        weakness: weakness.replace(/^\[|\]$/g, "")
+      });
+    }
+  }
+  
+  return hooks.length > 0 ? hooks : null;
+}
+
 export function OutputCard({ type, output, isGenerating, error }: OutputCardProps) {
   const [copied, setCopied] = React.useState(false);
   const [ttsState, setTtsState] = React.useState<"none" | "generating" | "ready">("none");
@@ -168,7 +219,23 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   const parsed = getCleanJSONOutput(output);
 
   // ─── VIRAL_HOOK RENDERING ────────────────────────────────
-  const hooksList = parsed && (Array.isArray(parsed) ? parsed : Array.isArray(parsed.hooks) ? parsed.hooks : null);
+  const rawList = (parsed && (Array.isArray(parsed) ? parsed : Array.isArray(parsed.hooks) ? parsed.hooks : null))
+    || parsePlainTextHooks(output || "");
+
+  const hooksList = rawList?.map((item: any) => ({
+    hook: item.hook || item.text || "",
+    score: item.score || item.viral_score || "",
+    emotion: item.emotion || "",
+    language: item.language || "English",
+    platform: item.platform || item.platform_fit || "",
+    retention: item.retention || item.retention_score || "",
+    audience: item.audience || item.target_audience || "",
+    viralElement: item.viralElement || item.viral_element || "",
+    whyItWorks: item.whyItWorks || item.why_it_works || "",
+    contentAngle: item.contentAngle || item.content_angle || "",
+    cta: item.cta || item.cta_suggestion || "",
+    weakness: item.weakness || "",
+  }));
 
   if (type === "VIRAL_HOOK" && hooksList) {
     return (
@@ -179,20 +246,66 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
             Scroll-Stopping Hooks
           </CardTitle>
           <Button variant="secondary" size="sm" onClick={handleCopy} leftIcon={copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}>
-            {copied ? "Copied All" : "Copy All JSON"}
+            {copied ? "Copied" : "Copy Hooks"}
           </Button>
         </CardHeader>
-        <CardContent className="p-5 flex-1 overflow-y-auto space-y-3.5">
+        <CardContent className="p-5 flex-1 overflow-y-auto space-y-4">
           {hooksList.map((item: any, idx: number) => (
-            <div key={idx} className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 hover:border-brand-500/30 transition-all select-all">
-              <div className="flex justify-between items-start gap-3 mb-2">
+            <div key={idx} className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 hover:border-brand-500/30 transition-all space-y-3 select-all">
+              <div className="flex justify-between items-start gap-3">
                 <p className="text-sm font-semibold text-text-primary leading-snug">{item.hook}</p>
-                <Badge variant="gradient" className="text-[10px] shrink-0 font-bold">Score: {item.score}/10</Badge>
+                {item.score && (
+                  <Badge variant="gradient" className="text-[10px] shrink-0 font-bold">
+                    Score: {item.score}
+                  </Badge>
+                )}
               </div>
+              
               <div className="flex flex-wrap gap-2 text-[10px] text-text-muted font-bold uppercase select-none">
-                <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{item.emotion}</span>
-                <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{item.platform_fit}</span>
-                <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{item.language}</span>
+                {item.platform && <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{item.platform}</span>}
+                {item.emotion && <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{item.emotion}</span>}
+                {item.language && <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{item.language}</span>}
+                {item.retention && <span className="bg-surface-200 px-2 py-0.5 rounded-sm">Retention: {item.retention}</span>}
+              </div>
+
+              {/* Detailed metrics grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] leading-relaxed border-t border-glass-border/10 pt-2.5">
+                {item.audience && (
+                  <div>
+                    <span className="font-extrabold text-brand-400 block uppercase text-[8px] select-none mb-0.5">Audience Persona</span>
+                    <span className="text-text-secondary">{item.audience}</span>
+                  </div>
+                )}
+                {item.viralElement && (
+                  <div>
+                    <span className="font-extrabold text-brand-400 block uppercase text-[8px] select-none mb-0.5">Viral Trigger</span>
+                    <span className="text-text-secondary">{item.viralElement}</span>
+                  </div>
+                )}
+                {item.whyItWorks && (
+                  <div className="sm:col-span-2">
+                    <span className="font-extrabold text-brand-400 block uppercase text-[8px] select-none mb-0.5">Psychological Trigger</span>
+                    <p className="text-text-secondary">{item.whyItWorks}</p>
+                  </div>
+                )}
+                {item.contentAngle && (
+                  <div className="sm:col-span-2">
+                    <span className="font-extrabold text-brand-400 block uppercase text-[8px] select-none mb-0.5">Content Angle</span>
+                    <span className="text-text-secondary">{item.contentAngle}</span>
+                  </div>
+                )}
+                {item.cta && (
+                  <div>
+                    <span className="font-extrabold text-emerald-400 block uppercase text-[8px] select-none mb-0.5">Suggested CTA</span>
+                    <span className="text-text-secondary">{item.cta}</span>
+                  </div>
+                )}
+                {item.weakness && (
+                  <div>
+                    <span className="font-extrabold text-pink-400 block uppercase text-[8px] select-none mb-0.5">Risk Factor</span>
+                    <span className="text-text-secondary">{item.weakness}</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
