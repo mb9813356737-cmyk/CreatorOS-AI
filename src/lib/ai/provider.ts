@@ -472,44 +472,28 @@ export async function generateMock(
     }
   }
 
-  if (_systemPrompt.includes("THUMBNAIL") || _systemPrompt.includes("thumbnail") || _systemPrompt.includes("ctr_score")) {
+  if (_systemPrompt.includes("THUMBNAIL") || _systemPrompt.includes("thumbnail") || _systemPrompt.includes("image_generation_prompt")) {
     const mockJson = {
-      prompt: `A highly cinematic, ultra-detailed thumbnail image inspired by: "${userPrompt.replace(/\n/g, " ")}". Style showcases volumetric lighting, realistic skin textures, 8k resolution, dramatic camera angles, and perfect compositional rules. Optimized for high engagement.`,
-      ctr_score: Math.floor(Math.random() * 25) + 70, // 70 to 95
-      face_emotion: {
-        suggestion: "Intense, wide-eyed look with a subtle smirk of confidence.",
-        reasoning: "The wide eyes trigger a curiosity response, while the smirk signals deep value and confidence."
+      title: "Viral AI App Thumbnail Concept",
+      visual_mode: "MrBeast Style",
+      psychology_report: {
+        primary_emotion: "Shock and curiosity — viewer wonders what secret is being revealed",
+        curiosity_gap: "The thumbnail implies a hidden trick or shortcut that 99% of people don't know, creating a strong information gap",
+        color_psychology: "High-contrast electric yellow (#FACC15) and deep red (#DC2626) dominate — yellow signals urgency and grabs attention, red triggers excitement and danger response",
+        facial_expression: "Wide-eyed shocked expression with an open mouth — triggers mirror neurons and instantly communicates high stakes",
+        text_overlay: "'I BUILT THIS IN 24 HRS' in bold uppercase yellow text — creates disbelief and forces a click to verify",
+        visual_hierarchy: "1st: shocked face expression, 2nd: bold yellow text overlay, 3rd: glowing AI interface in background",
+        ctr_trigger: "The impossible claim combined with a relatable topic (AI apps) creates a must-click curiosity loop"
       },
-      color_psychology: {
-        palette: "High-contrast complementary palette featuring electric neon purple (#8B5CF6) and glowing hot orange (#F97316).",
-        effect: "Neon purple signifies premium value, while bright orange signals urgency and stops the scroll."
-      },
-      lighting: {
-        setup: "High-contrast rim lighting wrapping the subject's face, with a dim cool ambient fill.",
-        mood: "Creates a dramatic, high-stakes cinematic environment."
-      },
-      camera_angle: {
-        angle: "Low-angle medium close-up, camera tilted 5 degrees up towards the subject.",
-        composition: "Subject positioned on the left third line, gaze directing towards the right third."
-      },
-      text_overlay: {
-        text: "I LIED!",
-        placement: "Top-right corner, slanted slightly, yellow bold uppercase font wrapped in thick black shadow."
-      },
-      attention_hotspot: "The viewer's gaze lands on the subject's expression first, then moves to the high-contrast yellow text.",
-      scoring: {
-        emotion: Math.floor(Math.random() * 20) + 75,
-        contrast: Math.floor(Math.random() * 20) + 75,
-        curiosity: Math.floor(Math.random() * 20) + 80,
-        urgency: Math.floor(Math.random() * 20) + 70,
-        relatability: Math.floor(Math.random() * 20) + 65,
-        uniqueness: Math.floor(Math.random() * 20) + 75
-      },
-      tips: [
-        "Position the main visual elements on the left side to prevent being blocked by the YouTube timestamp overlay on the bottom right.",
-        "Ensure the face occupies at least 30% of the thumbnail canvas for mobile readability.",
-        "Use radial blur on background elements to create immediate separation and pop the main subject."
-      ]
+      visual_anchors: [
+        "Shocked creator face occupying left 60% of frame with dramatic rim lighting",
+        "Bold yellow uppercase text on the right side with thick black drop shadow",
+        "Glowing neon blue AI dashboard in the background creating depth and context"
+      ],
+      image_generation_prompt: `Ultra-high-energy YouTube thumbnail in MrBeast style. A young creator with a shocked wide-eyed expression and open mouth on the left 60% of the frame. Dramatic high-contrast rim lighting wrapping the face. Bold yellow uppercase text on the right reading 'I BUILT THIS IN 24 HRS' with thick black outline. Background features a glowing neon blue AI code dashboard with depth blur. Color palette: electric yellow, deep red, and neon blue. 8K resolution, cinematic composition, rule of thirds framing, ultra detailed skin texture, explosive energy. Inspired by: "${userPrompt.replace(/\n/g, " ")}".`,
+      style_tags: ["high-energy", "bold-text", "shock-expression", "neon-colors", "mrbeast-style"],
+      predicted_ctr: "High (8.5% - 11%)",
+      pro_tip: "Add a thin white border around the creator's face to make it pop against any YouTube background color and increase mobile visibility by 30%"
     };
 
     return {
