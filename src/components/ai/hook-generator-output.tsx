@@ -42,12 +42,10 @@ function parseHookOutput(text: string): ParsedHookResult | null {
     const clean = text.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
     const parsed = JSON.parse(clean);
 
-    // Handle new structured format { hooks, meta }
     if (parsed.hooks && Array.isArray(parsed.hooks)) {
       return parsed as ParsedHookResult;
     }
 
-    // Handle legacy array format (backward compat)
     if (Array.isArray(parsed)) {
       return {
         hooks: parsed,
@@ -60,11 +58,85 @@ function parseHookOutput(text: string): ParsedHookResult | null {
         },
       };
     }
-
-    return null;
   } catch {
-    return null;
+    // Failover to plain-text parser
   }
+
+  try {
+    const hookBlocks = text.split(/---/);
+    const hooks: HookItem[] = [];
+
+    for (const block of hookBlocks) {
+      const trimmed = block.trim();
+      if (!trimmed) continue;
+
+      const getValue = (key: string) => {
+        const regex = new RegExp(`^${key}:\\s*(.*)$`, "im");
+        const match = trimmed.match(regex);
+        return match ? match[1].trim() : "";
+      };
+
+      const hookText = getValue("HOOK");
+      if (!hookText) continue;
+
+      const scoreVal = parseInt(getValue("SCORE")) || 0;
+      const retentionVal = parseInt(getValue("RETENTION").replace(/%/g, "")) || 0;
+      const ctrVal = getValue("CTR");
+      const emotionVal = getValue("EMOTION");
+      const intensityVal = parseInt(getValue("INTENSITY")) || 0;
+      const platformVal = getValue("PLATFORM");
+      const whyItWorksVal = getValue("WHY IT WORKS");
+
+      hooks.push({
+        hook: hookText,
+        score: scoreVal,
+        retention_score: retentionVal,
+        ctr_prediction: ctrVal.includes("%") ? ctrVal : `${ctrVal}%`,
+        emotional_intensity: intensityVal,
+        emotion: emotionVal,
+        platform_fit: platformVal,
+        language: "English",
+        why_it_works: whyItWorksVal,
+      });
+    }
+
+    if (hooks.length > 0) {
+      const totalRetention = hooks.reduce((sum, h) => sum + h.retention_score, 0);
+      const totalIntensity = hooks.reduce((sum, h) => sum + h.emotional_intensity, 0);
+      const ctrs = hooks.map(h => parseFloat(h.ctr_prediction.replace(/%/g, "")) || 0);
+      const avgCtr = ctrs.reduce((sum, val) => sum + val, 0) / ctrs.length;
+
+      const emotionCounts: Record<string, number> = {};
+      hooks.forEach(h => {
+        if (h.emotion) {
+          emotionCounts[h.emotion] = (emotionCounts[h.emotion] || 0) + 1;
+        }
+      });
+      let topEmotion = "mixed";
+      let maxCount = 0;
+      for (const [em, count] of Object.entries(emotionCounts)) {
+        if (count > maxCount) {
+          maxCount = count;
+          topEmotion = em;
+        }
+      }
+
+      return {
+        hooks,
+        meta: {
+          avg_retention: Math.round(totalRetention / hooks.length),
+          avg_ctr: `${avgCtr.toFixed(1)}%`,
+          avg_emotional_intensity: Math.round(totalIntensity / hooks.length),
+          top_emotion: topEmotion,
+          tone_used: "mixed",
+        }
+      };
+    }
+  } catch (err) {
+    console.error("Plain text hook parsing failed:", err);
+  }
+
+  return null;
 }
 
 function getScoreClass(score: number): string {
