@@ -121,6 +121,15 @@ function parseHookOutput(text: string): ParsedHookResult | null {
         }
       }
 
+      let toneUsed = "mixed";
+      if (hookBlocks.length > 0) {
+        const firstBlock = hookBlocks[0].trim();
+        const match = firstBlock.match(/^TONE:\s*(.*)$/im);
+        if (match) {
+          toneUsed = match[1].trim();
+        }
+      }
+
       return {
         hooks,
         meta: {
@@ -128,7 +137,7 @@ function parseHookOutput(text: string): ParsedHookResult | null {
           avg_ctr: `${avgCtr.toFixed(1)}%`,
           avg_emotional_intensity: Math.round(totalIntensity / hooks.length),
           top_emotion: topEmotion,
-          tone_used: "mixed",
+          tone_used: toneUsed,
         }
       };
     }
