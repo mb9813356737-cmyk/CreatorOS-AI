@@ -295,7 +295,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     return null;
   };
 
-  if (isGenerating) {
+  if (isGenerating && type !== "CAPTION") {
     return (
       <Card variant="glass" className="h-full min-h-[300px] flex items-center justify-center p-6">
         <CoreSpinLoader />
@@ -312,6 +312,19 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
           </div>
           <h4 className="font-bold text-text-primary text-sm">Generation Encountered an Error</h4>
           <p className="text-xs text-text-secondary leading-relaxed">{error}</p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (isGenerating) {
+    return (
+      <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
+        <div className="space-y-4 text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
+          <p className="text-sm font-semibold text-text-secondary">
+            Crafting your captions for maximum engagement...
+          </p>
         </div>
       </Card>
     );
