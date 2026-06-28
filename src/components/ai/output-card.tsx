@@ -22,7 +22,9 @@ import {
   Volume2,
   Scissors,
   Film,
-  Calendar
+  Calendar,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -193,7 +195,7 @@ function parsePlainTextCaptions(text: string) {
 export function OutputCard({ type, output, isGenerating, error }: OutputCardProps) {
   const [copied, setCopied] = React.useState(false);
   const [activeCaptionIdx, setActiveCaptionIdx] = React.useState(0);
-  const [expandedScenes, setExpandedScenes] = React.useState<Record<number, boolean>>({});
+  const [expandedScenes, setExpandedScenes] = React.useState<Record<number, boolean>>({ 0: true });
   const [ttsState, setTtsState] = React.useState<"none" | "generating" | "ready">("none");
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
@@ -214,7 +216,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     setIsPlaying(false);
     setCurrentTime(0);
     setActiveCaptionIdx(0);
-    setExpandedScenes({});
+    setExpandedScenes({ 0: true });
   }, [output]);
 
   const handleTtsGenerate = () => {
@@ -685,16 +687,15 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
           </Button>
         </CardHeader>
         <CardContent className="p-5 flex-1 overflow-y-auto space-y-5 select-all">
-          {/* Top Badges Row */}
-          <div className="flex flex-wrap gap-2 select-none">
+          {/* TOP SECTION */}
+          {titleVal && (
+            <h2 className="text-xl font-extrabold text-text-primary tracking-tight shrink-0">{titleVal}</h2>
+          )}
+
+          <div className="flex flex-wrap gap-2 select-none shrink-0">
             {durationVal && (
               <Badge variant="default" className="text-xs">
                 ⏱️ {durationVal}
-              </Badge>
-            )}
-            {platformVal && (
-              <Badge variant="gradient" className="text-xs">
-                📱 {platformVal}
               </Badge>
             )}
             {languageVal && (
@@ -702,14 +703,14 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
                 🌐 {languageVal}
               </Badge>
             )}
+            {platformVal && (
+              <Badge variant="gradient" className="text-xs">
+                📱 {platformVal}
+              </Badge>
+            )}
           </div>
 
-          {/* Title */}
-          {titleVal && (
-            <h2 className="text-xl font-extrabold text-text-primary tracking-tight">{titleVal}</h2>
-          )}
-
-          {/* Expand / Collapse All buttons */}
+          {/* EXPAND ALL / COLLAPSE ALL buttons */}
           <div className="flex items-center gap-2 select-none shrink-0 border-b border-glass-border/10 pb-3">
             <button
               onClick={() => {
@@ -748,12 +749,12 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
               const scCaption = scene.caption || "";
               const scRetention = scene.why_this_keeps_viewers || scene.retention_note || "";
 
-              const isExpanded = !!expandedScenes[idx];
+              const isExpanded = expandedScenes.hasOwnProperty(idx) ? !!expandedScenes[idx] : idx === 0;
 
               const toggleScene = () => {
                 setExpandedScenes(prev => ({
                   ...prev,
-                  [idx]: !prev[idx]
+                  [idx]: !isExpanded
                 }));
               };
 
@@ -773,18 +774,17 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
                     onClick={toggleScene}
                     className="w-full flex items-center justify-between p-4 bg-surface-100/30 hover:bg-surface-200/20 transition-all select-none text-left"
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2">
                       <Play className="h-3.5 w-3.5 text-brand-400 fill-current" />
                       {scTime && <span className="text-xs font-bold font-mono text-brand-400">{scTime}</span>}
+                      <span className="text-text-muted">•</span>
                       {scType && (
-                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 uppercase tracking-wide">
+                        <span className="text-xs font-bold text-text-primary uppercase tracking-wide">
                           {scType}
-                        </Badge>
+                        </span>
                       )}
                     </div>
-                    <span className="text-xs text-text-muted font-bold">
-                      {isExpanded ? "▲" : "▼"}
-                    </span>
+                    {isExpanded ? <ChevronUp className="h-4 w-4 text-text-muted" /> : <ChevronDown className="h-4 w-4 text-text-muted" />}
                   </button>
 
                   {/* Expanded Content */}
@@ -814,7 +814,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
 
                       {/* 2-column Grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-text-secondary select-none">
-                        {/* CAMERA | TRANSITION */}
+                        {/* Row 1: CAMERA | TRANSITION */}
                         {scCamera && (
                           <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
                             <span className="font-extrabold text-brand-400 block uppercase text-[8px] tracking-wider mb-1">Camera</span>
@@ -828,7 +828,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
                           </div>
                         )}
 
-                        {/* VISUAL | AUDIO */}
+                        {/* Row 2: VISUAL | AUDIO */}
                         {scVisual && (
                           <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
                             <span className="font-extrabold text-indigo-400 block uppercase text-[8px] tracking-wider mb-1">Visual</span>
@@ -842,7 +842,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
                           </div>
                         )}
 
-                        {/* TEXT OVERLAY | CAPTION */}
+                        {/* Row 3: TEXT OVERLAY | CAPTION */}
                         {scOverlay && (
                           <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
                             <span className="font-extrabold text-teal-400 block uppercase text-[8px] tracking-wider mb-1">Text Overlay</span>
@@ -857,7 +857,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
                         )}
                       </div>
 
-                      {/* Full Width: WHY THIS KEEPS VIEWERS */}
+                      {/* Row 3: WHY THIS KEEPS VIEWERS */}
                       {scRetention && (
                         <div className="p-3.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-xs">
                           <span className="font-extrabold text-emerald-400 block mb-0.5 uppercase tracking-wider text-[9px]">Why This Keeps Viewers</span>

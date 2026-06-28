@@ -25,6 +25,7 @@ Generate a ${duration} ${platform} script in ${language} language mode.`;
       platform,
       language,
       inputData: body,
+      options: { maxTokens: 4000 },
     });
   } catch (error: unknown) {
     return handleRouteError(error, "Script generation error");

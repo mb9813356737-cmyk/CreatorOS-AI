@@ -16,6 +16,7 @@ export async function handleAIGeneration({
   platform,
   language,
   inputData,
+  options,
 }: {
   type: GenerationType;
   systemPrompt: string;
@@ -23,6 +24,10 @@ export async function handleAIGeneration({
   platform?: string;
   language?: string;
   inputData: any;
+  options?: {
+    maxTokens?: number;
+    temperature?: number;
+  };
 }) {
   try {
     // Check maintenance mode
@@ -120,7 +125,7 @@ export async function handleAIGeneration({
     }
 
     // Real API mode
-    const aiResult = await generateAI(systemPrompt, userPrompt);
+    const aiResult = await generateAI(systemPrompt, userPrompt, options);
     content = aiResult.content;
     tokens = aiResult.tokens;
     modelName = aiResult.model;
