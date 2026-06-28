@@ -295,7 +295,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     return null;
   };
 
-  if (isGenerating && type !== "CAPTION") {
+  if (isGenerating && type !== "CAPTION" && type !== "SCRIPT") {
     return (
       <Card variant="glass" className="h-full min-h-[300px] flex items-center justify-center p-6">
         <CoreSpinLoader />
@@ -317,13 +317,26 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     );
   }
 
-  if (isGenerating) {
+  if (isGenerating && type === "CAPTION") {
     return (
       <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
         <div className="space-y-4 text-center">
           <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
           <p className="text-sm font-semibold text-text-secondary">
             Crafting your captions for maximum engagement...
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (isGenerating && type === "SCRIPT") {
+    return (
+      <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
+        <div className="space-y-4 text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
+          <p className="text-sm font-semibold text-text-secondary">
+            Writing your cinema-grade script...
           </p>
         </div>
       </Card>
@@ -390,7 +403,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   let effectiveType = type;
   if (parsed) {
     if (parsed.content_type === "caption" || (Array.isArray(parsed) && parsed[0]?.caption)) effectiveType = "CAPTION";
-    else if (parsed.content_type === "script" || Array.isArray(parsed.sections)) effectiveType = "SCRIPT";
+    else if (parsed.content_type === "script" || Array.isArray(parsed.sections) || Array.isArray(parsed.scenes)) effectiveType = "SCRIPT";
     else if (parsed.content_type === "hooks") effectiveType = "VIRAL_HOOK";
     else if (parsed.content_type === "title") effectiveType = "TITLE";
     else if (parsed.content_type === "repurpose" || Array.isArray(parsed.repurposed) || Array.isArray(parsed.shorts)) effectiveType = "REPURPOSE";
@@ -614,193 +627,150 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   }
 
   // ─── SCRIPT RENDERING ───────────────────────────────────
-  if (effectiveType === "SCRIPT" && parsed && Array.isArray(parsed.sections)) {
+  if (effectiveType === "SCRIPT" && parsed && (Array.isArray(parsed.sections) || Array.isArray(parsed.scenes))) {
+    const titleVal = parsed.title || "Ready-to-Film Script";
+    const durationVal = parsed.duration || "";
+    const platformVal = parsed.platform || "";
+    const languageVal = parsed.language || "";
+    const hookLineVal = parsed.hook_line || "";
+    const ctaVal = parsed.cta || "";
+    const contentTipVal = parsed.content_tip || "";
+    const fullScriptVal = parsed.full_script || "";
+
+    const scenesList = parsed.scenes || parsed.sections || [];
+
+    const handleCopyScript = async () => {
+      let text = `TITLE: ${titleVal}\nDURATION: ${durationVal}\nPLATFORM: ${platformVal}\nLANGUAGE: ${languageVal}\n\n`;
+      if (hookLineVal) text += `HOOK LINE: ${hookLineVal}\n\n`;
+
+      text += "SCENES:\n";
+      scenesList.forEach((scene: any) => {
+        const scTime = scene.timestamp || "";
+        const scType = scene.type || scene.label || "";
+        const scScript = scene.script || scene.dialogue || "";
+        const scDir = scene.direction || scene.visual_cue || "";
+        const scEmo = scene.emotion || "";
+        text += `[${scType}] (${scTime})\nScript: ${scScript}\nDirection: ${scDir}\nEmotion: ${scEmo}\n\n`;
+      });
+
+      if (fullScriptVal) text += `FULL SCRIPT:\n${fullScriptVal}\n\n`;
+      if (ctaVal) text += `CTA: ${ctaVal}\n`;
+      if (contentTipVal) text += `CONTENT TIP: ${contentTipVal}\n`;
+
+      try {
+        await navigator.clipboard.writeText(text.trim());
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     return (
       <Card variant="glass" className="h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4 shrink-0">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
             <Video className="h-4.5 w-4.5 text-brand-400" />
-            {parsed.title || "Ready-to-Film Script"}
+            <span>Ready-to-Film Script</span>
           </CardTitle>
-          <Button variant="secondary" size="sm" onClick={handleCopy} leftIcon={copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}>
+          <Button variant="secondary" size="sm" onClick={handleCopyScript} leftIcon={copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}>
             {copied ? "Copied" : "Copy Script"}
           </Button>
         </CardHeader>
         <CardContent className="p-5 flex-1 overflow-y-auto space-y-6 select-all">
-          {/* TTS Neural Voice-Over Player */}
-          <div className="p-4 rounded-xl bg-surface-50/20 border border-glass-border/40 select-none space-y-3">
-            {ttsState === "none" && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="space-y-0.5 text-center sm:text-left">
-                  <h5 className="font-extrabold text-xs text-text-primary uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5">
-                    <Mic className="h-4 w-4 text-brand-400" />
-                    Neural Voice-Over Preview
-                  </h5>
-                  <p className="text-[10px] text-text-secondary">
-                    Generate an instant natural Hinglish TTS voiceover preview to hear how this script sounds.
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={handleTtsGenerate}
-                  className="h-8 text-xs bg-linear-to-r from-brand-600 to-pink-600 font-bold shrink-0"
-                >
-                  Generate Voice-Over
-                </Button>
-              </div>
-            )}
-
-            {ttsState === "generating" && (
-              <div className="flex items-center gap-3 py-1">
-                <RefreshCw className="h-4 w-4 text-brand-400 animate-spin" />
-                <span className="text-[11px] font-extrabold text-text-secondary uppercase tracking-wider">
-                  Synthesizing Voice (Natural Hinglish)...
-                </span>
-              </div>
-            )}
-
-            {ttsState === "ready" && (
-              <div className="space-y-3">
-                {/* Audio source toggles and config */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-glass-border/10">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-[9px] uppercase font-bold text-brand-400 border-brand-500/20 bg-brand-500/5">
-                      🎙️ Neural Voice Active
-                    </Badge>
-                    <div className="flex gap-1.5 p-0.5 bg-surface-100 rounded border border-glass-border/30">
-                      <button
-                        onClick={() => setVoiceGender("male")}
-                        className={cn("px-2 py-0.5 text-[9px] font-bold rounded transition-colors", voiceGender === "male" ? "bg-brand-500 text-white" : "text-text-secondary")}
-                      >
-                        Male (Aarav)
-                      </button>
-                      <button
-                        onClick={() => setVoiceGender("female")}
-                        className={cn("px-2 py-0.5 text-[9px] font-bold rounded transition-colors", voiceGender === "female" ? "bg-brand-500 text-white" : "text-text-secondary")}
-                      >
-                        Female (Ananya)
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-text-secondary uppercase">Speed:</span>
-                    <div className="flex gap-1 p-0.5 bg-surface-100 rounded border border-glass-border/30">
-                      {[1, 1.25, 1.5].map(rate => (
-                        <button
-                          key={rate}
-                          onClick={() => setPlaybackRate(rate)}
-                          className={cn("px-1.5 py-0.5 text-[9px] font-bold rounded transition-colors", playbackRate === rate ? "bg-brand-500 text-white" : "text-text-secondary")}
-                        >
-                          {rate}x
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* HTML5 audio element */}
-                <audio
-                  ref={audioRef}
-                  src={voiceGender === "male"
-                    ? "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-                    : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-                  }
-                  onTimeUpdate={handleTimeUpdate}
-                  onLoadedMetadata={handleLoadedMetadata}
-                  onEnded={handleAudioEnded}
-                />
-
-                {/* Player controls */}
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={togglePlay}
-                    className="h-8 w-8 rounded-full bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 transition-colors shadow-glow-sm shrink-0"
-                    title={isPlaying ? "Pause" : "Play"}
-                  >
-                    {isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
-                  </button>
-
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-text-secondary">{formatTime(currentTime)}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max={audioDuration || 100}
-                      value={currentTime}
-                      onChange={handleSeek}
-                      className="flex-1 h-1 bg-surface-200 rounded-lg appearance-none cursor-pointer accent-brand-500"
-                    />
-                    <span className="text-[10px] font-mono text-text-secondary">{formatTime(audioDuration)}</span>
-                  </div>
-
-                  <a
-                    href={voiceGender === "male"
-                      ? "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-                      : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-                    }
-                    download={`voiceover-${voiceGender}.mp3`}
-                    className="p-2 rounded-lg border border-glass-border hover:bg-surface-200 hover:text-brand-400 transition-colors"
-                    title="Download Audio"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <Volume2 className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-            )}
+          <div className="space-y-2">
+            <h2 className="text-xl font-extrabold text-text-primary tracking-tight">{titleVal}</h2>
+            <div className="flex flex-wrap gap-2 select-none">
+              {durationVal && (
+                <Badge variant="default" className="text-xs">
+                  ⏱️ {durationVal}
+                </Badge>
+              )}
+              {platformVal && (
+                <Badge variant="gradient" className="text-xs">
+                  📱 {platformVal}
+                </Badge>
+              )}
+              {languageVal && (
+                <Badge variant="outline" className="text-xs uppercase">
+                  🌐 {languageVal}
+                </Badge>
+              )}
+            </div>
           </div>
 
-          {/* Timeline script segments */}
-          <div className="relative border-l border-glass-border/30 pl-4.5 ml-2 space-y-6 select-all">
-            {parsed.sections.map((sec: any, idx: number) => (
-              <div key={idx} className="relative">
-                {/* Visual line bubble */}
-                <div className="absolute -left-[27px] top-1.5 h-3.5 w-3.5 rounded-full bg-brand-500 border-2 border-surface-0 shadow-glow-sm" />
-                
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold font-mono text-brand-400">{sec.timestamp}</span>
-                    {sec.text_overlay && (
-                      <Badge variant="outline" className="text-[10px] font-mono px-2 py-0.5">
-                        Overlay: {sec.text_overlay}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <p className="text-sm font-medium text-text-primary leading-relaxed">
-                    &ldquo;{sec.dialogue}&rdquo;
-                  </p>
+          {hookLineVal && (
+            <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30 text-sm">
+              <span className="font-extrabold text-brand-400 block mb-1 text-[10px] uppercase tracking-wider select-none">Hook Line</span>
+              <p className="text-text-primary font-medium italic">&ldquo;{hookLineVal}&rdquo;</p>
+            </div>
+          )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-text-secondary select-none">
-                    {sec.visual_cue && (
-                      <div className="bg-surface-100 p-2 rounded border border-glass-border/20">
-                        <span className="font-extrabold text-brand-400 block uppercase text-[8px] mb-0.5">Visual cue</span>
-                        {sec.visual_cue}
+          <div className="space-y-4">
+            <span className="text-xs font-bold text-text-muted uppercase tracking-wider block select-none">Scenes List</span>
+            <div className="relative border-l border-glass-border/30 pl-4 ml-2 space-y-6">
+              {scenesList.map((scene: any, idx: number) => {
+                const scTime = scene.timestamp || "";
+                const scType = scene.type || scene.label || "Scene";
+                const scScript = scene.script || scene.dialogue || "";
+                const scDir = scene.direction || scene.visual_cue || "";
+                const scEmo = scene.emotion || "";
+
+                return (
+                  <div key={idx} className="relative">
+                    <div className="absolute -left-[25px] top-1.5 h-3 w-3 rounded-full bg-brand-500 border-2 border-surface-0 shadow-glow-sm" />
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2 select-none">
+                        {scTime && <span className="text-xs font-bold font-mono text-brand-400">{scTime}</span>}
+                        {scType && (
+                          <Badge variant="outline" className="text-[10px] px-2 py-0.5 uppercase tracking-wide">
+                            {scType}
+                          </Badge>
+                        )}
+                        {scEmo && (
+                          <span className="text-[10px] text-pink-400 font-bold bg-pink-500/5 border border-pink-500/20 rounded px-1.5 py-0.5 select-none uppercase tracking-wide">
+                            🎭 {scEmo}
+                          </span>
+                        )}
                       </div>
-                    )}
-                    {sec.audio_cue && (
-                      <div className="bg-surface-100 p-2 rounded border border-glass-border/20">
-                        <span className="font-extrabold text-pink-400 block uppercase text-[8px] mb-0.5">Audio cue</span>
-                        {sec.audio_cue}
-                      </div>
-                    )}
+
+                      <p className="text-sm font-medium text-text-primary leading-relaxed">
+                        &ldquo;{scScript}&rdquo;
+                      </p>
+
+                      {scDir && (
+                        <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20 text-xs text-text-secondary select-none">
+                          <span className="font-extrabold text-brand-400 block uppercase text-[8px] tracking-wider mb-0.5">Camera / Visual Direction</span>
+                          {scDir}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
 
-          {/* Expert tips */}
-          {Array.isArray(parsed.tips) && parsed.tips.length > 0 && (
-            <div className="pt-4 border-t border-glass-border/20 space-y-2 select-none">
-              <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">Production Tips</span>
-              <div className="space-y-1.5">
-                {parsed.tips.map((tip: string, idx: number) => (
-                  <p key={idx} className="text-xs text-text-secondary">&bull; {tip}</p>
-                ))}
+          {fullScriptVal && (
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-text-muted uppercase tracking-wider block select-none">Full Script</span>
+              <div className="p-4 rounded-xl bg-surface-100/30 border border-glass-border/30 max-h-40 overflow-y-auto">
+                <p className="text-xs leading-relaxed text-text-secondary whitespace-pre-line">{fullScriptVal}</p>
               </div>
+            </div>
+          )}
+
+          {ctaVal && (
+            <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs">
+              <span className="font-extrabold text-emerald-400 block mb-0.5 select-none uppercase tracking-wider text-[9px]">Call to Action</span>
+              <span className="text-text-secondary font-medium">{ctaVal}</span>
+            </div>
+          )}
+
+          {contentTipVal && (
+            <div className="p-3.5 rounded-lg bg-surface-50/40 border border-glass-border/20 text-xs leading-relaxed italic text-text-muted select-none">
+              💡 <span className="font-bold text-text-secondary not-italic uppercase tracking-wide text-[9px] mr-1">Filming/Editing Tip:</span>
+              {contentTipVal}
             </div>
           )}
         </CardContent>
