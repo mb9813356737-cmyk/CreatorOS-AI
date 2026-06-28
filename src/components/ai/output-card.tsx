@@ -138,8 +138,61 @@ function parsePlainTextCaption(text: string) {
   return null;
 }
 
+function parsePlainTextCaptions(text: string) {
+  if (!text) return null;
+
+  const captionBlocks = text.split(/---/);
+  const captions: any[] = [];
+
+  for (const block of captionBlocks) {
+    const trimmed = block.trim();
+    if (!trimmed) continue;
+
+    const getValue = (key: string) => {
+      const regex = new RegExp(`^${key}:\\s*(.*)$`, "im");
+      const match = trimmed.match(regex);
+      return match ? match[1].trim() : "";
+    };
+
+    const captionMatch = trimmed.match(/CAPTION:\s*([\s\S]*?)(?=\n*(?:HASHTAGS:|CTA:|TONE:|PLATFORM:|LANGUAGE:|LENGTH:|WHY\s+IT\s+WORKS:|$))/i);
+    const captionVal = captionMatch ? captionMatch[1].trim() : "";
+
+    const hashtagsVal = getValue("HASHTAGS");
+    const ctaVal = getValue("CTA");
+    const toneVal = getValue("TONE");
+    const platformVal = getValue("PLATFORM");
+    const languageVal = getValue("LANGUAGE");
+    const lengthVal = getValue("LENGTH");
+    const whyItWorksVal = getValue("WHY IT WORKS");
+
+    let hashtags: string[] = [];
+    if (hashtagsVal) {
+      hashtags = hashtagsVal
+        .split(/\s+/)
+        .map((h) => h.trim())
+        .filter((h) => h.startsWith("#"));
+    }
+
+    if (captionVal || hashtags.length > 0 || ctaVal) {
+      captions.push({
+        caption: captionVal,
+        hashtags,
+        cta: ctaVal,
+        tone: toneVal,
+        platform: platformVal,
+        language: languageVal,
+        length: lengthVal,
+        why_it_works: whyItWorksVal,
+      });
+    }
+  }
+
+  return captions.length > 0 ? captions : null;
+}
+
 export function OutputCard({ type, output, isGenerating, error }: OutputCardProps) {
   const [copied, setCopied] = React.useState(false);
+  const [activeCaptionIdx, setActiveCaptionIdx] = React.useState(0);
   const [ttsState, setTtsState] = React.useState<"none" | "generating" | "ready">("none");
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
@@ -159,6 +212,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     setTtsState("none");
     setIsPlaying(false);
     setCurrentTime(0);
+    setActiveCaptionIdx(0);
   }, [output]);
 
   const handleTtsGenerate = () => {
@@ -277,7 +331,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     );
   }
 
-  let parsed = getCleanJSONOutput(output) || parsePlainTextCaption(output || "");
+  let parsed = getCleanJSONOutput(output) || parsePlainTextCaptions(output || "") || parsePlainTextCaption(output || "");
 
   // 1. Detect and normalize Caption Generator format
   if (parsed && (parsed.content_type === "caption" || parsed.generator === "caption_generator")) {
@@ -322,7 +376,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   // Determine effective rendering type based on parsed content_type or structure
   let effectiveType = type;
   if (parsed) {
-    if (parsed.content_type === "caption") effectiveType = "CAPTION";
+    if (parsed.content_type === "caption" || (Array.isArray(parsed) && parsed[0]?.caption)) effectiveType = "CAPTION";
     else if (parsed.content_type === "script" || Array.isArray(parsed.sections)) effectiveType = "SCRIPT";
     else if (parsed.content_type === "hooks") effectiveType = "VIRAL_HOOK";
     else if (parsed.content_type === "title") effectiveType = "TITLE";
@@ -451,40 +505,96 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
   }
 
   // ─── CAPTION RENDERING ──────────────────────────────────
-  if (effectiveType === "CAPTION" && parsed && parsed.caption) {
+  const captionsList = Array.isArray(parsed) ? parsed : (parsed && parsed.caption ? [parsed] : null);
+
+  if (effectiveType === "CAPTION" && captionsList && captionsList.length > 0) {
+    const activeCaption = captionsList[activeCaptionIdx] || captionsList[0];
+
+    const handleCopyCaption = async () => {
+      const hashtagsStr = activeCaption.hashtags?.length > 0 ? `\n\n${activeCaption.hashtags.join(" ")}` : "";
+      const ctaStr = activeCaption.cta ? `\n\n${activeCaption.cta}` : "";
+      const textToCopy = `${activeCaption.caption}${hashtagsStr}${ctaStr}`;
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     return (
       <Card variant="glass" className="h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-glass-border/20 py-4">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-glass-border/20 py-4 gap-3 shrink-0">
           <CardTitle className="text-sm font-bold flex items-center gap-2">
             <Sparkles className="h-4.5 w-4.5 text-brand-400" />
-            Generated Social Caption
+            <span>Generated Captions ({captionsList.length} Options)</span>
           </CardTitle>
-          <Button variant="secondary" size="sm" onClick={() => handleCopy()} leftIcon={copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}>
-            {copied ? "Copied" : "Copy Caption"}
+          <Button variant="secondary" size="sm" onClick={handleCopyCaption} leftIcon={copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}>
+            {copied ? "Copied Option" : "Copy Selected"}
           </Button>
         </CardHeader>
-        <CardContent className="p-5 flex-1 overflow-y-auto space-y-4 select-all">
-          <div className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40">
-            <p className="whitespace-pre-line text-sm leading-relaxed text-text-primary">{parsed.caption}</p>
-          </div>
-          
-          <div className="space-y-1.5 select-none">
-            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Hashtags</span>
-            <div className="flex flex-wrap gap-1.5">
-              {parsed.hashtags?.map((hash: string, idx: number) => (
-                <Badge key={idx} variant="default" className="text-xs">
-                  {hash}
-                </Badge>
+        <CardContent className="p-5 flex-1 overflow-y-auto space-y-5">
+          {captionsList.length > 1 && (
+            <div className="flex flex-wrap gap-1.5 p-1 bg-surface-100/40 border border-glass-border/30 rounded-xl select-none">
+              {captionsList.map((_, idx: number) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setActiveCaptionIdx(idx);
+                    setCopied(false);
+                  }}
+                  className={cn(
+                    "flex-1 py-1.5 px-2.5 text-xs font-extrabold rounded-lg transition-all duration-200 uppercase tracking-wider",
+                    activeCaptionIdx === idx
+                      ? "bg-brand-500 text-white shadow-glow-sm"
+                      : "text-text-secondary hover:text-text-primary hover:bg-surface-200/50"
+                  )}
+                >
+                  Option {idx + 1}
+                </button>
               ))}
             </div>
-          </div>
-
-          {parsed.cta && (
-            <div className="p-3.5 rounded-lg bg-brand-500/10 border border-brand-500/30 text-xs">
-              <span className="font-extrabold text-brand-400 block mb-0.5">Strategic call-to-action</span>
-              <span className="text-text-secondary">{parsed.cta}</span>
-            </div>
           )}
+
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 select-all">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-text-primary">{activeCaption.caption}</p>
+            </div>
+
+            {activeCaption.hashtags?.length > 0 && (
+              <div className="space-y-1.5 select-none">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Hashtags</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {activeCaption.hashtags.map((hash: string, idx: number) => (
+                    <Badge key={idx} variant="default" className="text-xs">
+                      {hash}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeCaption.cta && (
+              <div className="p-3.5 rounded-lg bg-brand-500/10 border border-brand-500/30 text-xs">
+                <span className="font-extrabold text-brand-400 block mb-0.5">Call to Action (CTA)</span>
+                <span className="text-text-secondary">{activeCaption.cta}</span>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 text-[10px] text-text-muted font-bold uppercase select-none pt-1">
+              {activeCaption.platform && <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{activeCaption.platform}</span>}
+              {activeCaption.tone && <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{activeCaption.tone}</span>}
+              {activeCaption.language && <span className="bg-surface-200 px-2 py-0.5 rounded-sm">{activeCaption.language}</span>}
+              {activeCaption.length && <span className="bg-surface-200 px-2 py-0.5 rounded-sm">Length: {activeCaption.length}</span>}
+            </div>
+
+            {activeCaption.why_it_works && (
+              <div className="p-3 rounded-lg bg-surface-50/40 border border-glass-border/20 text-xs italic text-text-muted leading-relaxed select-none">
+                💡 {activeCaption.why_it_works}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
