@@ -800,6 +800,21 @@ ${activeReport.pro_tip}`;
             <p className="text-text-secondary font-medium leading-relaxed">{activeReport.pro_tip}</p>
           </div>
         )}
+
+        {/* SECTION 6 — THUMBNAIL PREVIEW */}
+        {activeReport.image_generation_prompt && (
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
+              Generated Thumbnail Preview
+            </span>
+            <img
+              src={`https://image.pollinations.ai/prompt/${encodeURIComponent(activeReport.image_generation_prompt)}`}
+              alt="Generated Thumbnail"
+              className="w-full rounded-xl border border-glass-border"
+              onError={(e) => e.currentTarget.style.display = 'none'}
+            />
+          </div>
+        )}
       </div>
     );
   };
