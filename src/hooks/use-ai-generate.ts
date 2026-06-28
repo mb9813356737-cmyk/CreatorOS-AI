@@ -21,6 +21,7 @@ export function useAIGenerate(expectedType?: GenerationType): UseAIGenerateRetur
 
   const generate = useCallback(
     async (type: GenerationType, input: GenerationInput) => {
+      console.log("[useAIGenerate] Starting generation type:", type, "input:", input);
       try {
         setLocalError(null);
         store.startGeneration(type, input);
@@ -31,8 +32,11 @@ export function useAIGenerate(expectedType?: GenerationType): UseAIGenerateRetur
           body: JSON.stringify(input),
         });
 
+        console.log("[useAIGenerate] API Response Status:", response.status, "OK:", response.ok);
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          console.error("[useAIGenerate] Generation failed errorData:", errorData);
           const errorMsg =
             errorData.error || `Generation failed (${response.status})`;
 
@@ -47,6 +51,7 @@ export function useAIGenerate(expectedType?: GenerationType): UseAIGenerateRetur
         }
 
         const data = await response.json();
+        console.log("[useAIGenerate] Parsed response JSON data:", data);
         store.setOutput(type, data.output);
 
         // Add to history
@@ -62,6 +67,7 @@ export function useAIGenerate(expectedType?: GenerationType): UseAIGenerateRetur
         };
         store.addToHistory(result);
       } catch (err) {
+        console.error("[useAIGenerate] Exception during generate execution:", err);
         const message =
           err instanceof Error ? err.message : "An unexpected error occurred";
         store.setError(message);

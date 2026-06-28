@@ -425,25 +425,32 @@ export default function ThumbnailsPage() {
   // Update activeReport when output changes from API
   React.useEffect(() => {
     if (output) {
+      console.log("[ThumbnailsPage] Received new output for parsing:", output);
       try {
         setParseError(null);
         const clean = output.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+        console.log("[ThumbnailsPage] Cleaned output string:", clean);
         let parsed: any;
         try {
           parsed = JSON.parse(clean);
+          console.log("[ThumbnailsPage] JSON parsed successfully:", parsed);
         } catch (firstErr) {
+          console.warn("[ThumbnailsPage] Initial JSON parse failed, trying regex fallback...", firstErr);
           // If JSON parse fails, try to extract JSON using regex match for { } block
           const jsonMatch = output.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
+            console.log("[ThumbnailsPage] Regex JSON match found:", jsonMatch[0]);
             parsed = JSON.parse(jsonMatch[0]);
+            console.log("[ThumbnailsPage] Regex match parsed successfully:", parsed);
           } else {
+            console.error("[ThumbnailsPage] Regex match failed, throwing error");
             throw firstErr;
           }
         }
         setActiveReport(parsed);
         setIsSavedThisReport(false);
       } catch (err) {
-        console.error("Failed to parse JSON content from generator", err);
+        console.error("[ThumbnailsPage] Failed to parse JSON content from generator:", err);
         setParseError("Could not generate thumbnail report. Please try again.");
         setActiveReport(null);
       }
