@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRef, useEffect } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -389,6 +390,117 @@ function ScannerLoader() {
         </div>
       </div>
     </Card>
+  );
+}
+
+// ─── Thumbnail Canvas Component ───────────────────────────────
+function ThumbnailCanvas({
+  imageUrl,
+  textOverlay,
+  title,
+}: {
+  imageUrl: string;
+  textOverlay: string;
+  title: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!imageUrl || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = imageUrl;
+
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      // Draw base image
+      ctx.drawImage(img, 0, 0);
+
+      // Draw bottom gradient overlay
+      const gradient = ctx.createLinearGradient(0, canvas.height * 0.5, 0, canvas.height);
+      gradient.addColorStop(0, "rgba(0,0,0,0)");
+      gradient.addColorStop(1, "rgba(0,0,0,0.85)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw main text
+      const text = textOverlay || title;
+      const fontSize = Math.floor(canvas.width / 10);
+      ctx.font = `900 ${fontSize}px Impact, Arial Black, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+
+      const drawLine = (line: string, y: number) => {
+        ctx.strokeStyle = "rgba(0,0,0,0.9)";
+        ctx.lineWidth = fontSize / 6;
+        ctx.lineJoin = "round";
+        ctx.strokeText(line, canvas.width / 2, y);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(line, canvas.width / 2, y);
+      };
+
+      // Check if word wrap is needed
+      if (ctx.measureText(text).width > canvas.width * 0.9) {
+        const words = text.split(" ");
+        const lines: string[] = [];
+        let currentLine = "";
+
+        words.forEach((word) => {
+          const testLine = currentLine + word + " ";
+          if (ctx.measureText(testLine).width > canvas.width * 0.85) {
+            lines.push(currentLine.trim());
+            currentLine = word + " ";
+          } else {
+            currentLine = testLine;
+          }
+        });
+        lines.push(currentLine.trim());
+
+        // Redraw with wrapped lines
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const lineHeight = fontSize * 1.2;
+        const startY = canvas.height - 30 - (lines.length - 1) * lineHeight;
+        lines.forEach((line, i) => drawLine(line, startY + i * lineHeight));
+      } else {
+        drawLine(text, canvas.height - 30);
+      }
+    };
+  }, [imageUrl, textOverlay, title]);
+
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.download = "thumbnail.png";
+    link.href = canvasRef.current?.toDataURL("image/png") || "";
+    link.click();
+  };
+
+  return (
+    <div className="space-y-2">
+      <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
+        Generated Thumbnail Preview
+      </span>
+      <canvas
+        ref={canvasRef}
+        className="w-full rounded-xl border border-glass-border"
+      />
+      <button
+        onClick={handleDownload}
+        className="w-full mt-2 py-2 text-xs font-bold text-text-secondary border border-glass-border rounded-lg hover:border-brand-400 hover:text-brand-400 transition-all"
+      >
+        Download Thumbnail
+      </button>
+    </div>
   );
 }
 
@@ -803,17 +915,11 @@ ${activeReport.pro_tip}`;
 
         {/* SECTION 6 — THUMBNAIL PREVIEW */}
         {activeReport.image_generation_prompt && (
-          <div className="space-y-2">
-            <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
-              Generated Thumbnail Preview
-            </span>
-            <img
-              src={`https://image.pollinations.ai/prompt/${encodeURIComponent(activeReport.image_generation_prompt)}`}
-              alt="Generated Thumbnail"
-              className="w-full rounded-xl border border-glass-border"
-              onError={(e) => e.currentTarget.style.display = 'none'}
-            />
-          </div>
+          <ThumbnailCanvas
+            imageUrl={`https://image.pollinations.ai/prompt/${encodeURIComponent(activeReport.image_generation_prompt)}`}
+            textOverlay={activeReport.psychology_report?.text_overlay || ""}
+            title={activeReport.title || ""}
+          />
         )}
       </div>
     );
