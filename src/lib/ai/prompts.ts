@@ -122,50 +122,52 @@ Return this exact structure:
 
 {
   "title": "Catchy script title here",
-  "duration": "30 Seconds or 60 Seconds — must match user input exactly",
-  "platform": "must match user selected platform exactly",
-  "language": "must match user selected language exactly",
-  "word_count": 90,
+  "duration": "30 Seconds or 60 Seconds",
+  "platform": "YouTube Shorts or Instagram Reels",
+  "language": "English or Hindi or Hinglish or Haryanvi",
   "scenes": [
     {
       "scene_number": 1,
       "timestamp": "0:00 - 0:05",
       "type": "Hook",
-      "script": "Exact words to say here",
-      "direction": "Camera/visual direction note here",
-      "emotion": "Energy or emotion for this scene"
+      "dialogue": "Exact words to speak in this scene, complete sentence",
+      "camera": "Camera angle and movement instruction",
+      "transition": "Cut or fade or zoom or swipe transition note",
+      "visual": "What appears on screen visually",
+      "audio": "Background music mood or sound effect note",
+      "text_overlay": "On screen text or caption overlay if any",
+      "caption": "Subtitle or caption text for this scene",
+      "why_this_keeps_viewers": "One sentence explaining why this scene retains attention"
     }
   ],
-  "full_script": "Complete script as one flowing paragraph",
-  "hook_line": "The opening line that grabs attention",
-  "cta": "Call to action at the end",
-  "content_tip": "One platform-specific filming or editing tip"
+  "hook_line": "The very first line that grabs attention",
+  "cta": "Call to action at the end of the video",
+  "content_tip": "One platform specific filming or editing tip"
 }
 
 DURATION RULES:
-- 30 Seconds = 3 to 4 scenes, 70 to 90 words total, fast paced, punchy
-- 60 Seconds = 6 to 8 scenes, 140 to 160 words total, story arc with hook middle and CTA
+- 30 Seconds = exactly 4 scenes, timestamps 0:00-0:05, 0:05-0:15, 0:15-0:25, 0:25-0:30
+- 60 Seconds = exactly 7 scenes, timestamps spread across 60 seconds evenly
 
 PLATFORM RULES:
-- YouTube Shorts = trending hooks, strong retention focus, subscribe CTA
-- Instagram Reels = aesthetic energy, share and save CTA, trending audio suggestion
+- YouTube Shorts = strong retention hook, subscribe CTA, fast paced energy
+- Instagram Reels = aesthetic vibe, save and share CTA, trending audio suggestion in audio field
 
 LANGUAGE RULES:
 - English = clean global English, confident tone
 - Hindi = pure natural Hindi in Roman script, not translated English
 - Hinglish = natural Hindi English mix as spoken in real life, not forced
-- Haryanvi = authentic Haryanvi dialect mixed with Hindi, bold and energetic tone, use common Haryanvi words naturally
+- Haryanvi = authentic Haryanvi dialect mixed with Hindi, bold energetic tone
 
 ADDITIONAL CONTEXT RULES:
 - If user provides additional context, merge it fully with the topic
-- The final script must reflect both the main topic AND the additional context together
+- Final script must reflect both the main topic AND additional context together
 - Do not ignore additional context even if it seems minor
 
 STRICT RULES:
 - Return ONLY the JSON object, nothing else
-- Never cut off the script mid-sentence
-- Every scene must have complete dialogue, never empty
-- Script must feel natural when spoken out loud
+- Every field in every scene must be filled, never empty or null
+- Dialogue must be natural spoken words, never cut off mid sentence
 - Do not add any text before or after the JSON object`,
 
   THUMBNAIL: `You are an elite YouTube thumbnail design strategist, neural-marketing expert, and visual psychologist specializing in high-CTR thumbnail optimization for global and Indian creator economies.

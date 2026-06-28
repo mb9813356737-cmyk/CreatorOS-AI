@@ -648,9 +648,14 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
         const scTime = scene.timestamp || "";
         const scType = scene.type || scene.label || "";
         const scScript = scene.script || scene.dialogue || "";
-        const scDir = scene.direction || scene.visual_cue || "";
-        const scEmo = scene.emotion || "";
-        text += `[${scType}] (${scTime})\nScript: ${scScript}\nDirection: ${scDir}\nEmotion: ${scEmo}\n\n`;
+        const scVisual = scene.visual || scene.visual_cue || "";
+        const scCamera = scene.camera || scene.camera_direction || "";
+        const scAudio = scene.audio || scene.audio_cue || "";
+        const scTransition = scene.transition || scene.transition_to_next || "";
+        const scOverlay = scene.text_overlay || "";
+        const scRetention = scene.why_this_keeps_viewers || scene.retention_note || "";
+
+        text += `[${scType}] (${scTime})\nDialogue: "${scScript}"\nVisual: ${scVisual}\nCamera: ${scCamera}\nAudio: ${scAudio}\nTransition: ${scTransition}\nOverlay: ${scOverlay}\nRetention: ${scRetention}\n\n`;
       });
 
       if (fullScriptVal) text += `FULL SCRIPT:\n${fullScriptVal}\n\n`;
@@ -713,8 +718,12 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
                 const scTime = scene.timestamp || "";
                 const scType = scene.type || scene.label || "Scene";
                 const scScript = scene.script || scene.dialogue || "";
-                const scDir = scene.direction || scene.visual_cue || "";
-                const scEmo = scene.emotion || "";
+                const scVisual = scene.visual || scene.visual_cue || "";
+                const scCamera = scene.camera || scene.camera_direction || "";
+                const scAudio = scene.audio || scene.audio_cue || "";
+                const scTransition = scene.transition || scene.transition_to_next || "";
+                const scOverlay = scene.text_overlay || "";
+                const scRetention = scene.why_this_keeps_viewers || scene.retention_note || "";
 
                 return (
                   <div key={idx} className="relative">
@@ -727,23 +736,50 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
                             {scType}
                           </Badge>
                         )}
-                        {scEmo && (
-                          <span className="text-[10px] text-pink-400 font-bold bg-pink-500/5 border border-pink-500/20 rounded px-1.5 py-0.5 select-none uppercase tracking-wide">
-                            🎭 {scEmo}
-                          </span>
-                        )}
                       </div>
 
                       <p className="text-sm font-medium text-text-primary leading-relaxed">
                         &ldquo;{scScript}&rdquo;
                       </p>
 
-                      {scDir && (
-                        <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20 text-xs text-text-secondary select-none">
-                          <span className="font-extrabold text-brand-400 block uppercase text-[8px] tracking-wider mb-0.5">Camera / Visual Direction</span>
-                          {scDir}
-                        </div>
-                      )}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-text-secondary select-none pt-1">
+                        {scVisual && (
+                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
+                            <span className="font-extrabold text-brand-400 block uppercase text-[8px] tracking-wider mb-0.5">Visual Scene</span>
+                            {scVisual}
+                          </div>
+                        )}
+                        {scCamera && (
+                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
+                            <span className="font-extrabold text-indigo-400 block uppercase text-[8px] tracking-wider mb-0.5">Camera & Movement</span>
+                            {scCamera}
+                          </div>
+                        )}
+                        {scAudio && (
+                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
+                            <span className="font-extrabold text-pink-400 block uppercase text-[8px] tracking-wider mb-0.5">Audio & SFX</span>
+                            {scAudio}
+                          </div>
+                        )}
+                        {scTransition && (
+                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
+                            <span className="font-extrabold text-amber-400 block uppercase text-[8px] tracking-wider mb-0.5">Transition</span>
+                            {scTransition}
+                          </div>
+                        )}
+                        {scOverlay && (
+                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
+                            <span className="font-extrabold text-teal-400 block uppercase text-[8px] tracking-wider mb-0.5">Text Overlay</span>
+                            {scOverlay}
+                          </div>
+                        )}
+                        {scRetention && (
+                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20 sm:col-span-2">
+                            <span className="font-extrabold text-emerald-400 block uppercase text-[8px] tracking-wider mb-0.5">Retention Trigger</span>
+                            {scRetention}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
