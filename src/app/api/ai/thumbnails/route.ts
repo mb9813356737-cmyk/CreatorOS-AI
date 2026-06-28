@@ -21,6 +21,7 @@ export async function POST(req: Request) {
       systemPrompt: SYSTEM_PROMPTS.THUMBNAIL,
       userPrompt,
       inputData: body,
+      options: { maxTokens: 2000 },
     });
   } catch (error: any) {
     return handleRouteError(error, "Thumbnail concept generation error");

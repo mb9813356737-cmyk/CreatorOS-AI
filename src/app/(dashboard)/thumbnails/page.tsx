@@ -3,6 +3,7 @@
 import * as React from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,41 +18,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn, slugify } from "@/lib/utils";
 
 // ─── Interfaces ──────────────────────────────────────────────
-interface PsychologySection {
-  suggestion: string;
-  reasoning: string;
-}
-
 interface ThumbnailPsychologyResult {
-  prompt: string;
-  ctr_score: number;
-  face_emotion: PsychologySection;
-  color_psychology: {
-    palette: string;
-    effect: string;
+  title: string;
+  visual_mode: string;
+  psychology_report: {
+    primary_emotion: string;
+    curiosity_gap: string;
+    color_psychology: string;
+    facial_expression: string;
+    text_overlay: string;
+    visual_hierarchy: string;
+    ctr_trigger: string;
   };
-  lighting: {
-    setup: string;
-    mood: string;
-  };
-  camera_angle: {
-    angle: string;
-    composition: string;
-  };
-  text_overlay: {
-    text: string;
-    placement: string;
-  };
-  attention_hotspot: string;
-  scoring: {
-    emotion: number;
-    contrast: number;
-    curiosity: number;
-    urgency: number;
-    relatability: number;
-    uniqueness: number;
-  };
-  tips: string[];
+  visual_anchors: string[];
+  image_generation_prompt: string;
+  style_tags: string[];
+  predicted_ctr: string;
+  pro_tip: string;
 }
 
 interface SavedPrompt {
@@ -204,7 +187,7 @@ function CtrGauge({ score }: { score: number }) {
 }
 
 // ─── Radar Chart Component ────────────────────────────────────
-function RadarChart({ scoring }: { scoring: ThumbnailPsychologyResult["scoring"] }) {
+function RadarChart({ scoring }: { scoring: any }) {
   const axes = [
     { key: "emotion" as const, label: "Emotion" },
     { key: "contrast" as const, label: "Contrast" },
@@ -423,6 +406,7 @@ export default function ThumbnailsPage() {
   const [copiedPrompt, setCopiedPrompt] = React.useState(false);
   const [copiedReport, setCopiedReport] = React.useState(false);
   const [isSavedThisReport, setIsSavedThisReport] = React.useState(false);
+  const [parseError, setParseError] = React.useState<string | null>(null);
 
   // Sync saved prompts from localStorage (Client only)
   React.useEffect(() => {
@@ -442,12 +426,26 @@ export default function ThumbnailsPage() {
   React.useEffect(() => {
     if (output) {
       try {
+        setParseError(null);
         const clean = output.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-        const parsed = JSON.parse(clean) as ThumbnailPsychologyResult;
+        let parsed: any;
+        try {
+          parsed = JSON.parse(clean);
+        } catch (firstErr) {
+          // If JSON parse fails, try to extract JSON using regex match for { } block
+          const jsonMatch = output.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsed = JSON.parse(jsonMatch[0]);
+          } else {
+            throw firstErr;
+          }
+        }
         setActiveReport(parsed);
         setIsSavedThisReport(false);
       } catch (err) {
         console.error("Failed to parse JSON content from generator", err);
+        setParseError("Could not generate thumbnail report. Please try again.");
+        setActiveReport(null);
       }
     }
   }, [output]);
@@ -455,13 +453,14 @@ export default function ThumbnailsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
+    setParseError(null);
     generate("THUMBNAIL", { topic, tone: selectedMode, additionalContext });
   };
 
   const handleCopyPrompt = async () => {
     if (!activeReport) return;
     try {
-      await navigator.clipboard.writeText(activeReport.prompt);
+      await navigator.clipboard.writeText(activeReport.image_generation_prompt);
       setCopiedPrompt(true);
       setTimeout(() => setCopiedPrompt(false), 2000);
     } catch (err) {
@@ -472,31 +471,29 @@ export default function ThumbnailsPage() {
   const handleCopyReport = async () => {
     if (!activeReport) return;
     try {
-      const reportText = `=== AI THUMBNAIL PSYCHOLOGY REPORT ===
-Topic/Concept: ${topic}
-Style Mode: ${selectedMode}
-Predicted CTR: ${activeReport.ctr_score}%
+      const anchorsText = activeReport.visual_anchors?.map((a, idx) => `${idx + 1}. ${a}`).join("\n") || "";
+      const reportText = `=== ${activeReport.title} ===
+Style Mode: ${activeReport.visual_mode}
+Predicted CTR: ${activeReport.predicted_ctr}
+Style Tags: ${activeReport.style_tags?.join(", ") || ""}
 
-MIDJOURNEY / DALL-E PROMPT:
-${activeReport.prompt}
+PSYCHOLOGY REPORT:
+- Primary Emotion: ${activeReport.psychology_report?.primary_emotion}
+- Curiosity Gap: ${activeReport.psychology_report?.curiosity_gap}
+- Color Psychology: ${activeReport.psychology_report?.color_psychology}
+- Facial Expression: ${activeReport.psychology_report?.facial_expression}
+- Text Overlay: ${activeReport.psychology_report?.text_overlay}
+- Visual Hierarchy: ${activeReport.psychology_report?.visual_hierarchy}
+- CTR Trigger: ${activeReport.psychology_report?.ctr_trigger}
 
-VISUAL BREAKDOWN:
-- Face Emotion: ${activeReport.face_emotion.suggestion}
-  Reasoning: ${activeReport.face_emotion.reasoning}
-- Color Psychology: ${activeReport.color_psychology.palette}
-  Effect: ${activeReport.color_psychology.effect}
-- Lighting Setup: ${activeReport.lighting.setup}
-  Mood: ${activeReport.lighting.mood}
-- Camera Angle: ${activeReport.camera_angle.angle}
-  Composition: ${activeReport.camera_angle.composition}
-- Text Overlay: "${activeReport.text_overlay.text}"
-  Placement: ${activeReport.text_overlay.placement}
-- Attention Hotspot: ${activeReport.attention_hotspot}
+VISUAL ANCHORS:
+${anchorsText}
 
-CTR OPTIMIZATION TIPS:
-${activeReport.tips.map((t, idx) => `${idx + 1}. ${t}`).join("\n")}
+IMAGE GENERATION PROMPT:
+${activeReport.image_generation_prompt}
 
-Generated by CreatorOS AI Thumbnail Psychology Engine.`;
+PRO TIP:
+${activeReport.pro_tip}`;
 
       await navigator.clipboard.writeText(reportText);
       setCopiedReport(true);
@@ -508,7 +505,7 @@ Generated by CreatorOS AI Thumbnail Psychology Engine.`;
 
   const handleSaveReport = () => {
     if (!activeReport) return;
-    const isAlreadySaved = savedPrompts.some((p) => p.result.prompt === activeReport.prompt);
+    const isAlreadySaved = savedPrompts.some((p) => p.result.image_generation_prompt === activeReport.image_generation_prompt);
     if (isAlreadySaved) {
       setIsSavedThisReport(true);
       return;
@@ -543,7 +540,7 @@ Generated by CreatorOS AI Thumbnail Psychology Engine.`;
   const handleLoadSaved = (prompt: SavedPrompt) => {
     setTopic(prompt.topic);
     setSelectedMode(prompt.mode);
-    setAdditionalContext(prompt.result.prompt ? "" : ""); // simple reset of details
+    setAdditionalContext(prompt.result.image_generation_prompt ? "" : "");
     setActiveReport(prompt.result);
     setIsSavedThisReport(true);
   };
@@ -561,6 +558,244 @@ Generated by CreatorOS AI Thumbnail Psychology Engine.`;
 
   // Details of the currently selected mode
   const activeModeDetails = MODES.find((m) => m.id === selectedMode) || MODES[0];
+
+  const renderRightColumn = () => {
+    if (isGenerating) {
+      return (
+        <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
+          <div className="space-y-4 text-center">
+            <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
+            <p className="text-sm font-semibold text-text-secondary">
+              Analyzing visual psychology & generating your thumbnail...
+            </p>
+          </div>
+        </Card>
+      );
+    }
+
+    if (error || parseError) {
+      return (
+        <Card variant="glass" className="border-error/30 bg-error/5 h-full min-h-[400px] flex flex-col justify-center p-6">
+          <div className="flex flex-col items-center text-center max-w-sm mx-auto space-y-4">
+            <div className="p-3.5 rounded-2xl bg-error/10 border border-error/20 text-error">
+              <AlertTriangle className="h-7 w-7" />
+            </div>
+            <h4 className="font-extrabold text-text-primary text-base">Generation Encountered an Error</h4>
+            <p className="text-xs text-text-secondary leading-relaxed">{error || parseError}</p>
+            <Button variant="secondary" size="sm" onClick={handleSubmit}>
+              Try Again
+            </Button>
+          </div>
+        </Card>
+      );
+    }
+
+    if (!activeReport) {
+      return (
+        <Card variant="glass" className="h-full min-h-[520px] flex flex-col items-center justify-center p-8 border-dashed border-glass-border/60">
+          <div className="flex flex-col items-center text-center max-w-xs space-y-4">
+            <div className="p-4 rounded-2xl bg-surface-100/50 border border-glass-border/30 text-brand-400 shadow-glow-sm">
+              <Sparkles className="h-7 w-7" />
+            </div>
+            <h4 className="font-extrabold text-text-primary text-sm tracking-wide">Awaiting Studio Inputs</h4>
+            <p className="text-xs text-text-muted leading-relaxed">
+              Enter your video topic, select a visual theme, and generate a complete psychological breakdown report + image generation prompt.
+            </p>
+            <div className="pt-2 flex flex-wrap gap-1.5 justify-center">
+              <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🔥 MrBeast CTR</span>
+              <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎬 Cinematic depth</span>
+              <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">📐 Perspective</span>
+            </div>
+          </div>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Header & Main Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-surface-100/20 border border-glass-border/40 rounded-xl">
+          <div>
+            <h4 className="text-sm font-extrabold text-text-primary tracking-tight truncate max-w-[300px]">
+              {topic || "Generated Blueprint"}
+            </h4>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] font-bold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 uppercase tracking-wider font-mono">
+                {activeModeDetails.name}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleSaveReport}
+              className="h-8.5 text-xs border border-glass-border"
+              leftIcon={isSavedThisReport ? <Check className="h-3.5 w-3.5 text-success" /> : <Bookmark className="h-3.5 w-3.5 text-text-secondary" />}
+            >
+              {isSavedThisReport ? "Saved" : "Save Report"}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleExportJSON}
+              className="h-8.5 text-xs border border-glass-border"
+              leftIcon={<Download className="h-3.5 w-3.5 text-text-secondary" />}
+            >
+              Export JSON
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopyReport}
+              className="h-8.5 text-xs border border-glass-border"
+              leftIcon={copiedReport ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-text-secondary" />}
+            >
+              {copiedReport ? "Copied" : "Copy Report"}
+            </Button>
+          </div>
+        </div>
+
+        {/* SECTION 1 — TOP */}
+        <div className="space-y-3">
+          {activeReport.title && (
+            <h3 className="text-xl font-extrabold text-text-primary tracking-tight">
+              {activeReport.title}
+            </h3>
+          )}
+          <div className="flex flex-wrap gap-2 select-none">
+            {activeReport.visual_mode && (
+              <Badge variant="default" className="text-xs">
+                🎨 {activeReport.visual_mode}
+              </Badge>
+            )}
+            {activeReport.predicted_ctr && (
+              <Badge variant="gradient" className="text-xs">
+                📈 CTR: {activeReport.predicted_ctr}
+              </Badge>
+            )}
+          </div>
+          {Array.isArray(activeReport.style_tags) && activeReport.style_tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 select-none pt-1">
+              {activeReport.style_tags.map((tag, idx) => (
+                <span key={idx} className="px-2 py-0.5 rounded-full bg-surface-100/40 text-[10px] text-text-secondary border border-glass-border/30 font-medium">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 2 — PSYCHOLOGY REPORT */}
+        <Card variant="glass" className="border border-glass-border">
+          <CardHeader className="py-4 border-b border-glass-border/10">
+            <CardTitle className="text-sm font-extrabold flex items-center gap-2">
+              <Brain className="h-4.5 w-4.5 text-brand-400" />
+              Psychology Parameters
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-3">
+            {activeReport.psychology_report?.primary_emotion && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Primary Emotion</span>
+                <span className="text-xs font-semibold text-text-primary md:col-span-3 leading-relaxed">{activeReport.psychology_report.primary_emotion}</span>
+              </div>
+            )}
+            {activeReport.psychology_report?.curiosity_gap && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Curiosity Gap</span>
+                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.curiosity_gap}</span>
+              </div>
+            )}
+            {activeReport.psychology_report?.color_psychology && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Color Psychology</span>
+                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.color_psychology}</span>
+              </div>
+            )}
+            {activeReport.psychology_report?.facial_expression && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Facial Expression</span>
+                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.facial_expression}</span>
+              </div>
+            )}
+            {activeReport.psychology_report?.text_overlay && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Text Overlay</span>
+                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.text_overlay}</span>
+              </div>
+            )}
+            {activeReport.psychology_report?.visual_hierarchy && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Visual Hierarchy</span>
+                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.visual_hierarchy}</span>
+              </div>
+            )}
+            {activeReport.psychology_report?.ctr_trigger && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 last:border-none">
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">CTR Trigger</span>
+                <span className="text-xs font-semibold text-brand-400 md:col-span-3 leading-relaxed">{activeReport.psychology_report.ctr_trigger}</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* SECTION 3 — VISUAL ANCHORS */}
+        {Array.isArray(activeReport.visual_anchors) && activeReport.visual_anchors.length > 0 && (
+          <Card variant="glass" className="border border-glass-border">
+            <CardHeader className="py-4 border-b border-glass-border/10">
+              <CardTitle className="text-sm font-extrabold flex items-center gap-2">
+                <Sparkles className="h-4.5 w-4.5 text-brand-400" />
+                Visual Anchors
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 space-y-2.5">
+              {activeReport.visual_anchors.map((anchor, idx) => (
+                <div key={idx} className="flex gap-3 text-xs text-text-secondary leading-relaxed align-top">
+                  <span className="font-extrabold text-brand-400 select-none">{idx + 1}.</span>
+                  <span className="font-medium">{anchor}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* SECTION 4 — IMAGE GENERATION PROMPT */}
+        {activeReport.image_generation_prompt && (
+          <Card variant="glass" className="border border-glass-border relative overflow-hidden">
+            <CardHeader className="py-4 border-b border-glass-border/10 flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-extrabold flex items-center gap-2">
+                <Camera className="h-4.5 w-4.5 text-brand-400" />
+                Image Generation Prompt
+              </CardTitle>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleCopyPrompt}
+                className="h-8.5 text-xs border border-glass-border"
+                leftIcon={copiedPrompt ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-text-secondary" />}
+              >
+                {copiedPrompt ? "Copied" : "Copy Prompt"}
+              </Button>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 font-mono text-xs text-text-secondary leading-relaxed select-all">
+                <p>{activeReport.image_generation_prompt}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* SECTION 5 — BOTTOM */}
+        {activeReport.pro_tip && (
+          <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30 text-sm">
+            <span className="font-extrabold text-brand-400 block mb-1 text-[10px] uppercase tracking-wider select-none">Pro Tip</span>
+            <p className="text-text-secondary font-medium leading-relaxed">{activeReport.pro_tip}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 md:space-y-8 pb-12">
@@ -651,7 +886,7 @@ Generated by CreatorOS AI Thumbnail Psychology Engine.`;
                   isLoading={isGenerating}
                   leftIcon={!isGenerating && <Sparkles className="h-4.5 w-4.5" />}
                 >
-                  Generate Psychology Report
+                  Generate Thumbnail
                 </Button>
               </form>
             </CardContent>
@@ -693,7 +928,7 @@ Generated by CreatorOS AI Thumbnail Psychology Engine.`;
                               <div className="flex items-center gap-2 text-[9px] text-text-muted font-mono">
                                 <span>{mInfo.icon} {mInfo.name}</span>
                                 <span>•</span>
-                                <span>CTR: {p.result.ctr_score}%</span>
+                                <span>CTR: {p.result.predicted_ctr}</span>
                               </div>
                             </div>
                             <button
@@ -716,248 +951,7 @@ Generated by CreatorOS AI Thumbnail Psychology Engine.`;
 
         {/* Right Column: AI Output Studio */}
         <div className="lg:col-span-7 h-full">
-          {isGenerating && <ScannerLoader />}
-
-          {error && !isGenerating && (
-            <Card variant="glass" className="border-error/30 bg-error/5 h-full min-h-[400px] flex flex-col justify-center p-6">
-              <div className="flex flex-col items-center text-center max-w-sm mx-auto space-y-4">
-                <div className="p-3.5 rounded-2xl bg-error/10 border border-error/20 text-error">
-                  <AlertTriangle className="h-7 w-7" />
-                </div>
-                <h4 className="font-extrabold text-text-primary text-base">Generation Encountered an Error</h4>
-                <p className="text-xs text-text-secondary leading-relaxed">{error}</p>
-                <Button variant="secondary" size="sm" onClick={handleSubmit}>
-                  Try Again
-                </Button>
-              </div>
-            </Card>
-          )}
-
-          {!isGenerating && !error && !activeReport && (
-            <Card variant="glass" className="h-full min-h-[520px] flex flex-col items-center justify-center p-8 border-dashed border-glass-border/60">
-              <div className="flex flex-col items-center text-center max-w-xs space-y-4">
-                <div className="p-4 rounded-2xl bg-surface-100/50 border border-glass-border/30 text-brand-400 shadow-glow-sm">
-                  <Sparkles className="h-7 w-7" />
-                </div>
-                <h4 className="font-extrabold text-text-primary text-sm tracking-wide">Awaiting Studio Inputs</h4>
-                <p className="text-xs text-text-muted leading-relaxed">
-                  Enter your video topic, select a visual theme, and generate a complete psychological breakdown report + image generation prompt.
-                </p>
-                <div className="pt-2 flex flex-wrap gap-1.5 justify-center">
-                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🔥 MrBeast CTR</span>
-                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎬 Cinematic depth</span>
-                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">📐 Perspective</span>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {!isGenerating && !error && activeReport && (
-            <div className="space-y-6">
-              {/* Header & Main Actions */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-surface-100/20 border border-glass-border/40 rounded-xl">
-                <div>
-                  <h4 className="text-sm font-extrabold text-text-primary tracking-tight truncate max-w-[300px]">
-                    {topic || "Generated Blueprint"}
-                  </h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-bold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 uppercase tracking-wider font-mono">
-                      {activeModeDetails.name}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleSaveReport}
-                    className="h-8.5 text-xs border border-glass-border"
-                    leftIcon={isSavedThisReport ? <Check className="h-3.5 w-3.5 text-success" /> : <Bookmark className="h-3.5 w-3.5 text-text-secondary" />}
-                  >
-                    {isSavedThisReport ? "Saved" : "Save Report"}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleExportJSON}
-                    className="h-8.5 text-xs border border-glass-border"
-                    leftIcon={<Download className="h-3.5 w-3.5 text-text-secondary" />}
-                  >
-                    Export JSON
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleCopyReport}
-                    className="h-8.5 text-xs border border-glass-border"
-                    leftIcon={copiedReport ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-text-secondary" />}
-                  >
-                    {copiedReport ? "Copied" : "Copy Report"}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Main AI Prompt Card */}
-              <Card variant="glass" className={cn("border border-glass-border relative overflow-hidden", activeModeDetails.borderGlow)}>
-                <div className="absolute top-0 right-0 p-3 flex gap-2 select-none pointer-events-none">
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-text-muted bg-surface-200/50 border border-glass-border/30 px-2 py-0.5 rounded">
-                    Midjourney v6
-                  </span>
-                </div>
-                <CardContent className="p-6">
-                  <div className="space-y-3.5">
-                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block select-none">
-                      AI Image Prompt (Midjourney / DALL-E)
-                    </span>
-                    <div className="p-4 rounded-xl bg-surface-0/60 border border-glass-border/40 font-mono text-xs text-text-secondary leading-relaxed select-all relative group/prompt border-dashed">
-                      <p>{activeReport.prompt}</p>
-                      <button
-                        onClick={handleCopyPrompt}
-                        className="absolute right-3 bottom-3 p-2 bg-surface-100 hover:bg-surface-200 border border-glass-border/30 rounded-lg text-text-secondary hover:text-text-primary transition-all opacity-0 group-hover/prompt:opacity-100 select-none shadow-glow-sm"
-                        title="Copy image prompt"
-                      >
-                        {copiedPrompt ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-                      </button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Metrics row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <CtrGauge score={activeReport.ctr_score} />
-                <RadarChart scoring={activeReport.scoring} />
-              </div>
-
-              {/* Psychology Breakdown Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Face Emotion */}
-                <Card variant="glass" className={cn("group border-glass-border/30 transition-all duration-300", activeModeDetails.borderGlow)}>
-                  <CardContent className="p-4 flex gap-3 h-full">
-                    <div className={cn("p-2.5 rounded-lg text-brand-400 group-hover:scale-105 transition-transform duration-300 shrink-0 self-start", activeModeDetails.bg)}>
-                      <Smile className="h-5 w-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Face Emotion</span>
-                      <span className="text-xs font-extrabold text-text-primary block leading-snug">
-                        {activeReport.face_emotion.suggestion}
-                      </span>
-                      <p className="text-[11px] text-text-secondary leading-relaxed">
-                        {activeReport.face_emotion.reasoning}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Color Psychology */}
-                <Card variant="glass" className={cn("group border-glass-border/30 transition-all duration-300", activeModeDetails.borderGlow)}>
-                  <CardContent className="p-4 flex gap-3 h-full">
-                    <div className={cn("p-2.5 rounded-lg text-brand-400 group-hover:scale-105 transition-transform duration-300 shrink-0 self-start", activeModeDetails.bg)}>
-                      <Palette className="h-5 w-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Color Psychology</span>
-                      <span className="text-xs font-extrabold text-text-primary block leading-snug">
-                        {activeReport.color_psychology.palette}
-                      </span>
-                      <p className="text-[11px] text-text-secondary leading-relaxed">
-                        {activeReport.color_psychology.effect}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Lighting Setup */}
-                <Card variant="glass" className={cn("group border-glass-border/30 transition-all duration-300", activeModeDetails.borderGlow)}>
-                  <CardContent className="p-4 flex gap-3 h-full">
-                    <div className={cn("p-2.5 rounded-lg text-brand-400 group-hover:scale-105 transition-transform duration-300 shrink-0 self-start", activeModeDetails.bg)}>
-                      <Lightbulb className="h-5 w-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Lighting Setup</span>
-                      <span className="text-xs font-extrabold text-text-primary block leading-snug">
-                        {activeReport.lighting.setup}
-                      </span>
-                      <p className="text-[11px] text-text-secondary leading-relaxed">
-                        {activeReport.lighting.mood}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Camera Angle */}
-                <Card variant="glass" className={cn("group border-glass-border/30 transition-all duration-300", activeModeDetails.borderGlow)}>
-                  <CardContent className="p-4 flex gap-3 h-full">
-                    <div className={cn("p-2.5 rounded-lg text-brand-400 group-hover:scale-105 transition-transform duration-300 shrink-0 self-start", activeModeDetails.bg)}>
-                      <Camera className="h-5 w-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Camera Angle</span>
-                      <span className="text-xs font-extrabold text-text-primary block leading-snug">
-                        {activeReport.camera_angle.angle}
-                      </span>
-                      <p className="text-[11px] text-text-secondary leading-relaxed">
-                        {activeReport.camera_angle.composition}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Text Overlay */}
-                <Card variant="glass" className={cn("group border-glass-border/30 transition-all duration-300", activeModeDetails.borderGlow)}>
-                  <CardContent className="p-4 flex gap-3 h-full">
-                    <div className={cn("p-2.5 rounded-lg text-brand-400 group-hover:scale-105 transition-transform duration-300 shrink-0 self-start", activeModeDetails.bg)}>
-                      <Type className="h-5 w-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Text Overlay</span>
-                      <span className="text-xs font-extrabold text-text-primary block leading-snug">
-                        &ldquo;{activeReport.text_overlay.text}&rdquo;
-                      </span>
-                      <p className="text-[11px] text-text-secondary leading-relaxed">
-                        {activeReport.text_overlay.placement}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Attention Hotspot */}
-                <Card variant="glass" className={cn("group border-glass-border/30 transition-all duration-300", activeModeDetails.borderGlow)}>
-                  <CardContent className="p-4 flex gap-3 h-full">
-                    <div className={cn("p-2.5 rounded-lg text-brand-400 group-hover:scale-105 transition-transform duration-300 shrink-0 self-start", activeModeDetails.bg)}>
-                      <Eye className="h-5 w-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">Attention Hotspot</span>
-                      <p className="text-[11px] text-text-secondary leading-relaxed pt-1">
-                        {activeReport.attention_hotspot}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Expert Tips */}
-              {Array.isArray(activeReport.tips) && activeReport.tips.length > 0 && (
-                <Card variant="glass" className="border border-glass-border">
-                  <CardContent className="p-5 space-y-3">
-                    <span className="text-xs font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5 select-none">
-                      <Info className="h-4.5 w-4.5 text-brand-400" />
-                      Visual CTR Optimizations
-                    </span>
-                    <div className="space-y-2">
-                      {activeReport.tips.map((tip, idx) => (
-                        <div key={idx} className="flex gap-2 text-xs text-text-secondary leading-relaxed align-top">
-                          <span className="font-extrabold text-brand-400">{idx + 1}.</span>
-                          <span>{tip}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
+          {renderRightColumn()}
         </div>
       </div>
     </div>
