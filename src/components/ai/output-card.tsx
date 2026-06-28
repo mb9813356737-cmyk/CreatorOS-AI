@@ -193,6 +193,7 @@ function parsePlainTextCaptions(text: string) {
 export function OutputCard({ type, output, isGenerating, error }: OutputCardProps) {
   const [copied, setCopied] = React.useState(false);
   const [activeCaptionIdx, setActiveCaptionIdx] = React.useState(0);
+  const [expandedScenes, setExpandedScenes] = React.useState<Record<number, boolean>>({});
   const [ttsState, setTtsState] = React.useState<"none" | "generating" | "ready">("none");
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
@@ -213,6 +214,7 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
     setIsPlaying(false);
     setCurrentTime(0);
     setActiveCaptionIdx(0);
+    setExpandedScenes({});
   }, [output]);
 
   const handleTtsGenerate = () => {
@@ -682,133 +684,219 @@ export function OutputCard({ type, output, isGenerating, error }: OutputCardProp
             {copied ? "Copied" : "Copy Script"}
           </Button>
         </CardHeader>
-        <CardContent className="p-5 flex-1 overflow-y-auto space-y-6 select-all">
-          <div className="space-y-2">
-            <h2 className="text-xl font-extrabold text-text-primary tracking-tight">{titleVal}</h2>
-            <div className="flex flex-wrap gap-2 select-none">
-              {durationVal && (
-                <Badge variant="default" className="text-xs">
-                  ⏱️ {durationVal}
-                </Badge>
-              )}
-              {platformVal && (
-                <Badge variant="gradient" className="text-xs">
-                  📱 {platformVal}
-                </Badge>
-              )}
-              {languageVal && (
-                <Badge variant="outline" className="text-xs uppercase">
-                  🌐 {languageVal}
-                </Badge>
-              )}
-            </div>
+        <CardContent className="p-5 flex-1 overflow-y-auto space-y-5 select-all">
+          {/* Top Badges Row */}
+          <div className="flex flex-wrap gap-2 select-none">
+            {durationVal && (
+              <Badge variant="default" className="text-xs">
+                ⏱️ {durationVal}
+              </Badge>
+            )}
+            {platformVal && (
+              <Badge variant="gradient" className="text-xs">
+                📱 {platformVal}
+              </Badge>
+            )}
+            {languageVal && (
+              <Badge variant="outline" className="text-xs uppercase">
+                🌐 {languageVal}
+              </Badge>
+            )}
           </div>
 
-          {hookLineVal && (
-            <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30 text-sm">
-              <span className="font-extrabold text-brand-400 block mb-1 text-[10px] uppercase tracking-wider select-none">Hook Line</span>
-              <p className="text-text-primary font-medium italic">&ldquo;{hookLineVal}&rdquo;</p>
-            </div>
+          {/* Title */}
+          {titleVal && (
+            <h2 className="text-xl font-extrabold text-text-primary tracking-tight">{titleVal}</h2>
           )}
 
-          <div className="space-y-4">
-            <span className="text-xs font-bold text-text-muted uppercase tracking-wider block select-none">Scenes List</span>
-            <div className="relative border-l border-glass-border/30 pl-4 ml-2 space-y-6">
-              {scenesList.map((scene: any, idx: number) => {
-                const scTime = scene.timestamp || "";
-                const scType = scene.type || scene.label || "Scene";
-                const scScript = scene.script || scene.dialogue || "";
-                const scVisual = scene.visual || scene.visual_cue || "";
-                const scCamera = scene.camera || scene.camera_direction || "";
-                const scAudio = scene.audio || scene.audio_cue || "";
-                const scTransition = scene.transition || scene.transition_to_next || "";
-                const scOverlay = scene.text_overlay || "";
-                const scRetention = scene.why_this_keeps_viewers || scene.retention_note || "";
+          {/* Expand / Collapse All buttons */}
+          <div className="flex items-center gap-2 select-none shrink-0 border-b border-glass-border/10 pb-3">
+            <button
+              onClick={() => {
+                const newStates: Record<number, boolean> = {};
+                scenesList.forEach((_: any, idx: number) => {
+                  newStates[idx] = true;
+                });
+                setExpandedScenes(newStates);
+              }}
+              className="text-xs font-bold text-brand-400 hover:text-brand-300 transition-colors"
+            >
+              Expand All
+            </button>
+            <span className="text-text-muted text-xs">/</span>
+            <button
+              onClick={() => {
+                setExpandedScenes({});
+              }}
+              className="text-xs font-bold text-brand-400 hover:text-brand-300 transition-colors"
+            >
+              Collapse All
+            </button>
+          </div>
 
-                return (
-                  <div key={idx} className="relative">
-                    <div className="absolute -left-[25px] top-1.5 h-3 w-3 rounded-full bg-brand-500 border-2 border-surface-0 shadow-glow-sm" />
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2 select-none">
-                        {scTime && <span className="text-xs font-bold font-mono text-brand-400">{scTime}</span>}
-                        {scType && (
-                          <Badge variant="outline" className="text-[10px] px-2 py-0.5 uppercase tracking-wide">
-                            {scType}
-                          </Badge>
-                        )}
-                      </div>
+          {/* Collapsible Scenes List */}
+          <div className="space-y-3.5">
+            {scenesList.map((scene: any, idx: number) => {
+              const scTime = scene.timestamp || "";
+              const scType = scene.type || scene.label || "Scene";
+              const scScript = scene.dialogue || scene.script || "";
+              const scCamera = scene.camera || scene.camera_direction || "";
+              const scTransition = scene.transition || scene.transition_to_next || "";
+              const scVisual = scene.visual || scene.visual_cue || "";
+              const scAudio = scene.audio || scene.audio_cue || "";
+              const scOverlay = scene.text_overlay || "";
+              const scCaption = scene.caption || "";
+              const scRetention = scene.why_this_keeps_viewers || scene.retention_note || "";
 
-                      <p className="text-sm font-medium text-text-primary leading-relaxed">
-                        &ldquo;{scScript}&rdquo;
-                      </p>
+              const isExpanded = !!expandedScenes[idx];
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-text-secondary select-none pt-1">
-                        {scVisual && (
-                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
-                            <span className="font-extrabold text-brand-400 block uppercase text-[8px] tracking-wider mb-0.5">Visual Scene</span>
-                            {scVisual}
+              const toggleScene = () => {
+                setExpandedScenes(prev => ({
+                  ...prev,
+                  [idx]: !prev[idx]
+                }));
+              };
+
+              const handleCopyDialogue = async (e: React.MouseEvent) => {
+                e.stopPropagation();
+                try {
+                  await navigator.clipboard.writeText(scScript);
+                } catch (err) {
+                  console.error(err);
+                }
+              };
+
+              return (
+                <div key={idx} className="border border-glass-border/30 rounded-xl overflow-hidden bg-surface-50/10 transition-colors">
+                  {/* Header */}
+                  <button
+                    onClick={toggleScene}
+                    className="w-full flex items-center justify-between p-4 bg-surface-100/30 hover:bg-surface-200/20 transition-all select-none text-left"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Play className="h-3.5 w-3.5 text-brand-400 fill-current" />
+                      {scTime && <span className="text-xs font-bold font-mono text-brand-400">{scTime}</span>}
+                      {scType && (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 uppercase tracking-wide">
+                          {scType}
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-xs text-text-muted font-bold">
+                      {isExpanded ? "▲" : "▼"}
+                    </span>
+                  </button>
+
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="p-4 border-t border-glass-border/20 space-y-4">
+                      {/* Dialogue Box */}
+                      {scScript && (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between select-none">
+                            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                              <Mic className="h-3.5 w-3.5 text-brand-400" /> Dialogue
+                            </span>
+                            <button
+                              onClick={handleCopyDialogue}
+                              className="text-[10px] font-bold text-brand-400 hover:text-brand-300 flex items-center gap-1"
+                            >
+                              <Copy className="h-3 w-3" /> Copy Dialogue
+                            </button>
                           </div>
-                        )}
+                          <div className="p-3 rounded-lg bg-surface-100/40 border border-glass-border/30 select-all">
+                            <p className="text-sm font-medium text-text-primary leading-relaxed">
+                              {scScript}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 2-column Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-text-secondary select-none">
+                        {/* CAMERA | TRANSITION */}
                         {scCamera && (
-                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
-                            <span className="font-extrabold text-indigo-400 block uppercase text-[8px] tracking-wider mb-0.5">Camera & Movement</span>
-                            {scCamera}
-                          </div>
-                        )}
-                        {scAudio && (
-                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
-                            <span className="font-extrabold text-pink-400 block uppercase text-[8px] tracking-wider mb-0.5">Audio & SFX</span>
-                            {scAudio}
+                          <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
+                            <span className="font-extrabold text-brand-400 block uppercase text-[8px] tracking-wider mb-1">Camera</span>
+                            <span className="text-text-primary font-medium">{scCamera}</span>
                           </div>
                         )}
                         {scTransition && (
-                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
-                            <span className="font-extrabold text-amber-400 block uppercase text-[8px] tracking-wider mb-0.5">Transition</span>
-                            {scTransition}
+                          <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
+                            <span className="font-extrabold text-amber-400 block uppercase text-[8px] tracking-wider mb-1">Transition</span>
+                            <span className="text-text-primary font-medium">{scTransition}</span>
                           </div>
                         )}
+
+                        {/* VISUAL | AUDIO */}
+                        {scVisual && (
+                          <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
+                            <span className="font-extrabold text-indigo-400 block uppercase text-[8px] tracking-wider mb-1">Visual</span>
+                            <span className="text-text-primary font-medium">{scVisual}</span>
+                          </div>
+                        )}
+                        {scAudio && (
+                          <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
+                            <span className="font-extrabold text-pink-400 block uppercase text-[8px] tracking-wider mb-1">Audio</span>
+                            <span className="text-text-primary font-medium">{scAudio}</span>
+                          </div>
+                        )}
+
+                        {/* TEXT OVERLAY | CAPTION */}
                         {scOverlay && (
-                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20">
-                            <span className="font-extrabold text-teal-400 block uppercase text-[8px] tracking-wider mb-0.5">Text Overlay</span>
-                            {scOverlay}
+                          <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
+                            <span className="font-extrabold text-teal-400 block uppercase text-[8px] tracking-wider mb-1">Text Overlay</span>
+                            <span className="text-text-primary font-medium">{scOverlay}</span>
                           </div>
                         )}
-                        {scRetention && (
-                          <div className="bg-surface-100/40 p-2.5 rounded border border-glass-border/20 sm:col-span-2">
-                            <span className="font-extrabold text-emerald-400 block uppercase text-[8px] tracking-wider mb-0.5">Retention Trigger</span>
-                            {scRetention}
+                        {scCaption && (
+                          <div className="bg-surface-100/20 p-3 rounded-lg border border-glass-border/20">
+                            <span className="font-extrabold text-blue-400 block uppercase text-[8px] tracking-wider mb-1">Caption</span>
+                            <span className="text-text-primary font-medium">{scCaption}</span>
                           </div>
                         )}
                       </div>
+
+                      {/* Full Width: WHY THIS KEEPS VIEWERS */}
+                      {scRetention && (
+                        <div className="p-3.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-xs">
+                          <span className="font-extrabold text-emerald-400 block mb-0.5 uppercase tracking-wider text-[9px]">Why This Keeps Viewers</span>
+                          <span className="text-text-secondary font-medium leading-relaxed">{scRetention}</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
-          {fullScriptVal && (
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-text-muted uppercase tracking-wider block select-none">Full Script</span>
-              <div className="p-4 rounded-xl bg-surface-100/30 border border-glass-border/30 max-h-40 overflow-y-auto">
-                <p className="text-xs leading-relaxed text-text-secondary whitespace-pre-line">{fullScriptVal}</p>
+          {/* Bottom Section */}
+          <div className="space-y-4 pt-4 border-t border-glass-border/20">
+            {/* Hook Line */}
+            {hookLineVal && (
+              <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30 text-sm">
+                <span className="font-extrabold text-brand-400 block mb-1 text-[10px] uppercase tracking-wider select-none">Hook Line</span>
+                <p className="text-text-primary font-medium italic">&ldquo;{hookLineVal}&rdquo;</p>
               </div>
-            </div>
-          )}
+            )}
 
-          {ctaVal && (
-            <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs">
-              <span className="font-extrabold text-emerald-400 block mb-0.5 select-none uppercase tracking-wider text-[9px]">Call to Action</span>
-              <span className="text-text-secondary font-medium">{ctaVal}</span>
-            </div>
-          )}
+            {/* CTA */}
+            {ctaVal && (
+              <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs">
+                <span className="font-extrabold text-emerald-400 block mb-0.5 select-none uppercase tracking-wider text-[9px]">Call to Action</span>
+                <span className="text-text-secondary font-medium">{ctaVal}</span>
+              </div>
+            )}
 
-          {contentTipVal && (
-            <div className="p-3.5 rounded-lg bg-surface-50/40 border border-glass-border/20 text-xs leading-relaxed italic text-text-muted select-none">
-              💡 <span className="font-bold text-text-secondary not-italic uppercase tracking-wide text-[9px] mr-1">Filming/Editing Tip:</span>
-              {contentTipVal}
-            </div>
-          )}
+            {/* Content Tip */}
+            {contentTipVal && (
+              <div className="p-3 rounded-lg bg-surface-50/40 border border-glass-border/20 text-xs leading-relaxed italic text-text-muted select-none">
+                💡 <span className="font-bold text-text-secondary not-italic uppercase tracking-wide text-[9px] mr-1">Filming/Editing Tip:</span>
+                {contentTipVal}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
