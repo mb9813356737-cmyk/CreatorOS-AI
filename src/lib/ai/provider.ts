@@ -560,47 +560,79 @@ export async function generateMock(
       const match = userPrompt.match(/@\w+/);
       const handle = match ? match[0] : "@techcreator";
       const mockJson = {
-        competitor: {
-          handle,
-          niche: "AI Coding & Tech Product Reviews",
-          subscribers: "1.4M Subscribers",
-          avg_views: "480K views/video"
+        competitor: handle,
+        platform: "YouTube",
+        spy_summary: "This creator dominates the Indian tech review space by combining Hindi narration with ruthlessly structured comparison formats that guide purchase decisions. Their success stems from a deep trust loop — they post consistently, never clickbait, and always deliver the one answer viewers came for within the first 60 seconds.",
+        content_strategy: {
+          posting_frequency: "2 to 3 videos per week",
+          best_performing_format: "Head-to-head Comparison Videos (Versus format)",
+          average_video_length: "10 to 15 minutes",
+          hook_style: "Opens with a bold price-reveal shot followed by a direct question: 'Should you actually buy this?' — creates an open loop that forces watch-through.",
+          thumbnail_style: "Split-screen product images with large rupee price tags and a shocked or skeptical face on the right. High contrast red-vs-blue color coding for versus thumbnails.",
+          title_formula: "[Phone A] vs [Phone B] — The HONEST Truth After 30 Days | [Price Range] (Example: Poco F6 Pro vs OnePlus 12R — The HONEST Truth After 30 Days | Under ₹30,000)"
         },
-        top_videos: [
+        top_content_pillars: [
           {
-            title: "I Let AI Code a Full SaaS Product in 1 Hour (Mind-blown)",
-            views: "2.1M views",
-            upload_date: "10 days ago",
-            ctr_estimate: "11.8%",
-            hook_analysis: "High emotional curiosity hook combined with visual urgency (timer overlay). Direct pattern interrupt.",
-            iteration_suggestions: [
-              "I Built a Profitable Chrome Extension in 45 Minutes Using AI",
-              "I Forced AI to Build and Launch My Mobile App (Day 1 Profit)"
-            ]
+            pillar: "Budget vs Flagship Comparisons",
+            why_it_works: "Indian buyers are highly price-conscious and need a trusted verdict before spending — this pillar directly reduces purchase anxiety.",
+            steal_this_angle: "Add a 'Who Should NOT Buy This' section at the end of every comparison — competitors skip this, but it builds massive trust and drives 3x more shares."
           },
           {
-            title: "Stop Learning Python in 2026. Do This Instead!",
-            views: "1.2M views",
-            upload_date: "3 weeks ago",
-            ctr_estimate: "10.2%",
-            hook_analysis: "Controversial shock angle. Direct myth-busting statement targeting standard dev conventions.",
-            iteration_suggestions: [
-              "Stop Building Portfolios. Do This to Get AI Dev Jobs Fast!",
-              "Is Coding Dead? The Brutal Truth for 2026 Beginners"
-            ]
+            pillar: "Camera Deep Dives",
+            why_it_works: "Camera quality is the #1 purchase driver for Indian smartphone buyers under 35, making camera content the highest-CTR category.",
+            steal_this_angle: "Test cameras in real Indian conditions — street food stalls, wedding lighting, monsoon outdoors — instead of the controlled lab shots everyone else does."
           },
           {
-            title: "10 AI Tools That Feel Illegal to Know (Dev Edition)",
-            views: "950K views",
-            upload_date: "1 month ago",
-            ctr_estimate: "9.4%",
-            hook_analysis: "Exclusivity-based trigger ('illegal to know') combined with utility value listing.",
-            iteration_suggestions: [
-              "7 Secret AI APIs That Do the Coding for You",
-              "My Secret Stack of AI Tools That Saves Me 30 Hours a Week"
-            ]
+            pillar: "Value for Money Rankings",
+            why_it_works: "Monthly roundup lists get replayed and shared as buying guides, creating long-term evergreen traffic beyond initial publish.",
+            steal_this_angle: "Create a live Google Sheet ranking that viewers can bookmark — embed the link in pinned comment and update it monthly to drive repeat visits."
+          },
+          {
+            pillar: "First Impressions Unboxings",
+            why_it_works: "High search volume for new launches drives views within the first 48 hours, which signals to YouTube algorithm to push the video further.",
+            steal_this_angle: "Film unboxings in public — coffee shop, mall, metro — instead of a studio setup, which creates authentic social proof and curiosity from passersby."
           }
-        ]
+        ],
+        weakness_gaps: [
+          {
+            weakness: "No long-term follow-up reviews — they post day-one impressions but never revisit phones after 6 months of real use.",
+            opportunity: "Launch a '6 Month Reality Check' series where you revisit popular phones — viewers CRAVE this data and it ranks forever in search as evergreen content."
+          },
+          {
+            weakness: "Covers only popular brands — Xiaomi, Samsung, OnePlus — and completely ignores rising brands like iQOO, Lava, or Nothing for Indian market.",
+            opportunity: "Become the go-to creator for underdog brand reviews — the comment sections on their videos are full of 'but what about iQOO?' questions waiting to be answered."
+          },
+          {
+            weakness: "All content is Hindi-only with no English subtitles or English-language versions, excluding the 15% English-speaking Indian tech audience.",
+            opportunity: "Dual-language strategy: publish the same video with auto-generated English subs and a separate English-language short version to capture the untapped segment."
+          }
+        ],
+        viral_patterns: [
+          {
+            pattern: "The '30 Day Real Test' framing instead of standard reviews",
+            example: "Title format: 'I Used [Phone] for 30 Days as My ONLY Phone — Here is the Brutal Truth'",
+            viral_trigger: "Authority bias — time investment signals credibility; viewers trust 30-day verdict over 3-day unboxing opinions."
+          },
+          {
+            pattern: "Price anchor shock at video open",
+            example: "Open with a cut showing competitor phone at ₹50,000 vs this phone at ₹18,000 doing the same benchmark score",
+            viral_trigger: "Loss aversion + Contrast effect — viewers feel they would be 'losing money' buying the expensive option after seeing the comparison."
+          },
+          {
+            pattern: "Comment bait question at video end",
+            example: "Close every video with 'Which one would YOU pick? Drop your answer below' — their comment sections average 400+ replies per video.",
+            viral_trigger: "Identity expression — viewers use comment sections to signal their tech taste to peers, making commenting feel socially rewarding."
+          }
+        ],
+        steal_worthy_ideas: [
+          "Idea 1 — 'The Cheapest Phone That Can Replace Your MacBook' — target the student-to-professional upgrade anxiety with a specific productivity use-case video",
+          "Idea 2 — Cover their most-viewed topic (budget phone cameras) but shoot entirely in low-light conditions like Indian street markets and night driving",
+          "Idea 3 — Apply their '30 Day Test' format but for accessories — earbuds, power banks, charging cables — a completely untapped comparison category",
+          "Idea 4 — Solve their audience's #1 pain point (battery life anxiety) with a dedicated 'Best Battery Life Phones Under ₹20K — Tested for 72 Hours' video",
+          "Idea 5 — Jump on their highest trending topic (budget flagships) but add a unique angle: 'Can a ₹15,000 Phone Survive 1 Year as a Daily Driver? — 12 Month Update'"
+        ],
+        counter_strategy: "Position yourself as the 'long-term honesty' creator while they own the 'fast review' space — every video you publish should be the definitive last word on that device, not the first impression. Build a monthly video series that directly follows up on their most-watched reviews with real-world durability data they never cover.",
+        pro_tip: "Target their video comment sections directly — search YouTube for their most-viewed videos, read the top 50 comments, and make a video that specifically answers the most upvoted unanswered question. This steals their audience at the exact moment of highest curiosity."
       };
       return {
         content: JSON.stringify(mockJson, null, 2),

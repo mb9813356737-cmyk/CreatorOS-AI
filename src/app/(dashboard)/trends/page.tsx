@@ -2,20 +2,19 @@
 
 import * as React from "react";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { OutputCard } from "@/components/ai/output-card";
 import { useAIGenerate } from "@/hooks/use-ai-generate";
-import { PLATFORMS } from "@/lib/constants";
 import {
   Sparkles, AlertTriangle, TrendingUp, Clock,
   Lightbulb, Target, BarChart3, Hash, Zap, RefreshCw,
+  Eye, Flame, ShieldAlert, Swords, BookOpen, EyeOff, HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ─── Types ────────────────────────────────────────────────────
+// ─── Niche Trends Types ─────────────────────────────────────────
 interface TrendingTopic {
   topic: string;
   why_trending: string;
@@ -49,6 +48,44 @@ interface TrendData {
   pro_tip: string;
 }
 
+// ─── Competitor Spy Types ───────────────────────────────────────
+interface ContentPillar {
+  pillar: string;
+  why_it_works: string;
+  steal_this_angle: string;
+}
+
+interface WeaknessGap {
+  weakness: string;
+  opportunity: string;
+}
+
+interface ViralPattern {
+  pattern: string;
+  example: string;
+  viral_trigger: string;
+}
+
+interface CompetitorData {
+  competitor: string;
+  platform: string;
+  spy_summary: string;
+  content_strategy: {
+    posting_frequency: string;
+    best_performing_format: string;
+    average_video_length: string;
+    hook_style: string;
+    thumbnail_style: string;
+    title_formula: string;
+  };
+  top_content_pillars: ContentPillar[];
+  weakness_gaps: WeaknessGap[];
+  viral_patterns: ViralPattern[];
+  steal_worthy_ideas: string[];
+  counter_strategy: string;
+  pro_tip: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────
 function urgencyColor(u: string) {
   if (u === "Post Now") return "bg-red-500/20 text-red-400 border-red-500/30";
@@ -70,11 +107,10 @@ function healthColor(val: string) {
   return "text-yellow-400";
 }
 
-// ─── Output Display ───────────────────────────────────────────
+// ─── Niche Output Display ──────────────────────────────────────
 function TrendOutput({ data }: { data: TrendData }) {
   return (
     <div className="space-y-5">
-
       {/* Header — Score + Summary */}
       <div className="p-5 rounded-xl bg-surface-100/20 border border-glass-border/40 space-y-3">
         <div className="flex items-center justify-between">
@@ -221,7 +257,158 @@ function TrendOutput({ data }: { data: TrendData }) {
           <p className="text-xs text-text-secondary font-medium leading-relaxed">{data.pro_tip}</p>
         </div>
       )}
+    </div>
+  );
+}
 
+// ─── Competitor Output Display ─────────────────────────────────
+function CompetitorOutput({ data }: { data: CompetitorData }) {
+  return (
+    <div className="space-y-5">
+      {/* Header Summary */}
+      <div className="p-5 rounded-xl bg-surface-100/20 border border-glass-border/40 space-y-3">
+        <div>
+          <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Competitor Intelligence Spy</p>
+          <h3 className="text-lg font-extrabold text-text-primary mt-0.5">{data.competitor}</h3>
+          <span className="text-[10px] font-semibold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 uppercase tracking-wider">
+            {data.platform}
+          </span>
+        </div>
+        <p className="text-xs text-text-secondary leading-relaxed border-t border-glass-border/20 pt-3">{data.spy_summary}</p>
+      </div>
+
+      {/* Content Strategy Overview */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+          <BookOpen className="h-3.5 w-3.5 text-brand-400" />
+          Content Strategy Profile
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            { label: "Posting Frequency", val: data.content_strategy?.posting_frequency },
+            { label: "Best Performing Format", val: data.content_strategy?.best_performing_format },
+            { label: "Average Video Length", val: data.content_strategy?.average_video_length },
+            { label: "Hook Style", val: data.content_strategy?.hook_style },
+            { label: "Thumbnail Style", val: data.content_strategy?.thumbnail_style },
+            { label: "Title Formula", val: data.content_strategy?.title_formula },
+          ].map(({ label, val }) => (
+            <div key={label} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-1">
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{label}</span>
+              <p className="text-xs font-medium text-text-secondary leading-relaxed">{val}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Top Content Pillars */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+          <TrendingUp className="h-3.5 w-3.5 text-brand-400" />
+          Top Content Pillars
+        </div>
+        <div className="space-y-2.5">
+          {data.top_content_pillars?.map((p, i) => (
+            <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-brand-400 bg-brand-500/10 px-1.5 py-0.5 rounded font-mono">Pillar {i + 1}</span>
+                <span className="text-sm font-bold text-text-primary">{p.pillar}</span>
+              </div>
+              <p className="text-[11px] text-text-muted leading-relaxed">{p.why_it_works}</p>
+              <div className="flex items-start gap-1.5 pt-0.5">
+                <Zap className="h-3 w-3 text-yellow-400 mt-0.5 shrink-0" />
+                <p className="text-[11px] text-yellow-300/80 font-medium leading-relaxed">
+                  <span className="font-bold">Steal this angle:</span> {p.steal_this_angle}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Weaknesses & Gaps */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+          <EyeOff className="h-3.5 w-3.5 text-brand-400" />
+          Weaknesses & Gaps
+        </div>
+        <div className="space-y-2.5">
+          {data.weakness_gaps?.map((wg, i) => (
+            <div key={i} className="p-4 rounded-xl bg-surface-100/15 border border-glass-border/40 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-red-400 uppercase tracking-wider flex items-center gap-1">
+                  <ShieldAlert className="h-3 w-3" /> Competitor Weakness
+                </span>
+                <p className="text-xs text-text-secondary leading-relaxed">{wg.weakness}</p>
+              </div>
+              <div className="space-y-1 border-t md:border-t-0 md:border-l border-glass-border/20 pt-2.5 md:pt-0 md:pl-3">
+                <span className="text-[9px] font-black text-green-400 uppercase tracking-wider flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" /> Your Opportunity
+                </span>
+                <p className="text-xs text-text-primary font-medium leading-relaxed">{wg.opportunity}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Viral Patterns */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+          <Flame className="h-3.5 w-3.5 text-brand-400" />
+          Viral Performance Patterns
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {data.viral_patterns?.map((vp, i) => (
+            <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
+              <span className="text-[10px] font-black text-brand-400 uppercase tracking-wider">{vp.pattern}</span>
+              <p className="text-[11px] text-text-muted leading-relaxed">
+                <span className="font-semibold text-text-secondary">Example:</span> {vp.example}
+              </p>
+              <div className="flex items-center gap-1 text-[10px] font-semibold text-pink-400 bg-pink-500/15 px-2 py-0.5 rounded border border-pink-500/20 max-w-fit">
+                🧠 Trigger: {vp.viral_trigger}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Steal Worthy Ideas */}
+      <div className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
+        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+          <Swords className="h-3.5 w-3.5 text-brand-400" />
+          Steal-Worthy Content Ideas
+        </div>
+        <div className="space-y-2">
+          {data.steal_worthy_ideas?.map((idea, i) => (
+            <div key={i} className="flex gap-2.5 text-xs text-text-secondary leading-relaxed">
+              <span className="font-black text-brand-400 shrink-0">{i + 1}.</span>
+              <span>{idea}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Counter Strategy */}
+      {data.counter_strategy && (
+        <div className="p-4 rounded-xl bg-surface-100/20 border border-glass-border/40">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Swords className="h-3.5 w-3.5 text-brand-400" />
+            <span className="text-[10px] font-extrabold text-brand-400 uppercase tracking-wider">Counter Strategy Blueprint</span>
+          </div>
+          <p className="text-xs text-text-secondary font-medium leading-relaxed">{data.counter_strategy}</p>
+        </div>
+      )}
+
+      {/* Pro Tip */}
+      {data.pro_tip && (
+        <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Lightbulb className="h-3.5 w-3.5 text-brand-400" />
+            <span className="text-[10px] font-extrabold text-brand-400 uppercase tracking-wider">Pro Tip</span>
+          </div>
+          <p className="text-xs text-text-secondary font-medium leading-relaxed">{data.pro_tip}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -234,19 +421,21 @@ export default function TrendsPage() {
   const [competitorHandle, setCompetitorHandle] = React.useState("");
   const [platform, setPlatform] = React.useState("YouTube");
 
-  const [parsedData, setParsedData] = React.useState<TrendData | null>(null);
+  const [nicheData, setNicheData] = React.useState<TrendData | null>(null);
+  const [competitorData, setCompetitorData] = React.useState<CompetitorData | null>(null);
   const [parseError, setParseError] = React.useState<string | null>(null);
 
   const handleTabChange = (tab: "niche" | "competitor") => {
     setActiveTab(tab);
-    setParsedData(null);
+    setNicheData(null);
+    setCompetitorData(null);
     setParseError(null);
     reset();
   };
 
   // Parse output when it changes
   React.useEffect(() => {
-    if (!output || activeTab === "competitor") return;
+    if (!output) return;
     try {
       setParseError(null);
       const clean = output.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
@@ -258,16 +447,23 @@ export default function TrendsPage() {
         if (match) parsed = JSON.parse(match[0]);
         else throw new Error("No JSON found");
       }
-      setParsedData(parsed);
+
+      if (activeTab === "niche") {
+        setNicheData(parsed);
+      } else {
+        setCompetitorData(parsed);
+      }
     } catch {
-      setParseError("Could not parse trend data. Please try again.");
-      setParsedData(null);
+      setParseError("Could not parse AI response. Please try again.");
+      setNicheData(null);
+      setCompetitorData(null);
     }
   }, [output, activeTab]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setParsedData(null);
+    setNicheData(null);
+    setCompetitorData(null);
     setParseError(null);
     if (activeTab === "niche") {
       if (!niche.trim()) return;
@@ -293,7 +489,7 @@ export default function TrendsPage() {
             </div>
           </div>
           <p className="text-sm font-semibold text-text-secondary animate-pulse">
-            Analyzing Trends...
+            {activeTab === "niche" ? "Analyzing Trends..." : "Spying on Competitor..."}
           </p>
         </div>
       );
@@ -314,14 +510,14 @@ export default function TrendsPage() {
       );
     }
 
-    // Competitor spy — keep raw OutputCard
-    if (activeTab === "competitor" && output) {
-      return <OutputCard type="TREND" output={output} isGenerating={isGenerating} error={error} />;
+    // Competitor spy parsed output
+    if (activeTab === "competitor" && competitorData) {
+      return <CompetitorOutput data={competitorData} />;
     }
 
     // Niche parsed output
-    if (activeTab === "niche" && parsedData) {
-      return <TrendOutput data={parsedData} />;
+    if (activeTab === "niche" && nicheData) {
+      return <TrendOutput data={nicheData} />;
     }
 
     // Empty state
@@ -329,16 +525,30 @@ export default function TrendsPage() {
       <Card variant="glass" className="h-full min-h-[520px] flex flex-col items-center justify-center p-8 border-dashed border-glass-border/60">
         <div className="flex flex-col items-center text-center max-w-xs space-y-4">
           <div className="p-4 rounded-2xl bg-surface-100/50 border border-glass-border/30 text-brand-400 shadow-glow-sm">
-            <TrendingUp className="h-7 w-7" />
+            {activeTab === "niche" ? <TrendingUp className="h-7 w-7" /> : <Eye className="h-7 w-7" />}
           </div>
-          <h4 className="font-extrabold text-text-primary text-sm tracking-wide">Awaiting Niche Input</h4>
+          <h4 className="font-extrabold text-text-primary text-sm tracking-wide">
+            {activeTab === "niche" ? "Awaiting Niche Input" : "Awaiting Competitor Input"}
+          </h4>
           <p className="text-xs text-text-muted leading-relaxed">
-            Enter your creator niche and platform to get a complete trend intelligence report with topics, formats, posting times, and content gaps.
+            {activeTab === "niche"
+              ? "Enter your creator niche and platform to get a complete trend intelligence report with topics, formats, posting times, and content gaps."
+              : "Enter a competitor channel handle or name to reverse-engineer their content strategy, viral patterns, content pillars, and weakness gaps."}
           </p>
           <div className="pt-2 flex flex-wrap gap-1.5 justify-center">
-            <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">📈 5 Trending Topics</span>
-            <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎬 3 Formats</span>
-            <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎯 Content Gaps</span>
+            {activeTab === "niche" ? (
+              <>
+                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">📈 5 Trending Topics</span>
+                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎬 3 Formats</span>
+                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎯 Content Gaps</span>
+              </>
+            ) : (
+              <>
+                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🕵️ Content Strategy</span>
+                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">💡 Steal-worthy Ideas</span>
+                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">⚔️ Counter Blueprint</span>
+              </>
+            )}
           </div>
         </div>
       </Card>
