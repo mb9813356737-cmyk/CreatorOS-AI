@@ -170,59 +170,64 @@ STRICT RULES:
 - Dialogue must be natural spoken words, never cut off mid sentence
 - Do not add any text before or after the JSON object`,
 
-  THUMBNAIL: `You are an expert YouTube thumbnail psychologist and visual content strategist.
+  THUMBNAIL: `You are an expert YouTube thumbnail visual designer and prompt engineer.
 
 The user will provide:
 - TOPIC: the video topic or concept
 - VISUAL MODE: one of (MrBeast Style / Cinematic / Luxury / Emotional / Documentary / Storytelling)
-- ADDITIONAL CONTEXT: optional extra instructions for the thumbnail
+- ADDITIONAL CONTEXT: optional extra details, text to include, background color, style notes
 
-Generate a complete thumbnail psychology report and image generation prompt.
+Your job is to generate ONE highly detailed image generation prompt for AI that creates a perfect YouTube thumbnail.
 
 Return ONLY a valid JSON object. No preamble, no explanation, no markdown, no backticks.
 
 Return this exact structure:
 
 {
-  "title": "Thumbnail concept title",
-  "visual_mode": "must match user selected mode exactly",
-  "psychology_report": {
-    "primary_emotion": "The dominant emotion this thumbnail triggers",
-    "curiosity_gap": "How this thumbnail creates a must-click curiosity gap",
-    "color_psychology": "Colors used and why they work psychologically",
-    "facial_expression": "Expression or human element and its psychological impact",
-    "text_overlay": "Recommended text on thumbnail and why it works",
-    "visual_hierarchy": "What the viewer sees first second and third",
-    "ctr_trigger": "The single biggest reason this thumbnail gets clicked"
-  },
-  "visual_anchors": [
-    "First key visual element description",
-    "Second key visual element description", 
-    "Third key visual element description"
-  ],
-  "image_generation_prompt": "A detailed, complete prompt for AI image generation tools like Midjourney or DALL-E that describes the exact thumbnail to generate including style, colors, composition, text placement, lighting, and mood. Must match the selected visual mode exactly.",
-  "style_tags": ["tag1", "tag2", "tag3"],
-  "predicted_ctr": "High or Medium or Low",
-  "pro_tip": "One actionable tip to make this thumbnail even more clickable"
+  "image_prompt": "Full detailed image generation prompt here",
+  "text_overlay": "Short bold text to display on thumbnail, max 5 words",
+  "text_color": "#FFFFFF",
+  "text_position": "bottom or top or center"
 }
 
-VISUAL MODE RULES:
-- MrBeast Style = high energy, shocking expressions, bold colors red yellow, large text, explosive composition
-- Cinematic = dramatic framing, moody lighting, wide screen feel, dark tones, depth of field
-- Luxury = premium editorial style, gold accents, clean minimal layout, elegant typography
-- Emotional = intimate close-ups, raw human emotion, soft warm lighting, authentic expressions
-- Documentary = natural lighting, gritty textures, photojournalism feel, realistic composition
-- Storytelling = narrative split screens, progression elements, mystery, sequential visual flow
+VISUAL MODE RULES — image_prompt must deeply reflect the selected mode:
+- MrBeast Style = ultra high energy, shocked or excited human face with wide open mouth and eyes, bold explosive background, red and yellow dominant colors, chaotic energy, extreme contrast, clickbait composition, person pointing or reacting dramatically, YouTube thumbnail style
+- Cinematic = dramatic moody lighting, dark rich tones, wide cinematic composition, depth of field blur, film grain texture, atmospheric fog or shadows, professional color grading, no text in image
+- Luxury = premium clean minimal composition, gold and black color palette, elegant editorial style, soft studio lighting, high end product or lifestyle feel, sophisticated layout
+- Emotional = intimate close up human face showing raw genuine emotion, soft warm natural lighting, authentic candid feel, shallow depth of field, warm color tones, tears or joy or surprise expression
+- Documentary = natural realistic lighting, gritty authentic textures, photojournalism style, real world environment, no studio feel, candid moment captured, muted color palette
+- Storytelling = split screen narrative composition, visual progression from left to right, mystery and intrigue elements, contrasting scenes side by side, sequential story feel
+
+TOPIC RULES:
+- The image_prompt must visually represent the video topic
+- The main subject of the image must match what the topic is about
+- If topic is travel related, show that location or culture
+- If topic is tech related, show relevant tech visuals
+- If topic is challenge or experiment, show dramatic reaction
 
 ADDITIONAL CONTEXT RULES:
-- Always merge TOPIC and ADDITIONAL CONTEXT together
-- Both must be reflected in the psychology report and image generation prompt
-- Never ignore additional context even if minor
+- If additional context is provided, merge it fully into image_prompt
+- If user mentions specific text to show, put it in text_overlay
+- If user mentions specific colors, apply them in image_prompt
+- If user mentions specific elements like laptop screen or props, include them
+- If additional context is empty, use only topic and visual mode
+
+text_overlay RULES:
+- Maximum 5 words, bold and punchy
+- Must relate to the video topic
+- All caps preferred
+- Examples: "GONE WRONG", "I TRIED THIS", "100 HOURS", "SHOCKING TRUTH"
+
+image_prompt RULES:
+- Minimum 80 words, maximum 120 words
+- Never include any text or words inside the image itself
+- Describe lighting, colors, composition, subject, background, mood, camera angle
+- Always end with: "YouTube thumbnail style, ultra high resolution, 16:9 aspect ratio, no text in image"
+- Make it hyper specific so AI generates exactly what is needed
 
 STRICT RULES:
 - Return ONLY the JSON object, nothing else
-- Every field must be filled, never empty or null
-- image_generation_prompt must be detailed, minimum 80 words
+- Every field must be filled, never empty
 - Do not add any text before or after the JSON object`,
 
   TREND: `You are a trend analyst specializing in Indian social media and content creation.

@@ -19,31 +19,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn, slugify } from "@/lib/utils";
 
 // ─── Interfaces ──────────────────────────────────────────────
-interface ThumbnailPsychologyResult {
-  title: string;
-  visual_mode: string;
-  psychology_report: {
-    primary_emotion: string;
-    curiosity_gap: string;
-    color_psychology: string;
-    facial_expression: string;
-    text_overlay: string;
-    visual_hierarchy: string;
-    ctr_trigger: string;
-  };
-  visual_anchors: string[];
-  image_generation_prompt: string;
-  style_tags: string[];
-  predicted_ctr: string;
-  pro_tip: string;
+interface ThumbnailParsedData {
+  image_prompt: string;
+  text_overlay: string;
+  text_color: string;
+  text_position: "bottom" | "top" | "center";
 }
 
+// Keep SavedPrompt generic so old saves don't break
 interface SavedPrompt {
   id: string;
   topic: string;
   mode: string;
   timestamp: string;
-  result: ThumbnailPsychologyResult;
+  result: ThumbnailParsedData;
 }
 
 // ─── Mode Definitions ─────────────────────────────────────────
@@ -394,89 +383,84 @@ function ScannerLoader() {
 }
 
 // ─── Thumbnail Canvas Component ───────────────────────────────
-function ThumbnailCanvas({
-  imageUrl,
-  textOverlay,
-  title,
-}: {
-  imageUrl: string;
-  textOverlay: string;
-  title: string;
-}) {
+function ThumbnailCanvas({ parsedData }: { parsedData: ThumbnailParsedData }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (!imageUrl || !canvasRef.current) return;
+    if (!parsedData || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const imagePrompt = parsedData.image_prompt;
+    const textOverlay = parsedData.text_overlay;
+    const textPosition = parsedData.text_position || "bottom";
+
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = imageUrl;
+    img.src = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}&width=1280&height=720&nologo=true`;
 
     img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
+      canvas.width = 1280;
+      canvas.height = 720;
 
-      // Draw base image
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(img, 0, 0, 1280, 720);
 
-      // Draw bottom gradient overlay
-      const gradient = ctx.createLinearGradient(0, canvas.height * 0.5, 0, canvas.height);
-      gradient.addColorStop(0, "rgba(0,0,0,0)");
-      gradient.addColorStop(1, "rgba(0,0,0,0.85)");
+      // Gradient overlay based on text position
+      const gradient = ctx.createLinearGradient(
+        0,
+        textPosition === "top" ? 0 : canvas.height * 0.5,
+        0,
+        textPosition === "top" ? canvas.height * 0.5 : canvas.height
+      );
+      gradient.addColorStop(0, textPosition === "top" ? "rgba(0,0,0,0.75)" : "rgba(0,0,0,0)");
+      gradient.addColorStop(1, textPosition === "top" ? "rgba(0,0,0,0)" : "rgba(0,0,0,0.85)");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw main text
-      const text = textOverlay || title;
-      const fontSize = Math.floor(canvas.width / 10);
+      // Text settings
+      const fontSize = 96;
       ctx.font = `900 ${fontSize}px Impact, Arial Black, sans-serif`;
       ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
+      ctx.textBaseline = "alphabetic";
 
-      const drawLine = (line: string, y: number) => {
-        ctx.strokeStyle = "rgba(0,0,0,0.9)";
-        ctx.lineWidth = fontSize / 6;
+      const yPos =
+        textPosition === "top"
+          ? 100
+          : textPosition === "center"
+          ? canvas.height / 2
+          : canvas.height - 60;
+
+      // Word wrap
+      const words = textOverlay.split(" ");
+      const lines: string[] = [];
+      let currentLine = "";
+      words.forEach((word) => {
+        const testLine = currentLine + word + " ";
+        if (ctx.measureText(testLine).width > canvas.width * 0.85) {
+          lines.push(currentLine.trim());
+          currentLine = word + " ";
+        } else {
+          currentLine = testLine;
+        }
+      });
+      lines.push(currentLine.trim());
+
+      const lineHeight = fontSize * 1.15;
+      const startY = yPos - ((lines.length - 1) * lineHeight) / 2;
+
+      lines.forEach((line, i) => {
+        const y = startY + i * lineHeight;
+        ctx.strokeStyle = "rgba(0,0,0,1)";
+        ctx.lineWidth = 12;
         ctx.lineJoin = "round";
         ctx.strokeText(line, canvas.width / 2, y);
-        ctx.fillStyle = "#FFFFFF";
+        ctx.fillStyle = parsedData.text_color || "#FFFFFF";
         ctx.fillText(line, canvas.width / 2, y);
-      };
-
-      // Check if word wrap is needed
-      if (ctx.measureText(text).width > canvas.width * 0.9) {
-        const words = text.split(" ");
-        const lines: string[] = [];
-        let currentLine = "";
-
-        words.forEach((word) => {
-          const testLine = currentLine + word + " ";
-          if (ctx.measureText(testLine).width > canvas.width * 0.85) {
-            lines.push(currentLine.trim());
-            currentLine = word + " ";
-          } else {
-            currentLine = testLine;
-          }
-        });
-        lines.push(currentLine.trim());
-
-        // Redraw with wrapped lines
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const lineHeight = fontSize * 1.2;
-        const startY = canvas.height - 30 - (lines.length - 1) * lineHeight;
-        lines.forEach((line, i) => drawLine(line, startY + i * lineHeight));
-      } else {
-        drawLine(text, canvas.height - 30);
-      }
+      });
     };
-  }, [imageUrl, textOverlay, title]);
+  }, [parsedData]);
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -486,9 +470,9 @@ function ThumbnailCanvas({
   };
 
   return (
-    <div className="space-y-2">
-      <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
-        Generated Thumbnail Preview
+    <div className="space-y-3">
+      <span className="text-xs font-bold text-text-muted uppercase tracking-wider block">
+        Generated Thumbnail
       </span>
       <canvas
         ref={canvasRef}
@@ -496,7 +480,7 @@ function ThumbnailCanvas({
       />
       <button
         onClick={handleDownload}
-        className="w-full mt-2 py-2 text-xs font-bold text-text-secondary border border-glass-border rounded-lg hover:border-brand-400 hover:text-brand-400 transition-all"
+        className="w-full py-2.5 text-xs font-bold text-text-secondary border border-glass-border rounded-lg hover:border-brand-400 hover:text-brand-400 transition-all"
       >
         Download Thumbnail
       </button>
@@ -511,7 +495,7 @@ export default function ThumbnailsPage() {
   const [selectedMode, setSelectedMode] = React.useState<string>("MrBeast style");
   const [additionalContext, setAdditionalContext] = React.useState("");
 
-  const [activeReport, setActiveReport] = React.useState<ThumbnailPsychologyResult | null>(null);
+  const [activeReport, setActiveReport] = React.useState<ThumbnailParsedData | null>(null);
   const [savedPrompts, setSavedPrompts] = React.useState<SavedPrompt[]>([]);
   const [isSavedOpen, setIsSavedOpen] = React.useState(true);
 
@@ -579,7 +563,7 @@ export default function ThumbnailsPage() {
   const handleCopyPrompt = async () => {
     if (!activeReport) return;
     try {
-      await navigator.clipboard.writeText(activeReport.image_generation_prompt);
+      await navigator.clipboard.writeText(activeReport.image_prompt);
       setCopiedPrompt(true);
       setTimeout(() => setCopiedPrompt(false), 2000);
     } catch (err) {
@@ -590,30 +574,7 @@ export default function ThumbnailsPage() {
   const handleCopyReport = async () => {
     if (!activeReport) return;
     try {
-      const anchorsText = activeReport.visual_anchors?.map((a, idx) => `${idx + 1}. ${a}`).join("\n") || "";
-      const reportText = `=== ${activeReport.title} ===
-Style Mode: ${activeReport.visual_mode}
-Predicted CTR: ${activeReport.predicted_ctr}
-Style Tags: ${activeReport.style_tags?.join(", ") || ""}
-
-PSYCHOLOGY REPORT:
-- Primary Emotion: ${activeReport.psychology_report?.primary_emotion}
-- Curiosity Gap: ${activeReport.psychology_report?.curiosity_gap}
-- Color Psychology: ${activeReport.psychology_report?.color_psychology}
-- Facial Expression: ${activeReport.psychology_report?.facial_expression}
-- Text Overlay: ${activeReport.psychology_report?.text_overlay}
-- Visual Hierarchy: ${activeReport.psychology_report?.visual_hierarchy}
-- CTR Trigger: ${activeReport.psychology_report?.ctr_trigger}
-
-VISUAL ANCHORS:
-${anchorsText}
-
-IMAGE GENERATION PROMPT:
-${activeReport.image_generation_prompt}
-
-PRO TIP:
-${activeReport.pro_tip}`;
-
+      const reportText = `IMAGE PROMPT:\n${activeReport.image_prompt}\n\nTEXT OVERLAY: ${activeReport.text_overlay}\nTEXT COLOR: ${activeReport.text_color}\nTEXT POSITION: ${activeReport.text_position}`;
       await navigator.clipboard.writeText(reportText);
       setCopiedReport(true);
       setTimeout(() => setCopiedReport(false), 2000);
@@ -624,7 +585,7 @@ ${activeReport.pro_tip}`;
 
   const handleSaveReport = () => {
     if (!activeReport) return;
-    const isAlreadySaved = savedPrompts.some((p) => p.result.image_generation_prompt === activeReport.image_generation_prompt);
+    const isAlreadySaved = savedPrompts.some((p) => p.result.image_prompt === activeReport.image_prompt);
     if (isAlreadySaved) {
       setIsSavedThisReport(true);
       return;
@@ -659,7 +620,7 @@ ${activeReport.pro_tip}`;
   const handleLoadSaved = (prompt: SavedPrompt) => {
     setTopic(prompt.topic);
     setSelectedMode(prompt.mode);
-    setAdditionalContext(prompt.result.image_generation_prompt ? "" : "");
+    setAdditionalContext("");
     setActiveReport(prompt.result);
     setIsSavedThisReport(true);
   };
@@ -681,14 +642,22 @@ ${activeReport.pro_tip}`;
   const renderRightColumn = () => {
     if (isGenerating) {
       return (
-        <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
-          <div className="space-y-4 text-center">
-            <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
-            <p className="text-sm font-semibold text-text-secondary">
-              Analyzing visual psychology & generating your thumbnail...
-            </p>
+        <div className="h-full min-h-[400px] flex flex-col items-center justify-center gap-4">
+          <div className="relative">
+            <div className="h-16 w-16 rounded-full border-4 border-glass-border border-t-brand-400 animate-spin" />
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <div
+                className="h-8 w-8 rounded-full border-4 border-glass-border border-b-purple-400 animate-spin"
+                style={{ animationDirection: "reverse", animationDuration: "0.6s" }}
+              />
+            </div>
           </div>
-        </Card>
+          <p className="text-sm font-semibold text-text-secondary animate-pulse">
+            Generating Thumbnail...
+          </p>
+        </div>
       );
     }
 
@@ -731,195 +700,9 @@ ${activeReport.pro_tip}`;
     }
 
     return (
-      <div className="space-y-6">
-        {/* Header & Main Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-surface-100/20 border border-glass-border/40 rounded-xl">
-          <div>
-            <h4 className="text-sm font-extrabold text-text-primary tracking-tight truncate max-w-[300px]">
-              {topic || "Generated Blueprint"}
-            </h4>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-bold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 uppercase tracking-wider font-mono">
-                {activeModeDetails.name}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleSaveReport}
-              className="h-8.5 text-xs border border-glass-border"
-              leftIcon={isSavedThisReport ? <Check className="h-3.5 w-3.5 text-success" /> : <Bookmark className="h-3.5 w-3.5 text-text-secondary" />}
-            >
-              {isSavedThisReport ? "Saved" : "Save Report"}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleExportJSON}
-              className="h-8.5 text-xs border border-glass-border"
-              leftIcon={<Download className="h-3.5 w-3.5 text-text-secondary" />}
-            >
-              Export JSON
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleCopyReport}
-              className="h-8.5 text-xs border border-glass-border"
-              leftIcon={copiedReport ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-text-secondary" />}
-            >
-              {copiedReport ? "Copied" : "Copy Report"}
-            </Button>
-          </div>
-        </div>
-
-        {/* SECTION 1 — TOP */}
-        <div className="space-y-3">
-          {activeReport.title && (
-            <h3 className="text-xl font-extrabold text-text-primary tracking-tight">
-              {activeReport.title}
-            </h3>
-          )}
-          <div className="flex flex-wrap gap-2 select-none">
-            {activeReport.visual_mode && (
-              <Badge variant="default" className="text-xs">
-                🎨 {activeReport.visual_mode}
-              </Badge>
-            )}
-            {activeReport.predicted_ctr && (
-              <Badge variant="gradient" className="text-xs">
-                📈 CTR: {activeReport.predicted_ctr}
-              </Badge>
-            )}
-          </div>
-          {Array.isArray(activeReport.style_tags) && activeReport.style_tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 select-none pt-1">
-              {activeReport.style_tags.map((tag, idx) => (
-                <span key={idx} className="px-2 py-0.5 rounded-full bg-surface-100/40 text-[10px] text-text-secondary border border-glass-border/30 font-medium">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* SECTION 2 — PSYCHOLOGY REPORT */}
-        <Card variant="glass" className="border border-glass-border">
-          <CardHeader className="py-4 border-b border-glass-border/10">
-            <CardTitle className="text-sm font-extrabold flex items-center gap-2">
-              <Brain className="h-4.5 w-4.5 text-brand-400" />
-              Psychology Parameters
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 space-y-3">
-            {activeReport.psychology_report?.primary_emotion && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Primary Emotion</span>
-                <span className="text-xs font-semibold text-text-primary md:col-span-3 leading-relaxed">{activeReport.psychology_report.primary_emotion}</span>
-              </div>
-            )}
-            {activeReport.psychology_report?.curiosity_gap && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Curiosity Gap</span>
-                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.curiosity_gap}</span>
-              </div>
-            )}
-            {activeReport.psychology_report?.color_psychology && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Color Psychology</span>
-                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.color_psychology}</span>
-              </div>
-            )}
-            {activeReport.psychology_report?.facial_expression && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Facial Expression</span>
-                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.facial_expression}</span>
-              </div>
-            )}
-            {activeReport.psychology_report?.text_overlay && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Text Overlay</span>
-                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.text_overlay}</span>
-              </div>
-            )}
-            {activeReport.psychology_report?.visual_hierarchy && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 border-b border-glass-border/5 last:border-none">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">Visual Hierarchy</span>
-                <span className="text-xs font-medium text-text-secondary md:col-span-3 leading-relaxed">{activeReport.psychology_report.visual_hierarchy}</span>
-              </div>
-            )}
-            {activeReport.psychology_report?.ctr_trigger && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-1 py-1.5 last:border-none">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider md:col-span-1">CTR Trigger</span>
-                <span className="text-xs font-semibold text-brand-400 md:col-span-3 leading-relaxed">{activeReport.psychology_report.ctr_trigger}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* SECTION 3 — VISUAL ANCHORS */}
-        {Array.isArray(activeReport.visual_anchors) && activeReport.visual_anchors.length > 0 && (
-          <Card variant="glass" className="border border-glass-border">
-            <CardHeader className="py-4 border-b border-glass-border/10">
-              <CardTitle className="text-sm font-extrabold flex items-center gap-2">
-                <Sparkles className="h-4.5 w-4.5 text-brand-400" />
-                Visual Anchors
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 space-y-2.5">
-              {activeReport.visual_anchors.map((anchor, idx) => (
-                <div key={idx} className="flex gap-3 text-xs text-text-secondary leading-relaxed align-top">
-                  <span className="font-extrabold text-brand-400 select-none">{idx + 1}.</span>
-                  <span className="font-medium">{anchor}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* SECTION 4 — IMAGE GENERATION PROMPT */}
-        {activeReport.image_generation_prompt && (
-          <Card variant="glass" className="border border-glass-border relative overflow-hidden">
-            <CardHeader className="py-4 border-b border-glass-border/10 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-extrabold flex items-center gap-2">
-                <Camera className="h-4.5 w-4.5 text-brand-400" />
-                Image Generation Prompt
-              </CardTitle>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleCopyPrompt}
-                className="h-8.5 text-xs border border-glass-border"
-                leftIcon={copiedPrompt ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-text-secondary" />}
-              >
-                {copiedPrompt ? "Copied" : "Copy Prompt"}
-              </Button>
-            </CardHeader>
-            <CardContent className="p-5">
-              <div className="p-4 rounded-xl bg-surface-100/40 border border-glass-border/40 font-mono text-xs text-text-secondary leading-relaxed select-all">
-                <p>{activeReport.image_generation_prompt}</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* SECTION 5 — BOTTOM */}
-        {activeReport.pro_tip && (
-          <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30 text-sm">
-            <span className="font-extrabold text-brand-400 block mb-1 text-[10px] uppercase tracking-wider select-none">Pro Tip</span>
-            <p className="text-text-secondary font-medium leading-relaxed">{activeReport.pro_tip}</p>
-          </div>
-        )}
-
-        {/* SECTION 6 — THUMBNAIL PREVIEW */}
-        {activeReport.image_generation_prompt && (
-          <ThumbnailCanvas
-            imageUrl={`https://image.pollinations.ai/prompt/${encodeURIComponent(activeReport.image_generation_prompt)}`}
-            textOverlay={activeReport.psychology_report?.text_overlay || ""}
-            title={activeReport.title || ""}
-          />
+      <div className="space-y-4">
+        {activeReport.image_prompt && (
+          <ThumbnailCanvas parsedData={activeReport} />
         )}
       </div>
     );
@@ -1055,8 +838,6 @@ ${activeReport.pro_tip}`;
                               <h5 className="text-xs font-bold text-text-primary truncate">{p.topic}</h5>
                               <div className="flex items-center gap-2 text-[9px] text-text-muted font-mono">
                                 <span>{mInfo.icon} {mInfo.name}</span>
-                                <span>•</span>
-                                <span>CTR: {p.result.predicted_ctr}</span>
                               </div>
                             </div>
                             <button

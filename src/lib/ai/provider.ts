@@ -474,26 +474,10 @@ export async function generateMock(
 
   if (_systemPrompt.includes("THUMBNAIL") || _systemPrompt.includes("thumbnail") || _systemPrompt.includes("image_generation_prompt")) {
     const mockJson = {
-      title: "Viral AI App Thumbnail Concept",
-      visual_mode: "MrBeast Style",
-      psychology_report: {
-        primary_emotion: "Shock and curiosity — viewer wonders what secret is being revealed",
-        curiosity_gap: "The thumbnail implies a hidden trick or shortcut that 99% of people don't know, creating a strong information gap",
-        color_psychology: "High-contrast electric yellow (#FACC15) and deep red (#DC2626) dominate — yellow signals urgency and grabs attention, red triggers excitement and danger response",
-        facial_expression: "Wide-eyed shocked expression with an open mouth — triggers mirror neurons and instantly communicates high stakes",
-        text_overlay: "'I BUILT THIS IN 24 HRS' in bold uppercase yellow text — creates disbelief and forces a click to verify",
-        visual_hierarchy: "1st: shocked face expression, 2nd: bold yellow text overlay, 3rd: glowing AI interface in background",
-        ctr_trigger: "The impossible claim combined with a relatable topic (AI apps) creates a must-click curiosity loop"
-      },
-      visual_anchors: [
-        "Shocked creator face occupying left 60% of frame with dramatic rim lighting",
-        "Bold yellow uppercase text on the right side with thick black drop shadow",
-        "Glowing neon blue AI dashboard in the background creating depth and context"
-      ],
-      image_generation_prompt: `Ultra-high-energy YouTube thumbnail in MrBeast style. A young creator with a shocked wide-eyed expression and open mouth on the left 60% of the frame. Dramatic high-contrast rim lighting wrapping the face. Bold yellow uppercase text on the right reading 'I BUILT THIS IN 24 HRS' with thick black outline. Background features a glowing neon blue AI code dashboard with depth blur. Color palette: electric yellow, deep red, and neon blue. 8K resolution, cinematic composition, rule of thirds framing, ultra detailed skin texture, explosive energy. Inspired by: "${userPrompt.replace(/\n/g, " ")}".`,
-      style_tags: ["high-energy", "bold-text", "shock-expression", "neon-colors", "mrbeast-style"],
-      predicted_ctr: "High (8.5% - 11%)",
-      pro_tip: "Add a thin white border around the creator's face to make it pop against any YouTube background color and increase mobile visibility by 30%"
+      image_prompt: `Ultra-high-energy YouTube thumbnail in MrBeast style. A young creator with a shocked wide-eyed expression and open mouth on the left 60% of the frame. Dramatic high-contrast rim lighting wrapping the face. Bold explosive background with electric yellow and deep red. Background features a glowing neon blue AI code dashboard with depth blur. Color palette: electric yellow, deep red, and neon blue. 8K resolution, cinematic composition, rule of thirds framing, ultra detailed skin texture, explosive chaotic energy. Inspired by: "${userPrompt.replace(/\n/g, " ")}". YouTube thumbnail style, ultra high resolution, 16:9 aspect ratio, no text in image`,
+      text_overlay: "I TRIED THIS",
+      text_color: "#FFFFFF",
+      text_position: "bottom",
     };
 
     return {
