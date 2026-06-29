@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAIGenerate } from "@/hooks/use-ai-generate";
 import { Sparkles, RefreshCw, Copy, Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -78,20 +77,15 @@ const parseResponse = (text: string) => {
 
 // ─── Main Component ───────────────────────────────────────────
 export default function RepurposePage() {
-  const { generate: runHookGenerate, output: hookOutput, isGenerating: hookIsGenerating, error: hookError, reset: hookReset } = useAIGenerate("REPURPOSE");
   const [activeTab, setActiveTab] = React.useState<"text" | "video">("text");
   const [content, setContent] = React.useState("");
   const [youtubeUrl, setYoutubeUrl] = React.useState("");
   const [targetPlatform, setTargetPlatform] = React.useState("Twitter/X");
   const [tone, setTone] = React.useState("Storytelling");
 
-  const [localOutput, setLocalOutput] = React.useState<string | null>(null);
-  const [localIsGenerating, setIsGenerating] = React.useState(false);
-  const [localError, setError] = React.useState<string | null>(null);
-
-  const output = activeTab === "text" ? localOutput : hookOutput;
-  const isGenerating = activeTab === "text" ? localIsGenerating : hookIsGenerating;
-  const error = activeTab === "text" ? localError : hookError;
+  const [output, setOutput] = React.useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   const [parsedData, setParsedData] = React.useState<any>(null);
 
@@ -125,10 +119,9 @@ export default function RepurposePage() {
     setActiveTab(tab);
     setTargetPlatform(tab === "text" ? "Twitter/X" : "YouTube Shorts");
     setParsedData(null);
-    setLocalOutput(null);
+    setOutput(null);
     setError(null);
     setIsGenerating(false);
-    hookReset();
   };
 
   React.useEffect(() => {
@@ -143,19 +136,20 @@ export default function RepurposePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setParsedData(null);
+    setError(null);
+    setOutput(null);
+
     if (activeTab === "text") {
       const sourceContent = content;
       const voiceTone = tone;
 
-      // 5. Validate inputs before API call — if sourceContent is empty show error
+      // 5. Validate inputs before API call
       if (!sourceContent.trim()) {
         setError("Please paste your source content first.");
         return;
       }
 
       setIsGenerating(true);
-      setError(null);
-      setLocalOutput(null);
 
       try {
         // 2. Build the prompt string like this before the API call:
@@ -201,7 +195,7 @@ Return this exact structure:
   "repurpose_summary": "One sentence explaining what was changed and why it works for this platform"
 }`;
 
-        // 3. Make the API call like this:
+        // Replace the entire API call in both tabs with this exact Anthropic Claude call
         const response = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
@@ -214,37 +208,162 @@ Return this exact structure:
           })
         });
 
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`API Error: ${errorData.error?.message || response.status}`);
+        }
+
         const data = await response.json();
         const rawText = data.content?.map((i: any) => i.text || "").join("") || "";
-        
-        setLocalOutput(rawText);
+
+        setOutput(rawText);
         setParsedData(parseResponse(rawText));
-      } catch (err: any) {
-        console.error(err);
-        setError(err.message || "Failed to generate repurposed content.");
+      } catch (error: any) {
+        // 3. Make sure the error message shows the actual error
+        setError(`Error: ${error.message}`);
       } finally {
         setIsGenerating(false);
       }
     } else {
-      if (!youtubeUrl.trim()) return;
-      runHookGenerate("REPURPOSE", { 
-        topic: "YouTube Video Repurpose", 
-        youtubeUrl, 
-        targetPlatform, 
-        tone 
-      });
+      // YOUTUBE VIDEO TAB
+      if (!youtubeUrl.trim()) {
+        setError("Please enter a YouTube URL first.");
+        return;
+      }
+
+      setIsGenerating(true);
+
+      try {
+        const prompt = `You are an expert content repurposing strategist specializing in extracting viral short-form content from long-form YouTube videos.
+
+YOUTUBE_URL: ${youtubeUrl}
+TARGET_PLATFORM: ${targetPlatform}
+VOICE_TONE: ${tone}
+
+Based on the YouTube URL provided, analyze the video topic from the URL itself and generate complete repurposed short-form content.
+
+Return ONLY a valid JSON object. No preamble, no explanation, no markdown, no backticks.
+
+Return this exact structure:
+
+{
+  "youtube_url": "${youtubeUrl}",
+  "detected_topic": "Topic detected from the YouTube URL or video ID",
+  "target_platform": "${targetPlatform}",
+  "voice_tone": "${tone}",
+  "short_clips": [
+    {
+      "clip_number": 1,
+      "title": "Viral short title for this clip",
+      "hook": "Opening line for this short, max 15 words, scroll stopping",
+      "script": "Complete short script, written naturally for speaking out loud",
+      "duration": "15 to 30 seconds or 30 to 60 seconds",
+      "best_moment": "Describe which part of the original video to clip",
+      "cta": "Call to action at the end of this short"
+    },
+    {
+      "clip_number": 2,
+      "title": "Viral short title for this clip",
+      "hook": "Opening line for this short, max 15 words, scroll stopping",
+      "script": "Complete short script, written naturally for speaking out loud",
+      "duration": "15 to 30 seconds or 30 to 60 seconds",
+      "best_moment": "Describe which part of the original video to clip",
+      "cta": "Call to action at the end of this short"
+    },
+    {
+      "clip_number": 3,
+      "title": "Viral short title for this clip",
+      "hook": "Opening line for this short, max 15 words, scroll stopping",
+      "script": "Complete short script, written naturally for speaking out loud",
+      "duration": "15 to 30 seconds or 30 to 60 seconds",
+      "best_moment": "Describe which part of the original video to clip",
+      "cta": "Call to action at the end of this short"
+    }
+  ],
+  "caption": "Ready to post caption for the short on target platform",
+  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],
+  "best_time_to_post": "e.g. Tuesday to Thursday 7 PM to 9 PM IST",
+  "platform_tip": "One specific tip for this platform to maximize views on the short",
+  "repurpose_strategy": "One sentence explaining the overall repurposing strategy used"
+}
+
+PLATFORM RULES:
+- YouTube Shorts = fast paced, strong hook first 2 seconds, subscribe CTA, max 60 seconds
+- Instagram Reels = aesthetic energy, save and share CTA, trending audio suggestion in platform_tip
+- TikTok Video = FYP optimized, duet or stitch potential, sound trend mention in platform_tip, first 2 seconds critical
+
+VOICE TONE RULES:
+- Storytelling = narrative arc, beginning middle end, personal feel
+- Informative = facts first, clear structure, educational value
+- Motivational = power words, action driving, uplifting energy
+- Shocking = bold unexpected statements, pattern interrupt, jaw drop moment
+- Humorous = witty, playful, light sarcasm, relatable jokes
+- Controversial = strong opinion, challenge common belief, debate sparking
+- Inspirational = emotional journey, uplifting transformation, hope driven
+- Casual = friendly everyday language, like talking to a friend, conversational
+
+HASHTAG RULES:
+- YouTube Shorts = 3 to 5 hashtags
+- Instagram Reels = 5 to 10 hashtags
+- TikTok Video = 3 to 5 hashtags
+
+SHORT CLIPS RULES:
+- Generate exactly 3 clip ideas
+- Each clip must have a completely different angle and hook
+- Scripts must feel natural when spoken out loud
+- Duration must match platform: Shorts and Reels prefer 30 to 60 seconds, TikTok 15 to 60 seconds
+
+STRICT RULES:
+- Return ONLY the JSON object, nothing else
+- Every field must be filled, never empty or null
+- short_clips must have exactly 3 items
+- hashtags must follow platform rules above
+- Do not add any text before or after the JSON object`;
+
+        // Replace the entire API call in both tabs with this exact Anthropic Claude call
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-6",
+            max_tokens: 3000,
+            messages: [{ role: "user", content: prompt }]
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`API Error: ${errorData.error?.message || response.status}`);
+        }
+
+        const data = await response.json();
+        const rawText = data.content?.map((i: any) => i.text || "").join("") || "";
+
+        setOutput(rawText);
+        setParsedData(parseResponse(rawText));
+      } catch (error: any) {
+        // 3. Make sure the error message shows the actual error
+        setError(`Error: ${error.message}`);
+      } finally {
+        setIsGenerating(false);
+      }
     }
   };
 
   const renderOutput = () => {
     // 6. LOADING STATE
     if (isGenerating) {
+      const msg = activeTab === "video" 
+        ? "Extracting viral shorts from your video..." 
+        : "Repurposing your content for maximum reach...";
       return (
         <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
           <div className="space-y-4 text-center">
             <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
             <p className="text-sm font-semibold text-text-secondary">
-              Repurposing your content for maximum reach...
+              {msg}
             </p>
           </div>
         </Card>
@@ -450,7 +569,7 @@ Return this exact structure:
       );
     }
 
-    // 7. OUTPUT DISPLAY (TEXT TAB)
+    // SUCCESS STATE DISPLAY (TEXT TAB)
     const textData = parsedData as RepurposeData;
     return (
       <div className="space-y-6">
