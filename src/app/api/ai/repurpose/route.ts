@@ -100,6 +100,7 @@ STRICT RULES:
 - Every field must be filled, never empty or null
 - short_clips must have exactly 3 items
 - hashtags must follow platform rules above
+- Do not add any text before or after the JSON object`;
       userPrompt = `YOUTUBE_URL: ${youtubeUrl}\nTARGET_PLATFORM: ${targetPlatform}\nVOICE_TONE: ${tone}`;
     } else {
       userPrompt = `Source Content:\n${sourceContent}\nTarget Platform: ${targetPlatform}\nTone/Style: ${tone}`;
