@@ -610,34 +610,88 @@ export async function generateMock(
       };
     } else {
       const mockJson = {
-        current_trends: [
+        niche: "Tech Reviews India",
+        platform: "YouTube",
+        trend_score: 88,
+        trend_summary: "AI-powered tools and budget smartphone comparisons are dominating the Indian tech YouTube space right now. Creators who combine Hindi narration with data-driven comparisons are seeing 3x higher average view duration.",
+        trending_topics: [
           {
-            topic: "No-Code AI App Builders",
-            relevance_score: 94,
-            content_ideas: "Create a 60-second video comparing Bolt.new vs Lovable vs v0 for building interactive web tools.",
-            hashtags: ["ai", "nocode", "indiehackers"],
-            peak_timing: "Wednesday, 7:00 PM"
+            topic: "Best Budget AI Smartphones Under ₹15,000 in 2026",
+            why_trending: "MediaTek Dimensity 7350 launch pushed budget AI phone competition into overdrive this month.",
+            content_angle: "Blind test: Can a ₹12,000 phone AI camera beat the iPhone 15 in real-world shots?",
+            estimated_views: "High",
+            urgency: "Post Now"
           },
           {
-            topic: "Day in the Life of an AI Solopreneur",
-            relevance_score: 88,
-            content_ideas: "A lifestyle vlog showcasing remote productivity, revenue dashboards, and custom GPT workflow builders.",
-            hashtags: ["solopreneur", "productivity", "digitalnomad"],
-            peak_timing: "Sunday, 11:00 AM"
-          }
-        ],
-        predicted_trends: [
+            topic: "ChatGPT vs Gemini — Which AI Wins for Indian Students?",
+            why_trending: "Board exam season drives massive search volume for AI study tools among 16-22 year olds.",
+            content_angle: "Use both AIs to solve actual Class 12 board exam questions and score them live.",
+            estimated_views: "High",
+            urgency: "Post Now"
+          },
           {
-            topic: "AI Agent Orchestration",
-            confidence: 90,
-            why: "OpenAI Operator and Google Jarvis are rolling out native browser execution engines.",
-            content_angle: "How to program your first autonomous web agent."
+            topic: "OnePlus 13 vs Samsung S25 — Real World 30 Day Test",
+            why_trending: "Both flagships dropped within 6 weeks of each other triggering comparison search spikes.",
+            content_angle: "Day 30 honest review: 5 things OnePlus does better + 3 things Samsung wins.",
+            estimated_views: "High",
+            urgency: "This Week"
+          },
+          {
+            topic: "How I Set Up My ₹50,000 YouTube Studio in India",
+            why_trending: "Creator economy growth is pushing mid-tier creators to invest in production quality.",
+            content_angle: "Exact Amazon India links, actual prices, what I would do differently for ₹30K budget.",
+            estimated_views: "Medium",
+            urgency: "This Week"
+          },
+          {
+            topic: "5G Router vs Fiber Broadband — Which is Actually Faster in India?",
+            why_trending: "Jio and Airtel 5G home broadband expansion is creating massive buyer confusion.",
+            content_angle: "Speed test in 3 Indian cities over 7 days — real data, no sponsored bias.",
+            estimated_views: "Medium",
+            urgency: "This Month"
           }
         ],
-        insights: [
-          "Short-form video retention increases by 15% when featuring live Stripe or revenue charts in the first 2 seconds.",
-          "YouTube CTR for personal finance drops on weekends, but spikes on Monday and Tuesday mornings."
-        ]
+        trending_formats: [
+          {
+            format: "Versus Long Form (15-20 min)",
+            why_working: "Indian tech viewers spend 40% more time on comparison videos because they research before buying.",
+            example_title: "Realme GT 6T vs Poco F6 Pro — I Used Both for 30 Days (Honest Review)"
+          },
+          {
+            format: "YouTube Shorts — Quick Tips",
+            why_working: "60-second spec comparisons get 5x shares from budget buyers forwarding to family before purchase.",
+            example_title: "The ONE feature that makes this ₹8000 phone worth it 🔥"
+          },
+          {
+            format: "Series — Best of Month",
+            why_working: "Monthly roundup series drive consistent subscriber return rate above 60% in tech niche.",
+            example_title: "5 Best Tech Buys This Month (June 2026) — Under ₹10K, ₹20K, ₹50K"
+          }
+        ],
+        best_posting_times: {
+          days: ["Tuesday", "Wednesday", "Saturday"],
+          time: "7 PM to 10 PM IST",
+          reason: "Indian tech viewers are active after work and dinner on weekdays, with Saturday evening being the highest watch-time window for purchase research videos."
+        },
+        trending_keywords: [
+          "budget smartphone 2026",
+          "best phone under 15000",
+          "AI camera test India",
+          "5G phone review Hindi",
+          "tech unboxing India"
+        ],
+        content_gaps: [
+          "Gap 1 — No creator is doing honest long-term durability tests (6 month reviews) for Indian budget phones — audience asks this in every comment section",
+          "Gap 2 — Zero coverage of gaming performance on budget phones for BGMI and Free Fire at India-specific server conditions",
+          "Gap 3 — Software update track record comparisons — Indian buyers don't know which brands give 3+ years of Android updates"
+        ],
+        niche_health: {
+          competition_level: "Very High",
+          growth_potential: "High",
+          monetization_potential: "Very High",
+          audience_size: "Massive"
+        },
+        pro_tip: "Add a pinned comment with an Amazon India affiliate product table immediately after uploading — tech review viewers have the highest purchase intent within 2 hours of watching, and a pinned affiliate link converts 3x better than description links alone."
       };
       return {
         content: JSON.stringify(mockJson, null, 2),
