@@ -442,31 +442,40 @@ export async function generateMock(
       };
     } else {
       const mockJson = {
-        original_analysis: "High-performing advice on building digital leverage and business systems.",
-        repurposed: [
+        platform: "Twitter/X",
+        voice_tone: "Storytelling",
+        repurposed_content: {
+          main_post: "🧵 1/5: Coding is a trap for founders.\n\nMost startups fail not because their code was bad, but because nobody knew they existed.\n\nHere is how to structure your build for sales-first growth 👇\n\n2/5: First, pre-sell before coding a single line. Spend 2 weeks finding 5 paying clients on Reddit.\n\n3/5: Next, launch a barebones landing page using Next.js in 24 hours. Keep it simple.\n\n4/5: Then, focus 80% of your energy on SEO, outbound sales, and content creation.\n\n5/5: That is how you hit $10k/month without wasting months building a product nobody wants.",
+          hook_line: "Coding is a trap for founders.",
+          cta: "Follow me for more low-code SaaS tricks!"
+        },
+        variations: [
           {
-            platform: "twitter",
-            format: "thread",
-            content: "🧵 1/5: Coding is a trap for founders.\n\nMost startups fail not because their code was bad, but because nobody knew they existed.\n\nHere is how to structure your build for sales-first growth 👇",
-            hashtags: ["buildinpublic", "saas", "solopreneur"],
-            posting_time: "Tuesday, 9:00 AM",
-            tips: "Hook gets curiosity, body delivers value immediately. Keep line breaks wide."
+            variation_number: 1,
+            angle: "Shock",
+            content: "Coding is a trap. I wasted 6 months building a SaaS that made exactly $0. Don't make my mistake."
           },
           {
-            platform: "linkedin",
-            format: "professional_post",
-            content: "I used to think code was 80% of a SaaS.\n\nAfter launches that yielded $0 in revenue, I realized marketing and distribution make or break you.\n\nNow, I pre-sell before coding a single feature. Do validation first.",
-            hashtags: ["startups", "entrepreneurship", "technology"],
-            posting_time: "Wednesday, 8:15 AM",
-            tips: "Start with a short punchy hook, use double-spaced paragraphs to maximize mobile dwell time."
+            variation_number: 2,
+            angle: "Value",
+            content: "The 3-step SaaS blueprint to $10k/mo:\n1. Pre-sell on Reddit\n2. Next.js boilerplate\n3. 80% Marketing\nSimple."
+          },
+          {
+            variation_number: 3,
+            angle: "Curiosity",
+            content: "Most founders build products backwards. They code first, sell later. Here is why that fails 99% of the time."
           }
         ],
-        content_calendar_suggestion: "Publish the Twitter thread on Tuesday, follow up with the Linkedin post on Wednesday morning, and send an email digest summary on Thursday."
+        hashtags: ["#buildinpublic", "#saas", "#solopreneur"],
+        best_time_to_post: "Tuesday to Thursday 7 PM to 9 PM IST",
+        engagement_tip: "Reply to every comment in the first hour to trigger X's algorithmic boost.",
+        repurpose_summary: "Repurposed to X thread format with high curiosity hooks and clean spacing to drive click-throughs."
       };
+
       return {
         content: JSON.stringify(mockJson, null, 2),
         tokens: 350,
-        model: "mock-text-repurpose",
+        model: "mock-repurpose",
         provider: "gemini",
       };
     }

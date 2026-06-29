@@ -55,6 +55,9 @@ export async function POST(req: Request) {
       userPrompt,
       platform: targetPlatform,
       inputData: body,
+      options: {
+        maxTokens: 3000,
+      },
     });
   } catch (error: any) {
     return handleRouteError(error, "Repurpose content error");
