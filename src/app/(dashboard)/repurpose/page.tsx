@@ -9,9 +9,8 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAIGenerate } from "@/hooks/use-ai-generate";
-import { PLATFORMS, TONES } from "@/lib/constants";
 import { Sparkles, RefreshCw, Copy, Check, AlertTriangle } from "lucide-react";
-import { cn, slugify } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 // ─── Text Repurpose Interfaces ────────────────────────────────
@@ -79,12 +78,20 @@ const parseResponse = (text: string) => {
 
 // ─── Main Component ───────────────────────────────────────────
 export default function RepurposePage() {
-  const { generate, output, isGenerating, error, reset } = useAIGenerate("REPURPOSE");
+  const { generate: runHookGenerate, output: hookOutput, isGenerating: hookIsGenerating, error: hookError, reset: hookReset } = useAIGenerate("REPURPOSE");
   const [activeTab, setActiveTab] = React.useState<"text" | "video">("text");
   const [content, setContent] = React.useState("");
   const [youtubeUrl, setYoutubeUrl] = React.useState("");
   const [targetPlatform, setTargetPlatform] = React.useState("Twitter/X");
   const [tone, setTone] = React.useState("Storytelling");
+
+  const [localOutput, setLocalOutput] = React.useState<string | null>(null);
+  const [localIsGenerating, setIsGenerating] = React.useState(false);
+  const [localError, setError] = React.useState<string | null>(null);
+
+  const output = activeTab === "text" ? localOutput : hookOutput;
+  const isGenerating = activeTab === "text" ? localIsGenerating : hookIsGenerating;
+  const error = activeTab === "text" ? localError : hookError;
 
   const [parsedData, setParsedData] = React.useState<any>(null);
 
@@ -118,7 +125,10 @@ export default function RepurposePage() {
     setActiveTab(tab);
     setTargetPlatform(tab === "text" ? "Twitter/X" : "YouTube Shorts");
     setParsedData(null);
-    reset();
+    setLocalOutput(null);
+    setError(null);
+    setIsGenerating(false);
+    hookReset();
   };
 
   React.useEffect(() => {
@@ -130,20 +140,94 @@ export default function RepurposePage() {
     }
   }, [output]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setParsedData(null);
     if (activeTab === "text") {
-      if (!content.trim()) return;
-      generate("REPURPOSE", { 
-        topic: content.slice(0, 100), 
-        sourceContent: content, 
-        targetPlatform, 
-        tone 
-      });
+      const sourceContent = content;
+      const voiceTone = tone;
+
+      // 5. Validate inputs before API call — if sourceContent is empty show error
+      if (!sourceContent.trim()) {
+        setError("Please paste your source content first.");
+        return;
+      }
+
+      setIsGenerating(true);
+      setError(null);
+      setLocalOutput(null);
+
+      try {
+        // 2. Build the prompt string like this before the API call:
+        const prompt = `You are an expert content repurposing strategist and viral copywriter.
+
+SOURCE CONTENT: ${sourceContent}
+TARGET PLATFORM: ${targetPlatform}
+VOICE TONE: ${voiceTone}
+
+Repurpose the source content for the exact target platform and voice tone combination.
+
+Return ONLY a valid JSON object. No preamble, no explanation, no markdown, no backticks.
+
+Return this exact structure:
+{
+  "platform": "${targetPlatform}",
+  "voice_tone": "${voiceTone}",
+  "repurposed_content": {
+    "main_post": "Primary repurposed content piece fully written out",
+    "hook_line": "The opening line that stops the scroll",
+    "cta": "Call to action at the end"
+  },
+  "variations": [
+    {
+      "variation_number": 1,
+      "angle": "Angle name",
+      "content": "Full variation content written out completely"
+    },
+    {
+      "variation_number": 2,
+      "angle": "Angle name",
+      "content": "Full variation content written out completely"
+    },
+    {
+      "variation_number": 3,
+      "angle": "Angle name",
+      "content": "Full variation content written out completely"
+    }
+  ],
+  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],
+  "best_time_to_post": "e.g. Tuesday to Thursday 7 PM to 9 PM IST",
+  "engagement_tip": "One specific tip to maximize engagement on this platform",
+  "repurpose_summary": "One sentence explaining what was changed and why it works for this platform"
+}`;
+
+        // 3. Make the API call like this:
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-6",
+            max_tokens: 3000,
+            messages: [{ role: "user", content: prompt }]
+          })
+        });
+
+        const data = await response.json();
+        const rawText = data.content?.map((i: any) => i.text || "").join("") || "";
+        
+        setLocalOutput(rawText);
+        setParsedData(parseResponse(rawText));
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || "Failed to generate repurposed content.");
+      } finally {
+        setIsGenerating(false);
+      }
     } else {
       if (!youtubeUrl.trim()) return;
-      generate("REPURPOSE", { 
+      runHookGenerate("REPURPOSE", { 
         topic: "YouTube Video Repurpose", 
         youtubeUrl, 
         targetPlatform, 
@@ -153,24 +237,36 @@ export default function RepurposePage() {
   };
 
   const renderOutput = () => {
-    // 1. LOADING STATE
+    // 6. LOADING STATE
     if (isGenerating) {
-      const msg = activeTab === "video" 
-        ? "Extracting viral shorts from your video..." 
-        : "Repurposing your content for maximum reach...";
       return (
         <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
           <div className="space-y-4 text-center">
             <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
             <p className="text-sm font-semibold text-text-secondary">
-              {msg}
+              Repurposing your content for maximum reach...
             </p>
           </div>
         </Card>
       );
     }
 
-    // 2. EMPTY STATE
+    // Error UI
+    if (error) {
+      return (
+        <Card variant="glass" className="border-error/30 bg-error/5 h-full min-h-[400px] flex flex-col justify-center p-6">
+          <div className="flex flex-col items-center text-center max-w-sm mx-auto space-y-4">
+            <div className="p-3.5 rounded-2xl bg-error/10 border border-error/20 text-error">
+              <AlertTriangle className="h-7 w-7" />
+            </div>
+            <h4 className="font-extrabold text-text-primary text-base">Generation Encountered an Error</h4>
+            <p className="text-xs text-text-secondary leading-relaxed">{error}</p>
+          </div>
+        </Card>
+      );
+    }
+
+    // Empty state
     if (!output && !parsedData) {
       return (
         <Card variant="glass" className="h-full min-h-[520px] flex flex-col items-center justify-center p-8 border-dashed border-glass-border/60">
@@ -189,7 +285,7 @@ export default function RepurposePage() {
       );
     }
 
-    // 3. PARSE ERROR DISPLAY
+    // Parse error display
     if (!parsedData) {
       return (
         <div className="p-4 text-xs text-error border border-error/40 rounded-lg">
@@ -199,7 +295,7 @@ export default function RepurposePage() {
       );
     }
 
-    // 4. SUCCESS STATE DISPLAY (VIDEO TAB)
+    // SUCCESS STATE DISPLAY (VIDEO TAB)
     if (activeTab === "video") {
       const data = parsedData as VideoRepurposeData;
       return (
@@ -222,7 +318,7 @@ export default function RepurposePage() {
             </p>
           </div>
 
-          {/* SECTION 2 — SHORT CLIPS (heading "Extracted Viral Shorts") */}
+          {/* SECTION 2 — SHORT CLIPS */}
           <div className="space-y-3">
             <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
               Extracted Viral Shorts
@@ -354,11 +450,11 @@ export default function RepurposePage() {
       );
     }
 
-    // 5. SUCCESS STATE DISPLAY (TEXT TAB)
+    // 7. OUTPUT DISPLAY (TEXT TAB)
     const textData = parsedData as RepurposeData;
     return (
       <div className="space-y-6">
-        {/* SECTION 1 — TOP BADGES ROW */}
+        {/* SECTION 1 — TOP BADGES */}
         <div className="space-y-2.5">
           <div className="flex flex-wrap gap-2">
             <Badge variant="default" className="text-xs px-3 py-1 font-bold">
@@ -373,7 +469,7 @@ export default function RepurposePage() {
           </p>
         </div>
 
-        {/* SECTION 2 — MAIN POST */}
+        {/* SECTION 2 — MAIN POST (heading "Repurposed Content") */}
         <div className="space-y-3">
           <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
             Repurposed Content
@@ -413,7 +509,7 @@ export default function RepurposePage() {
           </div>
         </div>
 
-        {/* SECTION 3 — VARIATIONS */}
+        {/* SECTION 3 — VARIATIONS (heading "Content Variations") */}
         <div className="space-y-3">
           <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
             Content Variations
