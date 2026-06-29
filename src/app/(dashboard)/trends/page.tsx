@@ -432,6 +432,26 @@ function CompetitorOutput({ data }: { data: CompetitorData }) {
 }
 
 // ─── Main Page ────────────────────────────────────────────────
+const parseResponse = (text: string) => {
+  if (!text) return null;
+  
+  let cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  
+  try {
+    return JSON.parse(cleaned);
+  } catch (e1) {
+    try {
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) {
+        return JSON.parse(match[0]);
+      }
+    } catch (e2) {
+      console.error('Parse failed:', e2);
+    }
+  }
+  return null;
+};
+
 export default function TrendsPage() {
   const { generate, output, isGenerating, error, reset } = useAIGenerate("TREND");
   const [activeTab, setActiveTab] = React.useState<"niche" | "competitor">("niche");
@@ -439,50 +459,23 @@ export default function TrendsPage() {
   const [competitorHandle, setCompetitorHandle] = React.useState("");
   const [platform, setPlatform] = React.useState("YouTube");
 
-  const [nicheData, setNicheData] = React.useState<TrendData | null>(null);
-  const [competitorData, setCompetitorData] = React.useState<CompetitorData | null>(null);
-  const [parseError, setParseError] = React.useState<string | null>(null);
+  const [parsedData, setParsedData] = React.useState<any>(null);
 
   const handleTabChange = (tab: "niche" | "competitor") => {
     setActiveTab(tab);
-    setNicheData(null);
-    setCompetitorData(null);
-    setParseError(null);
+    setParsedData(null);
     reset();
   };
 
   // Parse output when it changes
   React.useEffect(() => {
     if (!output) return;
-    try {
-      setParseError(null);
-      const clean = output.trim().replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-      let parsed: any;
-      try {
-        parsed = JSON.parse(clean);
-      } catch {
-        const match = output.match(/\{[\s\S]*\}/);
-        if (match) parsed = JSON.parse(match[0]);
-        else throw new Error("No JSON found");
-      }
-
-      if (activeTab === "niche") {
-        setNicheData(parsed);
-      } else {
-        setCompetitorData(parsed);
-      }
-    } catch {
-      setParseError("Could not parse AI response. Please try again.");
-      setNicheData(null);
-      setCompetitorData(null);
-    }
-  }, [output, activeTab]);
+    setParsedData(parseResponse(output));
+  }, [output]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setNicheData(null);
-    setCompetitorData(null);
-    setParseError(null);
+    setParsedData(null);
     if (activeTab === "niche") {
       if (!niche.trim()) return;
       generate("TREND", { topic: niche, niche, platform });
@@ -507,64 +500,58 @@ export default function TrendsPage() {
       );
     }
 
-    // Error
-    if (error || parseError) {
+    // Empty state
+    if (!output) {
       return (
-        <Card variant="glass" className="border-error/30 bg-error/5 h-full min-h-[400px] flex flex-col justify-center p-6">
-          <div className="flex flex-col items-center text-center max-w-sm mx-auto space-y-4">
-            <div className="p-3.5 rounded-2xl bg-error/10 border border-error/20 text-error">
-              <AlertTriangle className="h-7 w-7" />
+        <Card variant="glass" className="h-full min-h-[520px] flex flex-col items-center justify-center p-8 border-dashed border-glass-border/60">
+          <div className="flex flex-col items-center text-center max-w-xs space-y-4">
+            <div className="p-4 rounded-2xl bg-surface-100/50 border border-glass-border/30 text-brand-400 shadow-glow-sm">
+              {activeTab === "niche" ? <TrendingUp className="h-7 w-7" /> : <Eye className="h-7 w-7" />}
             </div>
-            <h4 className="font-extrabold text-text-primary text-base">Generation Encountered an Error</h4>
-            <p className="text-xs text-text-secondary leading-relaxed">{error || parseError}</p>
+            <h4 className="font-extrabold text-text-primary text-sm tracking-wide">
+              {activeTab === "niche" ? "Awaiting Niche Input" : "Awaiting Competitor Input"}
+            </h4>
+            <p className="text-xs text-text-muted leading-relaxed">
+              {activeTab === "niche"
+                ? "Enter your creator niche and platform to get a complete trend intelligence report with topics, formats, posting times, and content gaps."
+                : "Enter a competitor channel handle or name to reverse-engineer their content strategy, viral patterns, content pillars, and weakness gaps."}
+            </p>
+            <div className="pt-2 flex flex-wrap gap-1.5 justify-center">
+              {activeTab === "niche" ? (
+                <>
+                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">📈 5 Trending Topics</span>
+                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎬 3 Formats</span>
+                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎯 Content Gaps</span>
+                </>
+              ) : (
+                <>
+                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🕵️ Content Strategy</span>
+                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">💡 Steal-worthy Ideas</span>
+                  <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">⚔️ Counter Blueprint</span>
+                </>
+              )}
+            </div>
           </div>
         </Card>
       );
     }
 
+    if (!parsedData) {
+      return (
+        <div className="p-4 text-xs text-error border border-error/40 rounded-lg">
+          <p className="font-bold mb-2">Parse Error — Raw Response:</p>
+          <pre className="overflow-auto max-h-40 text-text-muted">{output}</pre>
+        </div>
+      );
+    }
+
     // Competitor spy parsed output
-    if (activeTab === "competitor" && competitorData) {
-      return <CompetitorOutput data={competitorData} />;
+    if (activeTab === "competitor") {
+      return <CompetitorOutput data={parsedData} />;
     }
 
     // Niche parsed output
-    if (activeTab === "niche" && nicheData) {
-      return <TrendOutput data={nicheData} />;
-    }
-
-    // Empty state
-    return (
-      <Card variant="glass" className="h-full min-h-[520px] flex flex-col items-center justify-center p-8 border-dashed border-glass-border/60">
-        <div className="flex flex-col items-center text-center max-w-xs space-y-4">
-          <div className="p-4 rounded-2xl bg-surface-100/50 border border-glass-border/30 text-brand-400 shadow-glow-sm">
-            {activeTab === "niche" ? <TrendingUp className="h-7 w-7" /> : <Eye className="h-7 w-7" />}
-          </div>
-          <h4 className="font-extrabold text-text-primary text-sm tracking-wide">
-            {activeTab === "niche" ? "Awaiting Niche Input" : "Awaiting Competitor Input"}
-          </h4>
-          <p className="text-xs text-text-muted leading-relaxed">
-            {activeTab === "niche"
-              ? "Enter your creator niche and platform to get a complete trend intelligence report with topics, formats, posting times, and content gaps."
-              : "Enter a competitor channel handle or name to reverse-engineer their content strategy, viral patterns, content pillars, and weakness gaps."}
-          </p>
-          <div className="pt-2 flex flex-wrap gap-1.5 justify-center">
-            {activeTab === "niche" ? (
-              <>
-                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">📈 5 Trending Topics</span>
-                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎬 3 Formats</span>
-                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🎯 Content Gaps</span>
-              </>
-            ) : (
-              <>
-                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">🕵️ Content Strategy</span>
-                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">💡 Steal-worthy Ideas</span>
-                <span className="px-2 py-0.5 rounded-full bg-surface-100 text-[10px] text-text-secondary border border-glass-border/30">⚔️ Counter Blueprint</span>
-              </>
-            )}
-          </div>
-        </div>
-      </Card>
-    );
+    return <TrendOutput data={parsedData} />;
   };
 
   return (

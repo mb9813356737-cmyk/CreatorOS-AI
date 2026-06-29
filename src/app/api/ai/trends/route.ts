@@ -101,6 +101,9 @@ STRICT RULES:
       userPrompt,
       platform,
       inputData: body,
+      options: {
+        maxTokens: 3000,
+      },
     });
   } catch (error: any) {
     return handleRouteError(error, "Trends generation error");
