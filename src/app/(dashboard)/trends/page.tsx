@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useAIGenerate } from "@/hooks/use-ai-generate";
+import { Badge } from "@/components/ui/badge";
 import {
   Sparkles, AlertTriangle, TrendingUp, Clock,
   Lightbulb, Target, BarChart3, Hash, Zap, RefreshCw,
@@ -110,80 +111,103 @@ function healthColor(val: string) {
 // ─── Niche Output Display ──────────────────────────────────────
 function TrendOutput({ data }: { data: TrendData }) {
   return (
-    <div className="space-y-5">
-      {/* Header — Score + Summary */}
-      <div className="p-5 rounded-xl bg-surface-100/20 border border-glass-border/40 space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Niche Intelligence Report</p>
-            <h3 className="text-lg font-extrabold text-text-primary mt-0.5">{data.niche}</h3>
-            <span className="text-[10px] font-semibold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 uppercase tracking-wider">
-              {data.platform}
-            </span>
-          </div>
-          <div className="text-center">
-            <div className="text-4xl font-black text-brand-400">{data.trend_score}</div>
-            <div className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Trend Score</div>
-          </div>
-        </div>
-        <p className="text-xs text-text-secondary leading-relaxed border-t border-glass-border/20 pt-3">{data.trend_summary}</p>
+    <div className="space-y-6">
+      {/* ROW 1 — badges */}
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="default" className="text-xs px-3 py-1 font-bold">
+          {data.niche}
+        </Badge>
+        <Badge variant="secondary" className="text-xs px-3 py-1 font-bold uppercase">
+          {data.platform}
+        </Badge>
+        <Badge variant="gradient" className="text-xs px-3 py-1 font-extrabold">
+          Trend Score: {data.trend_score}
+        </Badge>
       </div>
 
-      {/* Trending Topics */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+      {/* ROW 2 — Trend Summary */}
+      <Card variant="glass" className="w-full">
+        <CardContent className="p-5">
+          <p className="text-xs text-text-secondary leading-relaxed">
+            {data.trend_summary}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* ROW 3 — Trending Topics */}
+      <div className="space-y-3">
+        <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
           <TrendingUp className="h-3.5 w-3.5 text-brand-400" />
           Trending Topics
-        </div>
-        <div className="space-y-2">
+        </h4>
+        <div className="space-y-2.5">
           {data.trending_topics?.map((t, i) => (
-            <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-brand-400 bg-brand-500/10 px-1.5 py-0.5 rounded font-mono">#{i + 1}</span>
-                  <span className="text-sm font-bold text-text-primary">{t.topic}</span>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <span className={cn("text-[9px] font-bold px-2 py-0.5 rounded-full border", urgencyColor(t.urgency))}>{t.urgency}</span>
-                  <span className={cn("text-[10px] font-bold", viewsColor(t.estimated_views))}>{t.estimated_views}</span>
-                </div>
+            <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 flex flex-col md:flex-row justify-between gap-4 items-start">
+              <div className="space-y-1 flex-1">
+                <p className="text-sm font-bold text-text-primary">{t.topic}</p>
+                <p className="text-[11px] text-text-muted leading-relaxed">{t.why_trending}</p>
+                <p className="text-[11px] text-brand-400 font-semibold leading-relaxed mt-1">
+                  {t.content_angle}
+                </p>
               </div>
-              <p className="text-[11px] text-text-muted leading-relaxed">{t.why_trending}</p>
-              <div className="flex items-start gap-1.5">
-                <Zap className="h-3 w-3 text-yellow-400 mt-0.5 shrink-0" />
-                <p className="text-[11px] text-yellow-300/80 font-medium leading-relaxed">{t.content_angle}</p>
+              <div className="flex items-center gap-2 shrink-0 md:self-center">
+                <span className={cn("text-[9px] font-bold px-2 py-0.5 rounded-full border", urgencyColor(t.urgency))}>
+                  {t.urgency}
+                </span>
+                <span className={cn("text-[10px] font-bold", viewsColor(t.estimated_views))}>
+                  {t.estimated_views} Views
+                </span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Trending Formats */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
-          <BarChart3 className="h-3.5 w-3.5 text-brand-400" />
-          Trending Formats
+      {/* ROW 4 — 2 column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Left: Trending Formats */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+            <BarChart3 className="h-3.5 w-3.5 text-brand-400" />
+            Trending Formats
+          </h4>
+          <div className="space-y-2">
+            {data.trending_formats?.map((f, i) => (
+              <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-1">
+                <p className="text-xs font-bold text-text-primary uppercase tracking-wide">{f.format}</p>
+                <p className="text-[11px] text-text-muted leading-relaxed">{f.why_working}</p>
+                <p className="text-[11px] text-text-secondary font-semibold italic">"{f.example_title}"</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          {data.trending_formats?.map((f, i) => (
-            <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
-              <span className="text-[10px] font-black text-brand-400 uppercase tracking-wider">{f.format}</span>
-              <p className="text-[11px] text-text-muted leading-relaxed">{f.why_working}</p>
-              <p className="text-[11px] text-text-secondary font-semibold italic">"{f.example_title}"</p>
-            </div>
-          ))}
+
+        {/* Right: Content Gaps */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+            <Target className="h-3.5 w-3.5 text-brand-400" />
+            Content Gaps
+          </h4>
+          <div className="p-5 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-3 h-fit">
+            {data.content_gaps?.map((gap, i) => (
+              <div key={i} className="flex gap-2.5 text-xs text-text-secondary leading-relaxed items-start">
+                <span className="font-black text-brand-400 shrink-0">{i + 1}.</span>
+                <span>{gap}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Keywords + Posting Times row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* Keywords */}
-        <div className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+      {/* ROW 5 — 2 column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Left: Trending Keywords */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
             <Hash className="h-3.5 w-3.5 text-brand-400" />
             Trending Keywords
-          </div>
-          <div className="flex flex-wrap gap-1.5">
+          </h4>
+          <div className="flex flex-wrap gap-1.5 p-4 rounded-xl bg-surface-100/10 border border-glass-border/30">
             {data.trending_keywords?.map((kw, i) => (
               <span key={i} className="px-2.5 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-[11px] font-semibold text-brand-300">
                 {kw}
@@ -192,62 +216,52 @@ function TrendOutput({ data }: { data: TrendData }) {
           </div>
         </div>
 
-        {/* Posting Times */}
-        <div className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+        {/* Right: Best Posting Times */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
             <Clock className="h-3.5 w-3.5 text-brand-400" />
             Best Posting Times
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {data.best_posting_times?.days?.map((d, i) => (
-              <span key={i} className="px-2 py-0.5 rounded-full bg-surface-100/40 border border-glass-border/30 text-[11px] font-semibold text-text-secondary">
-                {d}
+          </h4>
+          <div className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {data.best_posting_times?.days?.map((d, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-full bg-surface-100/40 border border-glass-border/30 text-[11px] font-semibold text-text-secondary">
+                  {d}
+                </span>
+              ))}
+              <span className="text-xs font-bold text-brand-400 ml-1">
+                {data.best_posting_times?.time}
               </span>
-            ))}
+            </div>
+            <p className="text-[11px] text-text-muted leading-relaxed">
+              {data.best_posting_times?.reason}
+            </p>
           </div>
-          <p className="text-sm font-bold text-text-primary">{data.best_posting_times?.time}</p>
-          <p className="text-[11px] text-text-muted leading-relaxed">{data.best_posting_times?.reason}</p>
         </div>
       </div>
 
-      {/* Content Gaps */}
-      <div className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
-          <Target className="h-3.5 w-3.5 text-brand-400" />
-          Content Gaps
-        </div>
-        <div className="space-y-2">
-          {data.content_gaps?.map((gap, i) => (
-            <div key={i} className="flex gap-2.5 text-xs text-text-secondary leading-relaxed">
-              <span className="font-black text-brand-400 shrink-0">{i + 1}.</span>
-              <span>{gap}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Niche Health */}
-      <div className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-3">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
-          <Sparkles className="h-3.5 w-3.5 text-brand-400" />
-          Niche Health
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: "Competition", val: data.niche_health?.competition_level },
-            { label: "Growth Potential", val: data.niche_health?.growth_potential },
-            { label: "Monetization", val: data.niche_health?.monetization_potential },
-            { label: "Audience Size", val: data.niche_health?.audience_size },
-          ].map(({ label, val }) => (
-            <div key={label} className="space-y-0.5">
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">{label}</p>
-              <p className={cn("text-sm font-black", healthColor(val || ""))}>{val}</p>
-            </div>
-          ))}
+      {/* ROW 6 — Niche Health */}
+      <div className="space-y-3">
+        <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
+          Niche Health Profile
+        </h4>
+        <div className="flex flex-wrap gap-2">
+          <div className="px-3 py-1.5 rounded-lg bg-surface-100/35 border border-glass-border/40 text-xs font-medium text-text-secondary">
+            Competition: <span className={cn("font-bold", healthColor(data.niche_health?.competition_level))}>{data.niche_health?.competition_level}</span>
+          </div>
+          <div className="px-3 py-1.5 rounded-lg bg-surface-100/35 border border-glass-border/40 text-xs font-medium text-text-secondary">
+            Growth: <span className={cn("font-bold", healthColor(data.niche_health?.growth_potential))}>{data.niche_health?.growth_potential}</span>
+          </div>
+          <div className="px-3 py-1.5 rounded-lg bg-surface-100/35 border border-glass-border/40 text-xs font-medium text-text-secondary">
+            Monetization: <span className={cn("font-bold", healthColor(data.niche_health?.monetization_potential))}>{data.niche_health?.monetization_potential}</span>
+          </div>
+          <div className="px-3 py-1.5 rounded-lg bg-surface-100/35 border border-glass-border/40 text-xs font-medium text-text-secondary">
+            Audience: <span className={cn("font-bold", healthColor(data.niche_health?.audience_size))}>{data.niche_health?.audience_size}</span>
+          </div>
         </div>
       </div>
 
-      {/* Pro Tip */}
+      {/* ROW 7 — Pro Tip */}
       {data.pro_tip && (
         <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30">
           <div className="flex items-center gap-2 mb-1.5">
@@ -264,30 +278,37 @@ function TrendOutput({ data }: { data: TrendData }) {
 // ─── Competitor Output Display ─────────────────────────────────
 function CompetitorOutput({ data }: { data: CompetitorData }) {
   return (
-    <div className="space-y-5">
-      {/* Header Summary */}
-      <div className="p-5 rounded-xl bg-surface-100/20 border border-glass-border/40 space-y-3">
-        <div>
-          <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Competitor Intelligence Spy</p>
-          <h3 className="text-lg font-extrabold text-text-primary mt-0.5">{data.competitor}</h3>
-          <span className="text-[10px] font-semibold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20 uppercase tracking-wider">
-            {data.platform}
-          </span>
-        </div>
-        <p className="text-xs text-text-secondary leading-relaxed border-t border-glass-border/20 pt-3">{data.spy_summary}</p>
+    <div className="space-y-6">
+      {/* ROW 1 — badges */}
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="default" className="text-xs px-3 py-1 font-bold">
+          {data.competitor}
+        </Badge>
+        <Badge variant="secondary" className="text-xs px-3 py-1 font-bold uppercase">
+          {data.platform}
+        </Badge>
       </div>
 
-      {/* Content Strategy Overview */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+      {/* ROW 2 — Spy Summary */}
+      <Card variant="glass" className="w-full">
+        <CardContent className="p-5">
+          <p className="text-xs text-text-secondary leading-relaxed">
+            {data.spy_summary}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* ROW 3 — Content Strategy */}
+      <div className="space-y-3">
+        <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
           <BookOpen className="h-3.5 w-3.5 text-brand-400" />
-          Content Strategy Profile
-        </div>
+          Content Strategy
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
             { label: "Posting Frequency", val: data.content_strategy?.posting_frequency },
-            { label: "Best Performing Format", val: data.content_strategy?.best_performing_format },
-            { label: "Average Video Length", val: data.content_strategy?.average_video_length },
+            { label: "Best Format", val: data.content_strategy?.best_performing_format },
+            { label: "Video Length", val: data.content_strategy?.average_video_length },
             { label: "Hook Style", val: data.content_strategy?.hook_style },
             { label: "Thumbnail Style", val: data.content_strategy?.thumbnail_style },
             { label: "Title Formula", val: data.content_strategy?.title_formula },
@@ -300,95 +321,92 @@ function CompetitorOutput({ data }: { data: CompetitorData }) {
         </div>
       </div>
 
-      {/* Top Content Pillars */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
-          <TrendingUp className="h-3.5 w-3.5 text-brand-400" />
-          Top Content Pillars
-        </div>
-        <div className="space-y-2.5">
-          {data.top_content_pillars?.map((p, i) => (
-            <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-brand-400 bg-brand-500/10 px-1.5 py-0.5 rounded font-mono">Pillar {i + 1}</span>
-                <span className="text-sm font-bold text-text-primary">{p.pillar}</span>
-              </div>
-              <p className="text-[11px] text-text-muted leading-relaxed">{p.why_it_works}</p>
-              <div className="flex items-start gap-1.5 pt-0.5">
-                <Zap className="h-3 w-3 text-yellow-400 mt-0.5 shrink-0" />
-                <p className="text-[11px] text-yellow-300/80 font-medium leading-relaxed">
-                  <span className="font-bold">Steal this angle:</span> {p.steal_this_angle}
+      {/* ROW 4 — 2 column grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Left: Top Content Pillars */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+            <TrendingUp className="h-3.5 w-3.5 text-brand-400" />
+            Top Content Pillars
+          </h4>
+          <div className="space-y-2.5">
+            {data.top_content_pillars?.map((p, i) => (
+              <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-1.5">
+                <span className="text-xs font-bold text-text-primary block">{p.pillar}</span>
+                <p className="text-[11px] text-text-muted leading-relaxed">{p.why_it_works}</p>
+                <p className="text-[11px] text-yellow-300/80 font-medium leading-relaxed italic">
+                  Steal: {p.steal_this_angle}
                 </p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Weakness Gaps */}
+        <div className="space-y-3">
+          <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+            <EyeOff className="h-3.5 w-3.5 text-brand-400" />
+            Weakness Gaps
+          </h4>
+          <div className="space-y-2.5">
+            {data.weakness_gaps?.map((wg, i) => (
+              <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider block">Weakness</span>
+                  <p className="text-[11px] text-text-secondary leading-relaxed">{wg.weakness}</p>
+                </div>
+                <div className="space-y-0.5 border-t border-glass-border/10 pt-1.5">
+                  <span className="text-[9px] font-bold text-green-400 uppercase tracking-wider block">Opportunity</span>
+                  <p className="text-[11px] text-text-primary font-medium leading-relaxed">{wg.opportunity}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Weaknesses & Gaps */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
-          <EyeOff className="h-3.5 w-3.5 text-brand-400" />
-          Weaknesses & Gaps
-        </div>
-        <div className="space-y-2.5">
-          {data.weakness_gaps?.map((wg, i) => (
-            <div key={i} className="p-4 rounded-xl bg-surface-100/15 border border-glass-border/40 grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <span className="text-[9px] font-black text-red-400 uppercase tracking-wider flex items-center gap-1">
-                  <ShieldAlert className="h-3 w-3" /> Competitor Weakness
-                </span>
-                <p className="text-xs text-text-secondary leading-relaxed">{wg.weakness}</p>
-              </div>
-              <div className="space-y-1 border-t md:border-t-0 md:border-l border-glass-border/20 pt-2.5 md:pt-0 md:pl-3">
-                <span className="text-[9px] font-black text-green-400 uppercase tracking-wider flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Your Opportunity
-                </span>
-                <p className="text-xs text-text-primary font-medium leading-relaxed">{wg.opportunity}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Viral Patterns */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+      {/* ROW 5 — Viral Patterns */}
+      <div className="space-y-3">
+        <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
           <Flame className="h-3.5 w-3.5 text-brand-400" />
           Viral Performance Patterns
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {data.viral_patterns?.map((vp, i) => (
-            <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
-              <span className="text-[10px] font-black text-brand-400 uppercase tracking-wider">{vp.pattern}</span>
-              <p className="text-[11px] text-text-muted leading-relaxed">
-                <span className="font-semibold text-text-secondary">Example:</span> {vp.example}
-              </p>
-              <div className="flex items-center gap-1 text-[10px] font-semibold text-pink-400 bg-pink-500/15 px-2 py-0.5 rounded border border-pink-500/20 max-w-fit">
-                🧠 Trigger: {vp.viral_trigger}
+            <div key={i} className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2 flex flex-col justify-between">
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-text-primary block">{vp.pattern}</span>
+                <p className="text-[11px] text-text-muted leading-relaxed">{vp.example}</p>
+              </div>
+              <div className="pt-2">
+                <span className="text-[9px] font-extrabold text-pink-400 bg-pink-500/15 px-2 py-0.5 rounded border border-pink-500/20 max-w-fit block">
+                  Trigger: {vp.viral_trigger}
+                </span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Steal Worthy Ideas */}
-      <div className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 space-y-2">
-        <div className="flex items-center gap-2 text-xs font-extrabold text-text-primary uppercase tracking-wider">
+      {/* ROW 6 — Steal Worthy Ideas */}
+      <div className="space-y-3">
+        <h4 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
           <Swords className="h-3.5 w-3.5 text-brand-400" />
-          Steal-Worthy Content Ideas
-        </div>
-        <div className="space-y-2">
-          {data.steal_worthy_ideas?.map((idea, i) => (
-            <div key={i} className="flex gap-2.5 text-xs text-text-secondary leading-relaxed">
-              <span className="font-black text-brand-400 shrink-0">{i + 1}.</span>
-              <span>{idea}</span>
-            </div>
-          ))}
-        </div>
+          Steal Worthy Ideas
+        </h4>
+        <Card variant="glass" className="w-full">
+          <CardContent className="p-5 space-y-2.5">
+            {data.steal_worthy_ideas?.map((idea, i) => (
+              <div key={i} className="flex gap-2.5 text-xs text-text-secondary leading-relaxed items-start">
+                <span className="font-black text-brand-400 shrink-0">{i + 1}.</span>
+                <span>{idea}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Counter Strategy */}
+      {/* ROW 7 — Counter Strategy */}
       {data.counter_strategy && (
         <div className="p-4 rounded-xl bg-surface-100/20 border border-glass-border/40">
           <div className="flex items-center gap-2 mb-1.5">
@@ -399,7 +417,7 @@ function CompetitorOutput({ data }: { data: CompetitorData }) {
         </div>
       )}
 
-      {/* Pro Tip */}
+      {/* ROW 8 — Pro Tip */}
       {data.pro_tip && (
         <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30">
           <div className="flex items-center gap-2 mb-1.5">
@@ -478,20 +496,14 @@ export default function TrendsPage() {
     // Loading
     if (isGenerating) {
       return (
-        <div className="h-full min-h-[400px] flex flex-col items-center justify-center gap-4">
-          <div className="relative">
-            <div className="h-16 w-16 rounded-full border-4 border-glass-border border-t-brand-400 animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div
-                className="h-8 w-8 rounded-full border-4 border-glass-border border-b-purple-400 animate-spin"
-                style={{ animationDirection: "reverse", animationDuration: "0.6s" }}
-              />
-            </div>
+        <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
+          <div className="space-y-4 text-center">
+            <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
+            <p className="text-sm font-semibold text-text-secondary">
+              Analyzing trends for your niche...
+            </p>
           </div>
-          <p className="text-sm font-semibold text-text-secondary animate-pulse">
-            {activeTab === "niche" ? "Analyzing Trends..." : "Spying on Competitor..."}
-          </p>
-        </div>
+        </Card>
       );
     }
 
