@@ -490,60 +490,59 @@ export async function generateMock(
 
   if (_systemPrompt.includes("VIRAL_SCORE") || _systemPrompt.includes("virality_score") || _systemPrompt.includes("retention_prediction")) {
     const mockJson = {
-      virality_score: Math.floor(Math.random() * 20) + 75, // 75 to 95
-      ctr_prediction: parseFloat((Math.random() * 4 + 7.5).toFixed(1)), // 7.5 to 11.5%
-      emotional_score: Math.floor(Math.random() * 15) + 75,
-      emotional_breakdown: {
-        happiness: Math.floor(Math.random() * 30) + 30,
-        surprise: Math.floor(Math.random() * 25) + 60,
-        anger: Math.floor(Math.random() * 15) + 5,
-        sadness: Math.floor(Math.random() * 10) + 5,
-        curiosity: Math.floor(Math.random() * 15) + 80,
-        urgency: Math.floor(Math.random() * 20) + 65
-      },
-      retention_prediction: [
-        100,
-        Math.floor(Math.random() * 5) + 85, // 85-90
-        Math.floor(Math.random() * 5) + 75, // 75-80
-        Math.floor(Math.random() * 5) + 68, // 68-73
-        Math.floor(Math.random() * 5) + 64, // 64-69
-        Math.floor(Math.random() * 5) + 60, // 60-65
-        Math.floor(Math.random() * 5) + 58, // 58-63
-        Math.floor(Math.random() * 5) + 55, // 55-60
-        Math.floor(Math.random() * 5) + 52, // 52-57
-        Math.floor(Math.random() * 5) + 48  // 48-53
-      ],
-      audience_psychology: [
-        {
-          trigger: "Cognitive Curiosity Gap",
-          reaction: "Immediate focus & click within 1.2 seconds of scrolling.",
-          effect: "Unresolved narrative tension triggers standard dopaminergic response."
-        },
-        {
-          trigger: "Complementary Contrast Overlays",
-          reaction: "Subconscious reading of typography before background details.",
-          effect: "Reduces initial visual load, accelerating clicking commitment."
-        },
-        {
-          trigger: "Urgent Pacing Anchor",
-          reaction: "Minimal swipe-away drop-off at the critical 10-second mark.",
-          effect: "Fast visual cuts and rhythmic audio triggers sustain adrenaline levels."
-        }
-      ],
+      overall_score: 83,
+      verdict: "High Viral Potential",
+      benchmark_comparison: "This content scores in the top 15% of videos in the tech tutorial category.",
       breakdown: {
-        hook: Math.floor(Math.random() * 15) + 80,
-        shareability: Math.floor(Math.random() * 15) + 75,
-        relatability: Math.floor(Math.random() * 15) + 70,
-        timeliness: Math.floor(Math.random() * 15) + 80,
-        platform_fit: Math.floor(Math.random() * 15) + 80,
-        thumbnail_contrast: Math.floor(Math.random() * 15) + 75
+        hook: 88,
+        emotion: 82,
+        shareability: 79,
+        relatability: 91,
+        timeliness: 76,
+        platform_fit: 85
       },
-      verdict: "Outstanding viral forecast. Excellent alignment between title curiosity cues and script visual triggers. Predicted performance exceeds benchmark averages.",
+      title_analysis: {
+        score: 84,
+        strength: "Excellent use of a curiosity gap that makes clicking almost compulsory.",
+        weakness: "A bit too long for mobile viewports, where titles get cut off after 50 characters.",
+        improved_title: "I Forced AI to Code My SaaS (Mind-blown)"
+      },
+      thumbnail_analysis: {
+        score: 80,
+        text_effectiveness: "The text overlay contrast is high, but spacing could be slightly improved.",
+        ctr_prediction: "High",
+        improvement: "Increase font weight and add a subtle black shadow under white text."
+      },
+      hook_analysis: {
+        score: 90,
+        scroll_stop_power: "High",
+        psychological_trigger: "FOMO (Fear Of Missing Out)",
+        improvement: "Use a direct question or action verb within the first 1.5 seconds."
+      },
+      script_analysis: {
+        retention_forecast: "High",
+        strongest_moment: "The middle segment showing a live revenue dashboard build.",
+        weakest_moment: "The transition from hook to explanation, pacing dips for 4 seconds.",
+        pacing: "Fast"
+      },
+      platform_fit_analysis: {
+        platform: "YouTube",
+        algorithm_compatibility: "High",
+        best_upload_time: "Tuesday to Thursday 6 PM to 9 PM IST",
+        recommended_tags: ["ai coding", "saas build", "indie hacker", "chatgpt dev", "tech tutorial"]
+      },
       improvements: [
-        "Simplify the hook phrasing slightly to improve immediate reader comprehension.",
-        "Add a visual signature transition or pattern interrupt exactly at the 5-second checkpoint.",
-        "Increase contrast values of thumbnail focal points to pop the subject outline."
-      ]
+        "Hook Optimization: Shorten the first sentence by 4 words to increase pacing speed.",
+        "Visual Cues: Add a pattern-interrupt transition at the 3-second mark.",
+        "Contrast boost: Shift background colors to deep dark gradient to pop foreground text.",
+        "Call to Action: Insert a micro comment-trigger question at the end of the script."
+      ],
+      predicted_performance: {
+        views_first_48hrs: "12K to 25K",
+        click_through_rate: "7.8% to 10.2%",
+        avg_watch_time: "52% to 65%",
+        subscriber_conversion: "High"
+      }
     };
 
     return {
