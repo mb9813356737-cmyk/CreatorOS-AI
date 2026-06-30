@@ -4,9 +4,10 @@ import { db } from "@/lib/prisma";
 import Razorpay from "razorpay";
 import { handleRouteError } from "@/lib/errors";
 
+// Avoid throwing module-level error during static analysis or build steps when environment variables are unset.
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "",
+  key_id: process.env.RAZORPAY_KEY_ID || "mock_key_id",
+  key_secret: process.env.RAZORPAY_KEY_SECRET || "mock_key_secret",
 });
 
 export async function POST(req: Request) {
@@ -14,6 +15,11 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      console.error("Razorpay API keys are not configured.");
+      return NextResponse.json({ error: "Razorpay integration is not configured on the server." }, { status: 500 });
     }
 
     const { amount, currency = "INR", planName } = await req.json();
