@@ -41,6 +41,17 @@ export function UpgradeModal() {
       return;
     }
 
+    if (selectedPlan === "AGENCY") {
+      toast.info("You're being redirected to our secure Razorpay checkout to subscribe to the CreatorOS AI Agency Plan for ₹2000/month.", {
+        duration: 3000,
+      });
+      setUpgradeModalOpen(false);
+      setTimeout(() => {
+        window.location.href = "https://pages.razorpay.com/pl_T7yfrNWglBrFGh/view";
+      }, 2000);
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -53,7 +64,7 @@ export function UpgradeModal() {
         return;
       }
 
-      const planInfo = PLANS[selectedPlan];
+      const planInfo = PLANS[selectedPlan as "PRO" | "AGENCY"];
       const amountRupees = planInfo.price / 100;
 
       const orderResponse = await fetch("/api/razorpay/create-order", {

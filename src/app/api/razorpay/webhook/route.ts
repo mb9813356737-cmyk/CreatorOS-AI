@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       if (!planName) {
         if (amount === 49900) {
           planName = "PRO";
-        } else if (amount === 199900) {
+        } else if (amount === 199900 || amount === 200000) {
           planName = "AGENCY";
         }
       }

@@ -50,10 +50,14 @@ export default function PaymentSuccessPage() {
             </Badge>
 
             <CardTitle className="text-2xl md:text-3xl font-extrabold tracking-tight text-text-primary">
-              {activePlan === "PRO" ? "Welcome to CreatorOS AI Pro!" : "Welcome to the Premium Club!"}
+              {activePlan === "PRO" 
+                ? "Welcome to CreatorOS AI Pro!" 
+                : activePlan === "AGENCY" 
+                  ? "Welcome to CreatorOS AI Agency!" 
+                  : "Welcome to the Premium Club!"}
             </CardTitle>
             <p className="text-xs text-text-secondary mt-1.5 max-w-sm mx-auto leading-relaxed">
-              {activePlan === "PRO" 
+              {activePlan === "PRO" || activePlan === "AGENCY"
                 ? "Your subscription is now active." 
                 : <span>Your payment was successfully processed. Your account is now upgraded to <span className="font-bold text-brand-400">{activePlan}</span>.</span>}
             </p>
