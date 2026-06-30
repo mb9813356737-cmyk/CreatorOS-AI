@@ -4,7 +4,6 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,78 +33,6 @@ interface RepurposeData {
   repurpose_summary: string;
 }
 
-// ─── Video Repurpose Interfaces ───────────────────────────────
-interface ShortClip {
-  clip_number: number;
-  title: string;
-  hook: string;
-  script: string;
-  duration: string;
-  best_moment: string;
-  cta: string;
-}
-
-interface VideoRepurposeData {
-  youtube_url: string;
-  detected_topic: string;
-  target_platform: string;
-  voice_tone: string;
-  short_clips: ShortClip[];
-  caption: string;
-  hashtags: string[];
-  best_time_to_post: string;
-  platform_tip: string;
-  repurpose_strategy: string;
-}
-
-// ─── YouTube Scraping & Helper Utilities ──────────────────────
-function extractVideoId(url: string) {
-  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  return match ? match[1] : null;
-}
-
-async function getVideoInfo(videoId: string) {
-  const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-  if (!response.ok) throw new Error("Could not fetch video info. Please check the URL.");
-  const data = await response.json();
-  return {
-    title: data.title,
-    author: data.author_name,
-  };
-}
-
-async function getTranscript(videoId: string) {
-  try {
-    const response = await fetch(`https://www.youtube.com/watch?v=${videoId}`);
-    const html = await response.text();
-    
-    // Extract caption track URL from page HTML
-    const captionMatch = html.match(/"captionTracks":(\[.*?\])/);
-    if (!captionMatch) return null;
-    
-    const captionTracks = JSON.parse(captionMatch[1]);
-    const englishTrack = captionTracks.find((t: any) => t.languageCode === 'en') || captionTracks[0];
-    if (!englishTrack) return null;
-    
-    const transcriptResponse = await fetch(englishTrack.baseUrl);
-    const transcriptXml = await transcriptResponse.text();
-    
-    // Strip XML tags to get plain text
-    const text = transcriptXml
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&#39;/g, "'")
-      .replace(/&quot;/g, '"')
-      .replace(/\s+/g, ' ')
-      .trim();
-    
-    return text;
-  } catch (error) {
-    console.error("Transcript fetch failed:", error);
-    return null;
-  }
-}
-
 // ─── JSON PARSING Helper ──────────────────────────────────────
 const parseResponse = (text: string) => {
   if (!text) return null;
@@ -125,9 +52,7 @@ const parseResponse = (text: string) => {
 
 // ─── Main Component ───────────────────────────────────────────
 export default function RepurposePage() {
-  const [activeTab, setActiveTab] = React.useState<"text" | "video">("text");
   const [content, setContent] = React.useState("");
-  const [youtubeUrl, setYoutubeUrl] = React.useState("");
   const [targetPlatform, setTargetPlatform] = React.useState("Twitter/X");
   const [tone, setTone] = React.useState("Storytelling");
 
@@ -135,22 +60,18 @@ export default function RepurposePage() {
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const [parsedData, setParsedData] = React.useState<any>(null);
+  const [parsedData, setParsedData] = React.useState<RepurposeData | null>(null);
 
   // Copied states
   const [copiedMain, setCopiedMain] = React.useState(false);
   const [copiedVar, setCopiedVar] = React.useState<Record<number, boolean>>({});
-  const [copiedCaption, setCopiedCaption] = React.useState(false);
 
-  const handleCopyText = async (text: string, type: "main" | "caption" | number) => {
+  const handleCopyText = async (text: string, type: "main" | number) => {
     try {
       await navigator.clipboard.writeText(text);
       if (type === "main") {
         setCopiedMain(true);
         setTimeout(() => setCopiedMain(false), 2000);
-      } else if (type === "caption") {
-        setCopiedCaption(true);
-        setTimeout(() => setCopiedCaption(false), 2000);
       } else {
         setCopiedVar((prev) => ({ ...prev, [type]: true }));
         setTimeout(() => setCopiedVar((prev) => ({ ...prev, [type]: false })), 2000);
@@ -162,21 +83,11 @@ export default function RepurposePage() {
     }
   };
 
-  // Reset output when switching tabs
-  const handleTabChange = (tab: "text" | "video") => {
-    setActiveTab(tab);
-    setTargetPlatform(tab === "text" ? "Twitter/X" : "YouTube Shorts");
-    setParsedData(null);
-    setOutput(null);
-    setError(null);
-    setIsGenerating(false);
-  };
-
   React.useEffect(() => {
     if (output) {
       const parsed = parseResponse(output);
       if (parsed) {
-        setParsedData(parsed);
+        setParsedData(parsed as RepurposeData);
       }
     }
   }, [output]);
@@ -228,21 +139,20 @@ export default function RepurposePage() {
     setError(null);
     setOutput(null);
 
-    if (activeTab === "text") {
-      const sourceContent = content;
-      const voiceTone = tone;
+    const sourceContent = content;
+    const voiceTone = tone;
 
-      // 5. Validate inputs before API call
-      if (!sourceContent.trim()) {
-        setError("Please paste your source content first.");
-        return;
-      }
+    // Validate inputs before API call
+    if (!sourceContent.trim()) {
+      setError("Please paste your source content first.");
+      return;
+    }
 
-      setIsGenerating(true);
+    setIsGenerating(true);
 
-      try {
-        // 2. Build the prompt string like this before the API call:
-        const prompt = `You are an expert content repurposing strategist and viral copywriter.
+    try {
+      // Build the prompt string before the API call
+      const prompt = `You are an expert content repurposing strategist and viral copywriter.
 
 SOURCE CONTENT: ${sourceContent}
 TARGET PLATFORM: ${targetPlatform}
@@ -284,160 +194,26 @@ Return this exact structure:
   "repurpose_summary": "One sentence explaining what was changed and why it works for this platform"
 }`;
 
-        const rawText = await generateWithFailover(prompt);
+      const rawText = await generateWithFailover(prompt);
 
-        setOutput(rawText);
-        setParsedData(parseResponse(rawText));
-      } catch (error: any) {
-        setError(`Generation failed on both providers: ${error.message}`);
-      } finally {
-        setIsGenerating(false);
-      }
-    } else {
-      // YOUTUBE VIDEO TAB
-      if (!youtubeUrl.trim()) {
-        setError("Please enter a YouTube URL first.");
-        return;
-      }
-
-      setIsGenerating(true);
-
-      try {
-        const videoId = extractVideoId(youtubeUrl);
-        if (!videoId) {
-          setError("Invalid YouTube URL. Please paste a valid YouTube video or Shorts link.");
-          setIsGenerating(false);
-          return;
-        }
-
-        let videoInfo;
-        try {
-          videoInfo = await getVideoInfo(videoId);
-        } catch (err: any) {
-          setError(err.message || "Could not fetch video info. Please check the URL.");
-          setIsGenerating(false);
-          return;
-        }
-
-        const transcript = await getTranscript(videoId);
-        if (!transcript) {
-          setError("Could not extract transcript from this video. It may not have captions available. Please try a different video or use the Text Input tab instead.");
-          setIsGenerating(false);
-          return;
-        }
-
-        const prompt = `You are an expert content repurposing strategist.
-
-VIDEO TITLE: ${videoInfo.title}
-VIDEO CHANNEL: ${videoInfo.author}
-VIDEO TRANSCRIPT: ${transcript.slice(0, 6000)}
-TARGET PLATFORM: ${targetPlatform}
-VOICE TONE: ${tone}
-
-Based on the ACTUAL video transcript above, extract the most viral moments and repurpose them.
-
-Return ONLY a valid JSON object. No preamble, no explanation, no markdown, no backticks.
-
-Return this exact structure:
-
-{
-  "youtube_url": "${youtubeUrl}",
-  "detected_topic": "${videoInfo.title.replace(/"/g, '\\"')}",
-  "target_platform": "${targetPlatform}",
-  "voice_tone": "${tone}",
-  "short_clips": [
-    {
-      "clip_number": 1,
-      "title": "Viral short title for this clip",
-      "hook": "Opening line for this short, max 15 words, scroll stopping",
-      "script": "Complete short script, written naturally for speaking out loud",
-      "duration": "15 to 30 seconds or 30 to 60 seconds",
-      "best_moment": "Describe which part of the original video to clip",
-      "cta": "Call to action at the end of this short"
-    },
-    {
-      "clip_number": 2,
-      "title": "Viral short title for this clip",
-      "hook": "Opening line for this short, max 15 words, scroll stopping",
-      "script": "Complete short script, written naturally for speaking out loud",
-      "duration": "15 to 30 seconds or 30 to 60 seconds",
-      "best_moment": "Describe which part of the original video to clip",
-      "cta": "Call to action at the end of this short"
-    },
-    {
-      "clip_number": 3,
-      "title": "Viral short title for this clip",
-      "hook": "Opening line for this short, max 15 words, scroll stopping",
-      "script": "Complete short script, written naturally for speaking out loud",
-      "duration": "15 to 30 seconds or 30 to 60 seconds",
-      "best_moment": "Describe which part of the original video to clip",
-      "cta": "Call to action at the end of this short"
-    }
-  ],
-  "caption": "Ready to post caption for the short on target platform",
-  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],
-  "best_time_to_post": "e.g. Tuesday to Thursday 7 PM to 9 PM IST",
-  "platform_tip": "One specific tip for this platform to maximize views on the short",
-  "repurpose_strategy": "One sentence explaining the overall repurposing strategy used"
-}
-
-PLATFORM RULES:
-- YouTube Shorts = fast paced, strong hook first 2 seconds, subscribe CTA, max 60 seconds
-- Instagram Reels = aesthetic energy, save and share CTA, trending audio suggestion in platform_tip
-- TikTok Video = FYP optimized, duet or stitch potential, sound trend mention in platform_tip, first 2 seconds critical
-
-VOICE TONE RULES:
-- Storytelling = narrative arc, beginning middle end, personal feel
-- Informative = facts first, clear structure, educational value
-- Motivational = power words, action driving, uplifting energy
-- Shocking = bold unexpected statements, pattern interrupt, jaw drop moment
-- Humorous = witty, playful, light sarcasm, relatable jokes
-- Controversial = strong opinion, challenge common belief, debate sparking
-- Inspirational = emotional journey, uplifting transformation, hope driven
-- Casual = friendly everyday language, like talking to a friend, conversational
-
-HASHTAG RULES:
-- YouTube Shorts = 3 to 5 hashtags
-- Instagram Reels = 5 to 10 hashtags
-- TikTok Video = 3 to 5 hashtags
-
-SHORT CLIPS RULES:
-- Generate exactly 3 clip ideas
-- Each clip must have a completely different angle and hook
-- Scripts must feel natural when spoken out loud
-- Duration must match platform: Shorts and Reels prefer 30 to 60 seconds, TikTok 15 to 60 seconds
-
-STRICT RULES:
-- Return ONLY the JSON object, nothing else
-- Every field must be filled, never empty or null
-- short_clips must have exactly 3 items
-- hashtags must follow platform rules above
-- Do not add any text before or after the JSON object`;
-
-        const rawText = await generateWithFailover(prompt);
-
-        setOutput(rawText);
-        setParsedData(parseResponse(rawText));
-      } catch (error: any) {
-        setError(`Generation failed on both providers: ${error.message}`);
-      } finally {
-        setIsGenerating(false);
-      }
+      setOutput(rawText);
+      setParsedData(parseResponse(rawText));
+    } catch (error: any) {
+      setError(`Generation failed on both providers: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   const renderOutput = () => {
-    // 6. LOADING STATE
+    // LOADING STATE
     if (isGenerating) {
-      const msg = activeTab === "video" 
-        ? "Extracting viral shorts from your video..." 
-        : "Repurposing your content for maximum reach...";
       return (
         <Card variant="glass" className="h-full min-h-[400px] flex items-center justify-center p-6">
           <div className="space-y-4 text-center">
             <RefreshCw className="h-8 w-8 animate-spin text-brand-400 mx-auto" />
             <p className="text-sm font-semibold text-text-secondary">
-              {msg}
+              Repurposing your content for maximum reach...
             </p>
           </div>
         </Card>
@@ -469,9 +245,7 @@ STRICT RULES:
             </div>
             <h4 className="font-extrabold text-text-primary text-sm tracking-wide">Ready to Repurpose</h4>
             <p className="text-xs text-text-muted leading-relaxed">
-              {activeTab === "text"
-                ? "Paste your script draft or blog post on the left to extract custom structured captions, threads, and short scripts."
-                : "Paste a YouTube video URL on the left to extract viral Shorts, Reels, or TikTok video script clips."}
+              Paste your script draft or blog post on the left to extract custom structured captions, threads, and short scripts.
             </p>
           </div>
         </Card>
@@ -484,161 +258,6 @@ STRICT RULES:
         <div className="p-4 text-xs text-error border border-error/40 rounded-lg">
           <p className="font-bold mb-2">Parse Error — Raw Response:</p>
           <pre className="overflow-auto max-h-40 text-text-muted">{output}</pre>
-        </div>
-      );
-    }
-
-    // SUCCESS STATE DISPLAY (VIDEO TAB)
-    if (activeTab === "video") {
-      const data = parsedData as VideoRepurposeData;
-      return (
-        <div className="space-y-6">
-          {/* SECTION 1 — TOP */}
-          <div className="space-y-2.5">
-            <h3 className="text-lg font-extrabold text-text-primary">
-              {data.detected_topic || "Detected Video Topic"}
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="default" className="text-xs px-3 py-1 font-bold">
-                {data.target_platform}
-              </Badge>
-              <Badge variant="secondary" className="text-xs px-3 py-1 font-bold">
-                Tone: {data.voice_tone}
-              </Badge>
-            </div>
-            <p className="text-xs text-text-muted italic leading-relaxed">
-              {data.repurpose_strategy}
-            </p>
-          </div>
-
-          {/* SECTION 2 — SHORT CLIPS */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
-              Extracted Viral Shorts
-            </h4>
-            <div className="grid grid-cols-1 gap-4">
-              {data.short_clips?.map((clip) => (
-                <Card key={clip.clip_number} variant="glass" className="border border-glass-border relative">
-                  <div className="absolute top-4 right-4 z-10 flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleCopyText(clip.script || "", clip.clip_number)}
-                      className="h-8 px-2.5 text-xs border border-glass-border bg-surface-50/50 hover:bg-surface-50"
-                      leftIcon={copiedVar[clip.clip_number] ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-                    >
-                      {copiedVar[clip.clip_number] ? "Copied!" : "Copy Script"}
-                    </Button>
-                  </div>
-                  <CardContent className="p-5 pt-6 space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="default" className="text-[9px] px-2 py-0.5 font-bold uppercase">
-                        Clip {clip.clip_number}
-                      </Badge>
-                      <Badge variant="secondary" className="text-[9px] px-2 py-0.5 font-semibold">
-                        Duration: {clip.duration}
-                      </Badge>
-                    </div>
-
-                    <p className="text-sm font-bold text-text-primary mt-1">
-                      {clip.title}
-                    </p>
-
-                    {clip.hook && (
-                      <div className="p-3 rounded-lg bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs font-medium italic">
-                        <span className="font-bold uppercase text-[9px] block text-brand-400 not-italic mb-0.5">Scroll Stop Hook:</span>
-                        "{clip.hook}"
-                      </div>
-                    )}
-
-                    <div className="p-4 rounded-lg bg-surface-50/20 border border-glass-border/30">
-                      <span className="font-bold uppercase text-[9px] block text-text-muted mb-1">Script:</span>
-                      <p className="text-xs text-text-secondary leading-relaxed select-all whitespace-pre-wrap">
-                        {clip.script}
-                      </p>
-                    </div>
-
-                    {clip.best_moment && (
-                      <div className="p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20 text-yellow-250 text-xs">
-                        <span className="font-bold uppercase text-[9px] block text-yellow-500/80 mb-0.5">Best Moment to Clip:</span>
-                        {clip.best_moment}
-                      </div>
-                    )}
-
-                    {clip.cta && (
-                      <div className="text-xs font-bold text-brand-400">
-                        <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-0.5">Call to Action:</span>
-                        {clip.cta}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          {/* SECTION 3 — 2 COLUMN GRID */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Left: Caption with Copy */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
-                Ready to Post Caption
-              </h4>
-              <Card variant="glass" className="border border-glass-border relative">
-                <div className="absolute top-4 right-4 z-10">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleCopyText(data.caption || "", "caption")}
-                    className="h-8 px-2.5 text-xs border border-glass-border bg-surface-50/50 hover:bg-surface-50"
-                    leftIcon={copiedCaption ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-                  >
-                    {copiedCaption ? "Copied!" : "Copy"}
-                  </Button>
-                </div>
-                <CardContent className="p-5 pt-6 select-all text-xs text-text-secondary whitespace-pre-wrap pr-16 leading-relaxed">
-                  {data.caption}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right: Hashtags */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
-                Hashtags
-              </h4>
-              <div className="flex flex-wrap gap-1.5 p-4 rounded-xl bg-surface-100/10 border border-glass-border/30">
-                {data.hashtags?.map((tag, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-[11px] font-semibold text-brand-300">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 4 — 2 COLUMN GRID */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Left: Best Time to Post */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
-                Best Time to Post
-              </h4>
-              <div className="p-4 rounded-xl bg-surface-100/10 border border-glass-border/30 text-xs font-bold text-text-primary">
-                {data.best_time_to_post}
-              </div>
-            </div>
-
-            {/* Right: Platform Tip */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">
-                Platform Tip
-              </h4>
-              <div className="p-4 rounded-xl bg-brand-500/10 border border-brand-500/30 text-xs text-brand-300 leading-relaxed font-medium">
-                {data.platform_tip}
-              </div>
-            </div>
-          </div>
         </div>
       );
     }
@@ -789,79 +408,30 @@ STRICT RULES:
         <div className="lg:col-span-5">
           <Card variant="glass">
             <CardContent className="pt-6">
-              {/* Tab Selector */}
-              <div className="flex gap-2 p-1.5 bg-surface-100/40 border border-glass-border/30 rounded-xl mb-5 select-none">
-                <button
-                  type="button"
-                  onClick={() => handleTabChange("text")}
-                  className={cn(
-                    "flex-1 py-2 px-3 text-xs font-extrabold rounded-lg transition-all duration-200 uppercase tracking-wider",
-                    activeTab === "text"
-                      ? "bg-brand-500 text-white shadow-glow-sm"
-                      : "text-text-secondary hover:text-text-primary hover:bg-surface-200/30"
-                  )}
-                >
-                  📝 Text Input
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleTabChange("video")}
-                  className={cn(
-                    "flex-1 py-2 px-3 text-xs font-extrabold rounded-lg transition-all duration-200 uppercase tracking-wider",
-                    activeTab === "video"
-                      ? "bg-brand-500 text-white shadow-glow-sm"
-                      : "text-text-secondary hover:text-text-primary hover:bg-surface-200/30"
-                  )}
-                >
-                  🎥 YouTube Video
-                </button>
-              </div>
-
               <form onSubmit={handleSubmit} className="space-y-5">
-                {activeTab === "text" ? (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block">Source Content</label>
-                    <Textarea
-                      placeholder="Paste your script, article, or transcript draft here..."
-                      className="min-h-[160px]"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      required
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block">YouTube Video URL</label>
-                    <Input
-                      placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                      value={youtubeUrl}
-                      onChange={(e) => setYoutubeUrl(e.target.value)}
-                      required
-                      type="url"
-                    />
-                  </div>
-                )}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block">Source Content</label>
+                  <Textarea
+                    placeholder="Paste your script, article, or transcript draft here..."
+                    className="min-h-[160px]"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    required
+                  />
+                </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-text-secondary uppercase tracking-wider block">
                     Target Format/Platform
                   </label>
                   <Select
-                    options={
-                      activeTab === "text"
-                        ? [
-                            { value: "Twitter/X", label: "Twitter/X", emoji: "🐦" },
-                            { value: "Instagram", label: "Instagram", emoji: "📸" },
-                            { value: "LinkedIn", label: "LinkedIn", emoji: "💼" },
-                            { value: "YouTube", label: "YouTube Description", emoji: "🎥" },
-                            { value: "YouTube Shorts", label: "YouTube Shorts Script", emoji: "⏱️" }
-                          ]
-                        : [
-                            { value: "YouTube Shorts", label: "YouTube Shorts", emoji: "⏱️" },
-                            { value: "Instagram Reels", label: "Instagram Reels", emoji: "📸" },
-                            { value: "TikTok Video", label: "TikTok Video", emoji: "🎵" }
-                          ]
-                    }
+                    options={[
+                      { value: "Twitter/X", label: "Twitter/X", emoji: "🐦" },
+                      { value: "Instagram", label: "Instagram", emoji: "📸" },
+                      { value: "LinkedIn", label: "LinkedIn", emoji: "💼" },
+                      { value: "YouTube", label: "YouTube Description", emoji: "🎥" },
+                      { value: "YouTube Shorts", label: "YouTube Shorts Script", emoji: "⏱️" }
+                    ]}
                     value={targetPlatform}
                     onChange={setTargetPlatform}
                   />
@@ -891,7 +461,7 @@ STRICT RULES:
                   isLoading={isGenerating}
                   leftIcon={!isGenerating && <Sparkles className="h-4.5 w-4.5" />}
                 >
-                  {activeTab === "text" ? "Repurpose Content" : "Extract & Repurpose Video"}
+                  Repurpose Content
                 </Button>
               </form>
             </CardContent>
