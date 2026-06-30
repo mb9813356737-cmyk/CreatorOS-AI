@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk, Geist } from "next/font/google";
+import { JetBrains_Mono, Space_Grotesk, Geist } from "next/font/google";
 import { ClerkProvider } from "@/lib/auth";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { ReactLenis } from "lenis/react";
+import { SessionLoader } from "@/components/shared/session-loader";
+import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
+import Script from "next/script";
 
 // ─── Fonts ─────────────────────────────────────────────────
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -14,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
   subsets: ["latin"],
   display: "swap",
-});
+  });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
@@ -73,11 +77,6 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-import { SessionLoader } from "@/components/shared/session-loader";
-import { cn } from "@/lib/utils";
-
-import { Toaster } from "sonner";
-
 // ─── Root Layout ───────────────────────────────────────────
 export default function RootLayout({
   children,
@@ -108,6 +107,8 @@ export default function RootLayout({
             </SkeletonTheme>
           </ThemeProvider>
         </ClerkProvider>
+        {/* Razorpay script tag loaded globally */}
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useUser } from "@/lib/auth";
 import { PLANS } from "@/lib/constants";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ interface PaymentRecord {
 
 export default function BillingPage() {
   const { subscription, refetch } = useSubscription();
+  const { user } = useUser();
   const [payments, setPayments] = React.useState<PaymentRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = React.useState(true);
   const billingPeriod: string = "monthly";
@@ -86,47 +88,80 @@ export default function BillingPage() {
     try {
       setCheckoutLoading(planKey);
       
-      const response = await fetch("/api/payments/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: planKey, billingPeriod }),
-      });
+      const currentUserId = user?.id || "";
+      const currentUserName = user?.fullName || "Content Creator";
+      const currentUserEmail = user?.emailAddresses?.[0]?.emailAddress || "";
 
-      if (!response.ok) {
-        throw new Error("Failed to initialize billing session");
-      }
-
-      const orderData = await response.json();
-
-      // Simulated billing bypass
-      if (orderData.simulated) {
-        await refetch();
-        window.location.href = "/billing/success";
+      if (!currentUserId) {
+        toast.error("Please sign in to upgrade your plan.");
         return;
       }
 
-      // Redirect to Stripe checkout
-      if (orderData.url) {
-        window.location.href = orderData.url;
-      } else {
-        throw new Error("No checkout URL returned");
+      const plan = PLANS[planKey];
+      const amountRupees = plan.price / 100;
+
+      const orderResponse = await fetch("/api/razorpay/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: amountRupees, planName: planKey, userId: currentUserId }),
+      });
+
+      if (!orderResponse.ok) {
+        throw new Error("Failed to create payment order");
       }
-    } catch (error) {
+
+      const { order } = await orderResponse.json();
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "CreatorOS AI",
+        description: `${plan.name} Subscription`,
+        order_id: order.id,
+        handler: async function (response: any) {
+          try {
+            setCheckoutLoading(planKey);
+            const verifyResponse = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                userId: currentUserId,
+                planName: planKey,
+              }),
+            });
+            const result = await verifyResponse.json();
+            if (result.success) {
+              toast.success("Payment successful! Your plan has been upgraded.");
+              await refetch();
+              window.location.href = "/billing/success";
+            } else {
+              toast.error("Payment verification failed. Please contact support.");
+            }
+          } catch (verifyErr) {
+            console.error(verifyErr);
+            toast.error("Verification failed. Please contact support.");
+          } finally {
+            setCheckoutLoading(null);
+          }
+        },
+        prefill: {
+          name: currentUserName,
+          email: currentUserEmail,
+        },
+        theme: {
+          color: "#7C3AED",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (error: any) {
       console.error("Payment setup error:", error);
-      // Fallback
-      try {
-        const simulateRes = await fetch("/api/payments/create-checkout-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan: planKey, billingPeriod, simulate: true }),
-        });
-        if (simulateRes.ok) {
-          await refetch();
-          window.location.href = "/billing/success";
-        }
-      } catch (e) {
-        window.location.href = "/billing/failure";
-      }
+      toast.error(error.message || "Failed to initialize payment gateway");
     } finally {
       setCheckoutLoading(null);
     }

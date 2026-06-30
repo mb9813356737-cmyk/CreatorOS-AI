@@ -201,7 +201,7 @@ export default async function InvoicePage({ params }: PageProps) {
             </div>
             <div className="md:text-right">
               <p>Status: <span className="font-bold text-emerald-400 uppercase">SUCCESS</span></p>
-              <p className="mt-0.5">Payment Method: Stripe Secure Gateway</p>
+              <p className="mt-0.5">Payment Method: Razorpay Gateway</p>
             </div>
           </div>
         </div>
