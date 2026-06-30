@@ -39,11 +39,38 @@ export async function POST(req: Request) {
       const currency = paymentEntity.currency || "INR";
       
       // Notes are inherited from order/payment creation
-      const userId = paymentEntity.notes?.userId;
-      const planName = paymentEntity.notes?.planName;
+      let userId = paymentEntity.notes?.userId;
+      let planName = paymentEntity.notes?.planName;
+
+      const email = paymentEntity.email;
+
+      // Fallback for hosted page payments where notes might be missing
+      if (!userId && email) {
+        console.log(`[Razorpay Webhook] Missing userId in notes, attempting email fallback for: ${email}`);
+        const userByEmail = await db.user.findFirst({
+          where: {
+            email: {
+              equals: email,
+              mode: 'insensitive'
+            }
+          }
+        });
+        if (userByEmail) {
+          userId = userByEmail.id;
+          console.log(`[Razorpay Webhook] Email fallback resolved userId: ${userId}`);
+        }
+      }
+
+      if (!planName) {
+        if (amount === 49900) {
+          planName = "PRO";
+        } else if (amount === 199900) {
+          planName = "AGENCY";
+        }
+      }
 
       if (!userId || !planName) {
-        console.warn("[Razorpay Webhook] Payment captured missing userId or planName in notes");
+        console.warn(`[Razorpay Webhook] Payment captured but could not resolve userId (${userId}) or planName (${planName}) for email: ${email}`);
         return NextResponse.json({ received: true });
       }
 

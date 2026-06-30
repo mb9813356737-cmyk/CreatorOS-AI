@@ -30,6 +30,17 @@ export function UpgradeModal() {
   const [loading, setLoading] = React.useState(false);
 
   const handleCheckout = async () => {
+    if (selectedPlan === "PRO") {
+      toast.info("You're being redirected to our secure Razorpay checkout page to complete your CreatorOS AI Pro subscription for ₹499/month.", {
+        duration: 3000,
+      });
+      setUpgradeModalOpen(false);
+      setTimeout(() => {
+        window.location.href = "https://pages.razorpay.com/pl_T7yLK4DuFCDewU/view#";
+      }, 2000);
+      return;
+    }
+
     try {
       setLoading(true);
       

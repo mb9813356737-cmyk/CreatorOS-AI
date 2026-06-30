@@ -86,6 +86,16 @@ export default function BillingPage() {
 
   // Handle upgrade/downgrade subscription checkout
   const handleUpgrade = async (planKey: "PRO" | "AGENCY") => {
+    if (planKey === "PRO") {
+      toast.info("You're being redirected to our secure Razorpay checkout page to complete your CreatorOS AI Pro subscription for ₹499/month.", {
+        duration: 3000,
+      });
+      setTimeout(() => {
+        window.location.href = "https://pages.razorpay.com/pl_T7yLK4DuFCDewU/view#";
+      }, 2000);
+      return;
+    }
+
     try {
       setCheckoutLoading(planKey);
       
