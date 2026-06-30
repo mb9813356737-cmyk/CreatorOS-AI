@@ -12,7 +12,6 @@ import { useUIStore } from "@/stores/ui-store";
 import { 
   User, 
   Zap, 
-  Key, 
   Monitor
 } from "lucide-react";
 
@@ -30,7 +29,7 @@ export default function SettingsPage() {
     <div className="space-y-6 md:space-y-8 pb-12">
       <PageHeader
         title="Settings & Profile"
-        description="Manage your account preferences, subscription status, and developer API keys."
+        description="Manage your account preferences and subscription status."
         badge="Account Settings"
       />
 
@@ -133,24 +132,6 @@ export default function SettingsPage() {
                 <span className="text-text-secondary font-medium">Transition Animations</span>
                 <span className="font-bold text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Framer Spring Active</span>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* AI Settings */}
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <Key className="h-5 w-5 text-brand-400" />
-                Developer AI Providers
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-0 text-xs leading-relaxed text-text-secondary select-none">
-              <p>
-                By default, this app is running in <span className="font-bold text-brand-400">Sandbox Mock Mode</span> without requiring individual OpenAI/Gemini keys.
-              </p>
-              <p>
-                To enable live production generations, configure your <code className="font-mono bg-surface-100 border border-glass-border px-1 rounded text-text-primary">.env.local</code> file on the server with real API credentials (e.g. <code className="font-mono bg-surface-100 border border-glass-border px-1 rounded text-text-primary">GOOGLE_GENERATIVE_AI_KEY</code>).
-              </p>
             </CardContent>
           </Card>
         </div>
