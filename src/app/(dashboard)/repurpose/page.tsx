@@ -58,6 +58,54 @@ interface VideoRepurposeData {
   repurpose_strategy: string;
 }
 
+// ─── YouTube Scraping & Helper Utilities ──────────────────────
+function extractVideoId(url: string) {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+async function getVideoInfo(videoId: string) {
+  const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+  if (!response.ok) throw new Error("Could not fetch video info. Please check the URL.");
+  const data = await response.json();
+  return {
+    title: data.title,
+    author: data.author_name,
+  };
+}
+
+async function getTranscript(videoId: string) {
+  try {
+    const response = await fetch(`https://www.youtube.com/watch?v=${videoId}`);
+    const html = await response.text();
+    
+    // Extract caption track URL from page HTML
+    const captionMatch = html.match(/"captionTracks":(\[.*?\])/);
+    if (!captionMatch) return null;
+    
+    const captionTracks = JSON.parse(captionMatch[1]);
+    const englishTrack = captionTracks.find((t: any) => t.languageCode === 'en') || captionTracks[0];
+    if (!englishTrack) return null;
+    
+    const transcriptResponse = await fetch(englishTrack.baseUrl);
+    const transcriptXml = await transcriptResponse.text();
+    
+    // Strip XML tags to get plain text
+    const text = transcriptXml
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    return text;
+  } catch (error) {
+    console.error("Transcript fetch failed:", error);
+    return null;
+  }
+}
+
 // ─── JSON PARSING Helper ──────────────────────────────────────
 const parseResponse = (text: string) => {
   if (!text) return null;
@@ -255,13 +303,38 @@ Return this exact structure:
       setIsGenerating(true);
 
       try {
-        const prompt = `You are an expert content repurposing strategist specializing in extracting viral short-form content from long-form YouTube videos.
+        const videoId = extractVideoId(youtubeUrl);
+        if (!videoId) {
+          setError("Invalid YouTube URL. Please paste a valid YouTube video or Shorts link.");
+          setIsGenerating(false);
+          return;
+        }
 
-YOUTUBE_URL: ${youtubeUrl}
-TARGET_PLATFORM: ${targetPlatform}
-VOICE_TONE: ${tone}
+        let videoInfo;
+        try {
+          videoInfo = await getVideoInfo(videoId);
+        } catch (err: any) {
+          setError(err.message || "Could not fetch video info. Please check the URL.");
+          setIsGenerating(false);
+          return;
+        }
 
-Based on the YouTube URL provided, analyze the video topic from the URL itself and generate complete repurposed short-form content.
+        const transcript = await getTranscript(videoId);
+        if (!transcript) {
+          setError("Could not extract transcript from this video. It may not have captions available. Please try a different video or use the Text Input tab instead.");
+          setIsGenerating(false);
+          return;
+        }
+
+        const prompt = `You are an expert content repurposing strategist.
+
+VIDEO TITLE: ${videoInfo.title}
+VIDEO CHANNEL: ${videoInfo.author}
+VIDEO TRANSCRIPT: ${transcript.slice(0, 6000)}
+TARGET PLATFORM: ${targetPlatform}
+VOICE TONE: ${tone}
+
+Based on the ACTUAL video transcript above, extract the most viral moments and repurpose them.
 
 Return ONLY a valid JSON object. No preamble, no explanation, no markdown, no backticks.
 
@@ -269,7 +342,7 @@ Return this exact structure:
 
 {
   "youtube_url": "${youtubeUrl}",
-  "detected_topic": "Topic detected from the YouTube URL or video ID",
+  "detected_topic": "${videoInfo.title.replace(/"/g, '\\"')}",
   "target_platform": "${targetPlatform}",
   "voice_tone": "${tone}",
   "short_clips": [
