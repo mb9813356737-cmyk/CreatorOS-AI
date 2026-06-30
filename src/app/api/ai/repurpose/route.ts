@@ -6,15 +6,18 @@ import { handleRouteError } from "@/lib/errors";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { sourceContent, youtubeUrl, targetPlatform, tone } = body;
-    if ((!sourceContent && !youtubeUrl) || !targetPlatform || !tone) {
+    const { sourceContent, youtubeUrl, targetPlatform, tone, prompt } = body;
+    if (!prompt && ((!sourceContent && !youtubeUrl) || !targetPlatform || !tone)) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     let userPrompt = "";
     let systemPrompt: string = SYSTEM_PROMPTS.REPURPOSE;
 
-    if (youtubeUrl) {
+    if (prompt) {
+      systemPrompt = "You are an expert content repurposing strategist and copywriter. Return only the JSON object.";
+      userPrompt = prompt;
+    } else if (youtubeUrl) {
       systemPrompt = `You are an expert content repurposing strategist specializing in extracting viral short-form content from long-form YouTube videos.
 
 The user will provide:
@@ -110,7 +113,7 @@ STRICT RULES:
       type: "REPURPOSE",
       systemPrompt,
       userPrompt,
-      platform: targetPlatform,
+      platform: targetPlatform || "Twitter/X",
       inputData: body,
       options: {
         maxTokens: 3000,

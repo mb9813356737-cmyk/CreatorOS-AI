@@ -133,6 +133,47 @@ export default function RepurposePage() {
     }
   }, [output]);
 
+  const generateWithFailover = async (prompt: string) => {
+    try {
+      const geminiResponse = await fetch("/api/ai/repurpose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
+      
+      if (!geminiResponse.ok) throw new Error("Gemini failed");
+      
+      const geminiData = await geminiResponse.json();
+      const geminiText = geminiData.output || geminiData.text || "";
+      
+      if (!geminiText) throw new Error("Gemini empty response");
+      
+      return geminiText;
+    } catch (geminiError: any) {
+      console.log("Gemini failed, falling back to Claude:", geminiError.message);
+      
+      const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 3000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+      
+      if (!claudeResponse.ok) {
+        const errorData = await claudeResponse.json();
+        throw new Error(`Both providers failed. Claude error: ${errorData.error?.message || claudeResponse.status}`);
+      }
+      
+      const claudeData = await claudeResponse.json();
+      const claudeText = claudeData.content?.map((i: any) => i.text || "").join("") || "";
+      
+      return claudeText;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setParsedData(null);
@@ -195,32 +236,12 @@ Return this exact structure:
   "repurpose_summary": "One sentence explaining what was changed and why it works for this platform"
 }`;
 
-        // Replace the entire API call in both tabs with this exact Anthropic Claude call
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-6",
-            max_tokens: 3000,
-            messages: [{ role: "user", content: prompt }]
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(`API Error: ${errorData.error?.message || response.status}`);
-        }
-
-        const data = await response.json();
-        const rawText = data.content?.map((i: any) => i.text || "").join("") || "";
+        const rawText = await generateWithFailover(prompt);
 
         setOutput(rawText);
         setParsedData(parseResponse(rawText));
       } catch (error: any) {
-        // 3. Make sure the error message shows the actual error
-        setError(`Error: ${error.message}`);
+        setError(`Generation failed on both providers: ${error.message}`);
       } finally {
         setIsGenerating(false);
       }
@@ -320,32 +341,12 @@ STRICT RULES:
 - hashtags must follow platform rules above
 - Do not add any text before or after the JSON object`;
 
-        // Replace the entire API call in both tabs with this exact Anthropic Claude call
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-6",
-            max_tokens: 3000,
-            messages: [{ role: "user", content: prompt }]
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(`API Error: ${errorData.error?.message || response.status}`);
-        }
-
-        const data = await response.json();
-        const rawText = data.content?.map((i: any) => i.text || "").join("") || "";
+        const rawText = await generateWithFailover(prompt);
 
         setOutput(rawText);
         setParsedData(parseResponse(rawText));
       } catch (error: any) {
-        // 3. Make sure the error message shows the actual error
-        setError(`Error: ${error.message}`);
+        setError(`Generation failed on both providers: ${error.message}`);
       } finally {
         setIsGenerating(false);
       }
