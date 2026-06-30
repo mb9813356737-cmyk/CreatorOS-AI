@@ -117,8 +117,8 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Monitor className="h-5 w-5 text-brand-400" />
-                Workspace UI Configuration
-              </Title>
+                System Preferences
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-0 text-xs">
               <div className="flex justify-between items-center">
