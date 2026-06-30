@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -588,7 +589,7 @@ export default function BillingPage() {
                   </div>
                 </div>
               </div>
-              <CardFooter className="p-0 pt-6 mt-auto border-t border-glass-border/10">
+              <CardFooter className="p-0 pt-6 mt-auto border-t border-glass-border/10 flex flex-col gap-2.5">
                 <Button 
                   onClick={() => handleUpgrade("PRO")}
                   variant={currentPlan === "PRO" ? "outline" : "glow"}
@@ -598,6 +599,19 @@ export default function BillingPage() {
                 >
                   {currentPlan === "PRO" ? "Current Active Tier" : "Upgrade to Pro"}
                 </Button>
+                {currentPlan !== "PRO" && (
+                  <p className="text-[10px] text-center text-text-muted leading-snug">
+                    By subscribing you agree to our{" "}
+                    <Link href="/terms-and-conditions" className="underline hover:text-text-primary transition-colors">
+                      Terms & Conditions
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy-policy" className="underline hover:text-text-primary transition-colors">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </p>
+                )}
               </CardFooter>
             </Card>
           </motion.div>
@@ -651,7 +665,7 @@ export default function BillingPage() {
                   </div>
                 </div>
               </div>
-              <CardFooter className="p-0 pt-6 mt-auto border-t border-glass-border/10">
+              <CardFooter className="p-0 pt-6 mt-auto border-t border-glass-border/10 flex flex-col gap-2.5">
                 <Button 
                   onClick={() => handleUpgrade("AGENCY")}
                   variant={currentPlan === "AGENCY" ? "outline" : "glow"}
@@ -661,6 +675,19 @@ export default function BillingPage() {
                 >
                   {currentPlan === "AGENCY" ? "Current Active Tier" : "Upgrade to Agency"}
                 </Button>
+                {currentPlan !== "AGENCY" && (
+                  <p className="text-[10px] text-center text-text-muted leading-snug">
+                    By subscribing you agree to our{" "}
+                    <Link href="/terms-and-conditions" className="underline hover:text-text-primary transition-colors">
+                      Terms & Conditions
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy-policy" className="underline hover:text-text-primary transition-colors">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </p>
+                )}
               </CardFooter>
             </Card>
           </motion.div>

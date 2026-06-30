@@ -12,6 +12,7 @@ import { PLANS } from "@/lib/constants";
 import { Check, Sparkles, Zap, Loader2, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { CoreSpinLoader } from "@/components/ui/core-spin-loader";
 
 declare global {
@@ -240,6 +241,17 @@ export function UpgradeModal() {
           >
             {loading ? "Connecting Gateway..." : "Secure Upgrade Checkout"}
           </Button>
+          <p className="text-[10px] text-center text-text-muted leading-snug mt-3">
+            By subscribing you agree to our{" "}
+            <Link href="/terms-and-conditions" className="underline hover:text-text-primary transition-colors">
+              Terms & Conditions
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy-policy" className="underline hover:text-text-primary transition-colors">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
 
         {/* Right Side: Visual banner */}

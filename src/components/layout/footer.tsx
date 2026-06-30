@@ -43,6 +43,9 @@ export function Footer() {
             <li>
               <Link href="/dashboard" className="text-text-secondary hover:text-brand-400 transition-colors">Dashboard</Link>
             </li>
+            <li>
+              <Link href="/contact" className="text-text-secondary hover:text-brand-400 transition-colors">Contact Us</Link>
+            </li>
           </ul>
         </div>
 
@@ -51,13 +54,13 @@ export function Footer() {
           <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">Legal</h4>
           <ul className="space-y-2.5 text-sm">
             <li>
-              <a href="#" className="text-text-secondary hover:text-brand-400 transition-colors">Privacy Policy</a>
+              <Link href="/privacy-policy" className="text-text-secondary hover:text-brand-400 transition-colors">Privacy Policy</Link>
             </li>
             <li>
-              <a href="#" className="text-text-secondary hover:text-brand-400 transition-colors">Terms of Service</a>
+              <Link href="/terms-and-conditions" className="text-text-secondary hover:text-brand-400 transition-colors">Terms & Conditions</Link>
             </li>
             <li>
-              <a href="#" className="text-text-secondary hover:text-brand-400 transition-colors">Refund Policy</a>
+              <Link href="/refund-policy" className="text-text-secondary hover:text-brand-400 transition-colors">Refund Policy</Link>
             </li>
           </ul>
         </div>
