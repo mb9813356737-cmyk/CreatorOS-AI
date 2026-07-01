@@ -46,6 +46,16 @@ export async function POST(req: Request) {
       );
     }
 
+    // Prevent duplicate activations for the same payment transaction
+    const existingPayment = await db.payment.findUnique({
+      where: { razorpayPaymentId: razorpay_payment_id },
+    });
+
+    if (existingPayment && existingPayment.status === PaymentStatus.SUCCESS) {
+      console.log(`[Verify API] Payment ${razorpay_payment_id} already processed. Skipping duplicate update.`);
+      return NextResponse.json({ success: true });
+    }
+
     // If userId and planName are provided, upgrade subscription
     if (userId && planName) {
       let planEnum: Plan;
