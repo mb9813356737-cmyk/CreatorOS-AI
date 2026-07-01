@@ -29,6 +29,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { CoreSpinLoader } from "@/components/ui/core-spin-loader";
+import { RazorpayPaymentButton } from "@/components/shared/razorpay-payment-button";
 
 interface PaymentRecord {
   id: string;
@@ -610,15 +611,19 @@ export default function BillingPage() {
                 </div>
               </div>
               <CardFooter className="p-0 pt-6 mt-auto border-t border-glass-border/10 flex flex-col gap-2.5">
-                <Button 
-                  onClick={() => handleUpgrade("PRO")}
-                  variant={currentPlan === "PRO" ? "outline" : "glow"}
-                  className="w-full font-bold"
-                  isLoading={checkoutLoading === "PRO"}
-                  disabled={currentPlan === "PRO"}
-                >
-                  {currentPlan === "PRO" ? "Current Active Tier" : "Upgrade to Pro"}
-                </Button>
+                {currentPlan === "PRO" ? (
+                  <Button 
+                    variant="outline"
+                    className="w-full font-bold"
+                    disabled
+                  >
+                    Current Active Tier
+                  </Button>
+                ) : (
+                  <div className="w-full flex justify-center py-1">
+                    <RazorpayPaymentButton />
+                  </div>
+                )}
                 {currentPlan !== "PRO" && (
                   <p className="text-[10px] text-center text-text-muted leading-snug">
                     By subscribing you agree to our{" "}

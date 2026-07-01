@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { CoreSpinLoader } from "@/components/ui/core-spin-loader";
+import { RazorpayPaymentButton } from "@/components/shared/razorpay-payment-button";
 
 declare global {
   interface Window {
@@ -255,14 +256,20 @@ export function UpgradeModal() {
             </div>
           </div>
 
-          <Button
-            onClick={handleCheckout}
-            isLoading={loading}
-            className="w-full h-11 text-white font-bold"
-            leftIcon={!loading && <Zap className="h-4 w-4 fill-current" />}
-          >
-            {loading ? "Connecting Gateway..." : "Secure Upgrade Checkout"}
-          </Button>
+          {selectedPlan === "PRO" ? (
+            <div className="w-full flex justify-center py-2">
+              <RazorpayPaymentButton />
+            </div>
+          ) : (
+            <Button
+              onClick={handleCheckout}
+              isLoading={loading}
+              className="w-full h-11 text-white font-bold"
+              leftIcon={!loading && <Zap className="h-4 w-4 fill-current" />}
+            >
+              {loading ? "Connecting Gateway..." : "Secure Upgrade Checkout"}
+            </Button>
+          )}
           <p className="text-[10px] text-center text-text-muted leading-snug mt-3">
             By subscribing you agree to our{" "}
             <Link href="/terms-and-conditions" className="underline hover:text-text-primary transition-colors">
