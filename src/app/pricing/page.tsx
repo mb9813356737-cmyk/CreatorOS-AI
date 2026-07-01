@@ -12,7 +12,7 @@ import { Check, Sparkles, ShieldCheck, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/auth";
 import { toast } from "sonner";
-import { RazorpayPaymentButton } from "@/components/shared/razorpay-payment-button";
+
 
 export default function PricingPage() {
   const { user, isLoaded } = useUser();
@@ -240,10 +240,6 @@ export default function PricingPage() {
                         Get Started Free
                       </Button>
                     </Link>
-                  ) : plan.key === "PRO" ? (
-                    <div className="w-full flex flex-col gap-3 justify-center items-center py-2">
-                      <RazorpayPaymentButton />
-                    </div>
                   ) : (
                     <div className="w-full flex flex-col gap-3">
                       <Button
