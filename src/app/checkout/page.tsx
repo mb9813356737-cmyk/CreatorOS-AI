@@ -16,6 +16,32 @@ declare global {
   }
 }
 
+
+// Reusable React Wrapper for Razorpay Pre-built Payment Button
+function RazorpayPaymentButton() {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Clear existing children to prevent duplicate buttons during hot reloads
+    containerRef.current.innerHTML = "";
+
+    const form = document.createElement("form");
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/payment-button.js";
+    script.setAttribute("data-payment_button_id", "pl_T8JhtfA6dZD5hN");
+    script.async = true;
+
+    form.appendChild(script);
+    containerRef.current.appendChild(form);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="w-full flex justify-center py-4 bg-surface-200/30 rounded-xl border border-glass-border/10 shadow-inner" />
+  );
+}
+
 export default function StandardCheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [amountRupees, setAmountRupees] = useState("499");
@@ -134,22 +160,23 @@ export default function StandardCheckoutPage() {
 
       <Navbar />
 
-      <main className="flex-1 max-w-2xl mx-auto px-6 py-12 relative z-10 w-full flex flex-col justify-center">
+      <main className="flex-1 max-w-5xl mx-auto px-6 py-12 relative z-10 w-full flex flex-col justify-center">
         {/* Header */}
         <div className="text-center space-y-4 mb-10">
           <Badge variant="gradient" className="font-extrabold px-3 py-1 text-xs bg-linear-to-r from-brand-500 to-accent-500 text-white">
             Secure Payment Portal
           </Badge>
           <h1 className="text-3xl md:text-4xl font-extrabold text-text-primary tracking-tight">
-            Razorpay Standard Gateway
+            Razorpay Gateway Sandbox
           </h1>
           <p className="max-w-md mx-auto text-xs text-text-secondary">
-            Standard Web Integration Sandbox using live verification signatures.
+            Compare Standard Web overlay modal checkouts and pre-built hosted payment buttons.
           </p>
         </div>
 
-        {/* Card containing checkout interface */}
-        <Card className="border border-glass-border/20 bg-surface-100/50 backdrop-blur-md p-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+          {/* Card containing checkout interface */}
+          <Card className="border border-glass-border/20 bg-surface-100/50 backdrop-blur-md p-6 flex flex-col justify-between">
           <CardHeader className="p-0 flex flex-row items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400">
               <CreditCard className="h-5 w-5" />
@@ -239,7 +266,40 @@ export default function StandardCheckoutPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
+
+        {/* Card containing the pre-built button script */}
+        <Card className="border border-glass-border/20 bg-surface-100/50 backdrop-blur-md p-6 flex flex-col justify-between">
+          <div>
+            <CardHeader className="p-0 mb-4 flex flex-row items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-accent-500/10 border border-accent-500/20 flex items-center justify-center text-accent-400">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-text-primary">Pre-built Payment Button</CardTitle>
+                <p className="text-[11px] text-text-muted">Hosted button configuration matching button ID <code>pl_T8JhtfA6dZD5hN</code>.</p>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-0 space-y-5">
+              <p className="text-xs text-text-secondary leading-relaxed">
+                This integration is rendered dynamically using a secure Razorpay javascript loader script inside a React life-cycle portal wrapper. It opens a checkout modal configured on your Razorpay dashboard.
+              </p>
+
+              {/* Render Payment Button wrapper component */}
+              <RazorpayPaymentButton />
+            </CardContent>
+          </div>
+
+          <div className="pt-4 border-t border-glass-border/10 flex items-center justify-between text-[10px] text-text-muted mt-6">
+            <div className="flex items-center gap-1">
+              <ShieldCheck className="h-3.5 w-3.5 text-accent-400" />
+              <span>Button ID: pl_T8JhtfA6dZD5hN</span>
+            </div>
+            <span>Hosted by Razorpay</span>
+          </div>
+        </Card>
+      </div>
+    </main>
 
       <Footer />
     </div>
