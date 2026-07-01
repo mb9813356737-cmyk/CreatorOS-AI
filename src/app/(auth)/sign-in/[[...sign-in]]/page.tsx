@@ -26,8 +26,23 @@ export default function SignInPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (searchParams.get("expired") === "true") {
+    const expired = searchParams.get("expired");
+    const errorParam = searchParams.get("error");
+    
+    if (expired === "true") {
       setError("Your session has expired. Please sign in again.");
+    } else if (errorParam === "google_cancelled") {
+      setError("Google authentication was cancelled. Please try again.");
+    } else if (errorParam === "invalid_token") {
+      setError("Invalid Google token or auth expired.");
+    } else if (errorParam === "network_error") {
+      setError("Network error communicating with Google servers. Please try again.");
+    } else if (errorParam === "unauthorized_access") {
+      setError("Unauthorized profile lookup from Google. Make sure email is shared.");
+    } else if (errorParam === "suspended") {
+      setError("This account is currently suspended. Please contact support.");
+    } else if (errorParam) {
+      setError("Failed to sign in with Google. Please try again.");
     }
   }, [searchParams]);
 
@@ -159,6 +174,45 @@ export default function SignInPage() {
             Sign In
           </Button>
         </form>
+
+        <div className="relative my-6 flex items-center justify-center">
+          <div className="absolute inset-x-0 h-[1px] bg-glass-border/20" />
+          <span className="relative px-3 bg-[#050508] text-[10px] font-bold text-text-muted uppercase tracking-widest select-none">
+            Or continue with
+          </span>
+        </div>
+
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full h-11 font-bold text-xs hover:border-glass-border-hover/80 hover:bg-surface-200/20"
+          onClick={() => {
+            window.location.href = "/api/auth/google";
+          }}
+          disabled={loading}
+          leftIcon={
+            <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
+              <path
+                fill="#EA4335"
+                d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.37 0 3.393 2.666 1.488 6.545l3.778 3.22Z"
+              />
+              <path
+                fill="#4285F4"
+                d="M23.455 12.273c0-.818-.073-1.609-.209-2.373H12v4.582h6.418a5.522 5.522 0 0 1-2.395 3.627v3.01h3.873c2.264-2.082 3.564-5.145 3.564-8.846Z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.266 14.235 1.488 17.455C3.393 21.334 7.37 24 12 24c3.055 0 5.618-1.01 7.49-2.736l-3.873-3.01c-1.073.718-2.445 1.145-3.617 1.145-3.236 0-5.973-2.182-6.955-5.114l-3.778 3.22Z"
+              />
+              <path
+                fill="#34A853"
+                d="M1.488 6.545 5.266 9.765a7.042 7.042 0 0 1 6.734 4.47l3.778-3.22c-1.464-4.382-5.59-7.515-10.518-7.515C5.055 3.5 2.973 4.673 1.488 6.545Z"
+              />
+            </svg>
+          }
+        >
+          Continue with Google
+        </Button>
 
         <div className="mt-8 pt-6 border-t border-glass-border/20 text-center text-[11px] text-text-secondary">
           Don&apos;t have an account?{" "}
